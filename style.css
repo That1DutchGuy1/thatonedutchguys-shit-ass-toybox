@@ -1,0 +1,519 @@
+@font-face {
+  font-family: 'Comic Sans MS';
+  src: url('./Comic-Sans-MS.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+/* =========================================
+   WARNING SPLASH SCREEN
+   ========================================= */
+
+#warning-splash {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+#warning-splash.splash-hidden {
+  display: none;
+}
+
+.splash-content {
+  max-width: 650px;
+  width: 100%;
+  text-align: center;
+  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-weight: bold;
+  color: #ff2b2b;
+  opacity: 0;
+  animation: splash-fade-in 1.2s ease forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes splash-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.splash-title {
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+  color: #ff2b2b;
+}
+
+.splash-text {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin: 12px 0;
+  color: #ff2b2b;
+}
+
+.splash-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  text-align: left;
+  display: inline-block;
+}
+
+.splash-list li {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin: 10px 0;
+  color: #ff2b2b;
+}
+
+.splash-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-top: 35px;
+  flex-wrap: wrap;
+}
+
+.splash-btn {
+  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-weight: bold;
+  font-size: 1.2rem;
+  padding: 14px 28px;
+  border: 3px solid #ff2b2b;
+  border-radius: 12px;
+  background: transparent;
+  color: #ff2b2b;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.splash-btn:hover {
+  transform: scale(1.08);
+  background: #ff2b2b;
+  color: #000;
+}
+
+#splash-enter {
+  background: #ff2b2b;
+  color: #000;
+}
+
+#splash-enter:hover {
+  background: transparent;
+  color: #ff2b2b;
+}
+
+/* Prevent the page behind the splash from scrolling while it's up */
+body.splash-active {
+  overflow: hidden;
+}
+
+/* Game's font and background */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  /* Hiding the scrollbar */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* Chrome, Safari and Opera */
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-weight: bold;
+  /* Animated Meme Background */
+  background: linear-gradient(-45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #FF13F0, #ff0000);
+  background-size: 300% 300%;
+  animation: meme-wave 10s ease infinite;
+  color: #88ff00;
+  -webkit-text-stroke: 0.6px #000;
+  text-align: center;
+  padding: 50px 20px 10px;
+  overflow-x: hidden;
+}
+
+.brand-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.main-logo {
+  width: 150px;
+  height: auto;
+  margin-bottom: 10px;
+}
+
+.text-logo {
+  width: 400px;
+  max-width: 90%;
+  height: auto;
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
+/* text logo pulse animation */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Rainbow gradient background animation */
+@keyframes meme-wave {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 0%; }
+}
+
+h1 {
+  font-size: 4rem;
+  margin-top: 10px;
+  margin-bottom: 40px;
+  text-transform: uppercase;
+}
+
+.game-container {
+  display: grid;
+  grid-template-columns: repeat(2, 360px);
+  gap: 50px 60px;
+  justify-content: end;
+  margin-right: 80px;
+  margin-bottom: 80px;
+  padding: 30px 80px 30px 30px;
+}
+
+/* =========================================
+   TOYS PANEL (left side)
+   ========================================= */
+
+#toys-panel {
+  position: fixed;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  z-index: 1000;
+  border: 4px solid #333;
+  border-radius: 20px;
+  padding: 14px 14px 20px;
+}
+
+#toys-panel-label {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 2.5rem;
+  letter-spacing: 0.05em;
+  -webkit-text-stroke: 1.5px #000;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  color: transparent !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: spin-text-rainbow 2s linear infinite;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.toy-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  filter: drop-shadow(4px 4px 6px rgba(0,0,0,0.6));
+  transition: transform 0.1s ease, filter 0.1s ease;
+  width: 140px;
+}
+
+.toy-btn img {
+  width: 120px;
+  height: auto;
+}
+
+.toy-btn:hover {
+  filter: drop-shadow(0 0 16px #ff0) drop-shadow(4px 4px 6px rgba(0,0,0,0.6));
+  transform: scale(1.12);
+}
+
+.toy-btn:active {
+  transform: scale(0.93);
+}
+
+.toy-btn.toy-airhorn img {
+  animation: airhorn-bob 2s ease-in-out infinite;
+}
+
+.toy-btn.toy-pingas img {
+  animation: pingas-bounce 0.8s ease-in-out infinite;
+}
+
+.toy-btn.toy-cd-i-king-harkinian img {
+  animation: harkinian-shuffle 0.8s ease-in-out infinite;
+}
+
+.toy-btn.toy-mama-luigi img {
+  animation: mama-luigi-shake 0.8s ease-in-out infinite;
+}
+
+@keyframes airhorn-bob {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  50% { transform: translateY(-8px) rotate(8deg); }
+}
+
+@keyframes pingas-bounce {
+  0%, 100% { transform: translateY(0) scaleX(1); }
+  50% { transform: translateY(-6px) scaleX(1.05); }
+}
+
+@keyframes harkinian-shuffle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-6px) rotate(-5deg); }
+  75% { transform: translateY(-6px) rotate(5deg); }
+}
+
+@keyframes mama-luigi-shake {
+  0%   { transform: translateX(0)     translateY(0)    rotate(0deg);  }
+  25%  { transform: translateX(-5px)  translateY(0)    rotate(-3deg); }
+  50%  { transform: translateX(5px)   translateY(-3px) rotate(3deg);  }
+  75%  { transform: translateX(-5px)  translateY(0)    rotate(-3deg); }
+  100% { transform: translateX(0)     translateY(0)    rotate(0deg);  }
+}
+
+/* =========================================
+   GAME CARDS
+   ========================================= */
+.game-card {
+  background-color: white;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 6px solid #333;
+  border-radius: 25px;
+  padding: 30px;
+  width: 300px;
+  box-shadow: 10px 10px 0px rgba(0,0,0,0.1);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Keeps any backdrop image from spilling past the rounded border,
+     regardless of the image's own dimensions. */
+  overflow: hidden;
+  /* Locks the card footprint so a tall/wide backdrop image never
+     changes the card's actual size. */
+  flex-shrink: 0;
+}
+
+/* Per-card backdrop images. Each points to a card-bg.png inside gamecard-images — just drop the matching image in, no other
+   changes needed. Until an image exists at that path, the browser
+   silently falls back to the white background-color above.
+   background-size: cover + overflow: hidden on .game-card guarantee
+   the card's size never changes no matter how big the image is. */
+.card-bg-whack-a-meme {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.500), rgba(255, 255, 255, 0.500)), url('./gamecard-images/Gamecard-bg-whackameme.png');
+}
+.card-bg-bup-clicker {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.500), rgba(255, 255, 255, 0.500)), url('./gamecard-images/Gamecard-bg-bup.png');
+}
+.card-bg-rick-roll-2d {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.500), rgba(255, 255, 255, 0.500)), url('./gamecard-images/Gamecard-bg-rickroller2d.png');
+}
+.card-bg-cdi-soundboard {
+  background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-cdisoundboard.png');
+}
+.card-bg-weegee-memory-match {
+  background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-weegeememory.png');
+}
+.card-bg-weegees-mansion {
+  background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-weegeesmansion.png');
+}
+.card-bg-weegee-town-xp {
+  background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-weegeetownxp.png');
+}
+.card-bg-king-harkinian {
+  background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-harkinianschef.png');
+}
+
+/* Card hover effect: slight scale up and rotation, plus border color change */
+
+.game-card:hover {
+  transform: scale(1.05) rotate(-2deg);
+  border-color: #ff00ff;
+}
+
+.game-card h3 {
+  font-weight: bold;
+  font-size: 2.5rem;
+  margin-top: 0;
+  color: #333;
+  -webkit-text-stroke: 0.6px #000;
+}
+
+.game-card p {
+  font-size: 1.7rem;
+  font-weight: bold;
+  line-height: 1.4;
+  margin-bottom: 25px;
+}
+
+
+/* Rainbow Spinning Play Button */
+/* Intentionally excluded from keyboard tab order via tabindex="-1"
+   in the HTML — mouse/touch activation only. */
+.play-button {
+  display: inline-block;
+  background: conic-gradient(
+    from var(--spin-angle), 
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  
+  color: black;
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding: 15px 30px;
+  border: 4px solid #333;
+  border-radius: 15px;
+  text-decoration: none;
+  cursor: pointer;
+  margin-top: auto;
+  animation: spin-text-rainbow 2s linear infinite; 
+  transition: transform 0.1s; 
+}
+
+.play-button:hover {
+  transform: scale(1.1);
+  background-color: #ff33ff;
+}
+
+#creator-link {
+  display: inline-block;
+  margin-top: 50px;
+  text-decoration: none;
+  font-size: 1.8rem;
+  color: #333;
+  transition: transform 0.2s;
+}
+
+#creator-link:hover {
+  transform: scale(1.1);
+  color: #ff00ff;
+}
+
+/* Base style for the logo */
+.brand-header a .main-logo {
+  /* This handles the buttery smooth rotation in BOTH directions */
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Simply add a pointer cursor on hover */
+.brand-header a:hover .main-logo {
+  cursor: pointer;
+}
+
+/* =========================================
+   SPINNING CONIC RAINBOW TEXT 
+   ========================================= */
+
+/* 1. Define a custom angle variable that the browser knows how to animate */
+@property --spin-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* Rainbow spinning text for the main header and game titles */
+h1, .game-card h3 {
+  background: conic-gradient(
+    from var(--spin-angle), 
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  
+  /* Clip the spinning gradient strictly to the shape of the text */
+  color: transparent !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 2px #000;
+  text-shadow: none;
+  animation: spin-text-rainbow 2s linear infinite; 
+}
+
+/* The keyframes that rotate the gradient angle from 0 to 360 degrees */
+@keyframes spin-text-rainbow {
+  0% { --spin-angle: 0deg; }
+  100% { --spin-angle: 360deg; }
+}
+
+/* =========================================
+   MUSIC TOGGLE BUTTON (bottom-left, above toybox)
+   ========================================= */
+.music-toggle-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1001;
+  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 12px 20px;
+  border: 4px solid #333;
+  border-radius: 15px;
+  cursor: pointer;
+  /* Override the link default since this is a button */
+  color: black !important;
+  -webkit-text-stroke: 0px;
+  text-shadow: none;
+  /* Match the play-button rainbow, but keep text legible */
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  animation: spin-text-rainbow 2s linear infinite;
+  transition: transform 0.1s;
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.35);
+}
+
+.music-toggle-btn:hover {
+  transform: scale(1.1);
+}
+
+.music-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.music-toggle-btn.music-off {
+  opacity: 0.75;
+  filter: grayscale(60%);
+}
