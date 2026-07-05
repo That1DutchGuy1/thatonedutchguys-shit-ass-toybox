@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="googlebot" content="noindex, nofollow">
+    <title>King Harkinian's Personal Chef Simulator</title>
+    <link rel="icon" type="image/x-icon" href="./king-harkinians-personal-chef-simulator.ico">
+    <link rel="stylesheet" href="king-harkinians-personal-chef-simulator.css">
+</head>
+<body>
+
+<!-- ============================================================
+     SCREEN: MAIN MENU
+     ============================================================ -->
+<div id="screen-mainmenu" class="screen active">
+    <div class="bg-layer" style="background-color:#1a0a00;"></div>
+        <img src="./assets/backdrops/menu-background.png" alt="Menu Background" class="bg-layer main-bg">
+
+    <div class="menu-overlay">
+        <h1 class="game-title">King Harkinian's<br><span>Personal Chef Simulator</span></h1>
+        <div class="menu-buttons">
+            <button class="btn-cdi" id="btn-start">▶ START</button>
+            <button class="btn-cdi" id="btn-hub">⚑ HUB</button>
+        </div>
+    </div>
+
+    <a href="https://www.youtube.com/@That1DutchGuy" target="_blank" class="yt-credit">Made by YouTuber That One Dutch Guy</a>
+    <p id="bgm-hint" class="bgm-hint">♪ Click anywhere on the screen except for the buttons to start the menu theme ♪</p>
+
+    <!-- ASSET: looping background music starts on first interaction -->
+    <audio id="audio-menu-bgm" src="./assets/music/main-menu-theme.wav" loop></audio>
+</div>
+
+
+<!-- ============================================================
+     SCREEN: INTRO CUTSCENE  (King walks in, decides meal)
+     ============================================================ -->
+<div id="screen-intro" class="screen">
+    <div class="bg-layer" style="background-image: url('./assets/backdrops/CD-i-castle-bg.png');"></div>
+
+    <div id="intro-stage">
+        <!-- King walks in from left -->
+        <div class="char-placeholder" id="king-walkin-anim">
+            <img src="./assets/GIFs/king-walk-in.gif" alt="King Harkinian Walk-In Animation">
+        </div>
+
+        <!-- King ponders, visible after walk-in ends -->
+        <div class="char-placeholder hidden" id="king-thinking-anim">
+            <img src="./assets/GIFs/thinking.gif" alt="King Harkinian Thinking Animation">
+        </div>
+
+        <!-- King decides -->
+        <div class="char-placeholder hidden" id="king-announce-anim">
+            <img src="./assets/GIFs/decision.gif" alt="King Harkinian Decision Animation">
+        </div>
+
+        <div id="intro-speech-bubble" class="speech-bubble hidden"></div>
+    </div>
+</div>
+
+
+<!-- ============================================================
+     SCREEN: MARKET  (Buy ingredients from Morshu)
+     ============================================================ -->
+<div id="screen-market" class="screen">
+    <!-- FIX: Background is now applied properly to stay behind the HUD -->
+    <div class="bg-layer" style="background-image: url('./assets/backdrops/market-bg.png');"></div>
+
+    <div class="market-ui">
+        <h2 class="screen-title">Morshu's Shop</h2>
+
+        <!-- ASSET: morshu-idle.gif standing behind counter -->
+        <div class="char-placeholder" id="morshu-anim">
+            <img src="./assets/GIFs/morshu-idle.gif" alt="Morshu Idle Animation">
+        </div>
+
+        <div id="morshu-speech" class="speech-bubble">Fish? Cheese? Pasta! You want it? It's yours my friend, as long as you have enough rupees!</div>
+
+        <div class="market-hud">
+            <span>💎 Rupees: <strong id="rupee-count">200</strong></span>
+            <span id="cart-label">🛍 Cart: <strong id="cart-count">0</strong> items</span>
+        </div>
+
+        <!-- Ingredient shelf — populated by JS based on chosen meal -->
+        <div id="ingredient-shelf" class="ingredient-shelf">
+            <!-- JS inserts item cards here -->
+        </div>
+
+        <div class="market-actions">
+            <button class="btn-cdi" id="btn-to-kitchen">🍳 To The Kitchen →</button>
+            <!-- Disabled until at least 1 item purchased -->
+        </div>
+    </div>
+
+    <!-- ASSET: morshu-cant-afford.mp3 played when player can't buy an item -->
+    <!-- <audio id="audio-morshu-poor" src="morshu-cant-afford.mp3"></audio> -->
+</div>
+
+
+<!-- ============================================================
+     SCREEN: KITCHEN  (Cook the meal)
+     ============================================================ -->
+<div id="screen-kitchen" class="screen">
+    <div class="bg-layer" style="background-color:#2a1a05;">
+        <img src="./assets/backdrops/kitchen-bg.png" alt="Kitchen Background" class="bg-layer main-bg">
+        <div class="placeholder-bg-label"></div>
+    </div>
+
+    <div class="kitchen-ui">
+        <h2 class="screen-title">The Royal Kitchen</h2>
+
+        <div class="kitchen-area">
+
+            <!-- APPLIANCE SELECTOR -->
+            <div class="kitchen-panel" id="panel-appliance">
+                <h3>Choose Your Cooking Method</h3>
+                <div class="appliance-options">
+                    <button class="appliance-btn" data-appliance="pot">🥘 Pot<br><small>(stovetop)</small></button>
+                    <button class="appliance-btn" data-appliance="pan">🍳 Pan<br><small>(stovetop)</small></button>
+                    <button class="appliance-btn" data-appliance="both">🥘🍳 Pot & Pan<br><small>(stovetop)</small></button>
+                    <button class="appliance-btn" data-appliance="oven">🔥 Oven<br><small>(set temp)</small></button>
+                </div>
+
+                <!-- Oven temp picker — shown only when oven is selected -->
+                <div id="oven-temp-panel" class="hidden">
+                    <label>Set Oven Temperature:</label>
+                    <div class="temp-buttons">
+                        <button class="temp-btn" data-temp="325">325°F</button>
+                        <button class="temp-btn" data-temp="350">350°F</button>
+                        <button class="temp-btn" data-temp="375">375°F</button>
+                        <button class="temp-btn" data-temp="400">400°F</button>
+                        <button class="temp-btn" data-temp="425">425°F</button>
+                        <button class="temp-btn" data-temp="450">450°F</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COOKING STATION — shown after appliance chosen -->
+            <div class="kitchen-panel hidden" id="panel-cooking">
+                <h3 id="cooking-status-label">Cooking...</h3>
+
+                <div class="appliance-visual" id="appliance-visual">
+                    [appliance visual placeholder]
+                </div>
+
+                <!-- Ingredient queue: player drags/clicks ingredients into the pot/pan -->
+                <div id="ingredients-in-hand" class="ingredient-tray">
+                    <p><em>Your ingredients:</em></p>
+                    <!-- JS populates purchased ingredients here -->
+                </div>
+
+                <div id="cooking-vessel" class="cooking-vessel">
+                    <p>Drop ingredients here</p>
+                    <div id="vessel-contents"></div>
+                </div>
+
+                <!-- Oven timer — 10 seconds, shown for oven meals -->
+                <div id="oven-timer-display" class="hidden">
+                    <div class="timer-bar-wrap">
+                        <div id="oven-timer-bar" class="timer-bar"></div>
+                    </div>
+                    <span id="oven-timer-label">10s</span>
+                </div>
+
+                <button class="btn-cdi" id="btn-done-cooking">✅ Done Cooking →</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TIP: Zelda cooking tip — bottom of screen -->
+    <div class="tip-bar" id="zelda-tip">
+        <img src="./assets/sprites/Zelda-CD-i.png" alt="Zelda" class="tip-char-img">
+        <div class="tip-bubble">
+            <strong>Zelda's Cooking Tip</strong><br>
+            Make sure to use the correct cooking appliance for my father's dinner!
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================================
+     SCREEN: PLATING
+     ============================================================ -->
+<div id="screen-plating" class="screen">
+    <div class="bg-layer" style="background-color:#2a1a05;">
+        <img src="./assets/backdrops/kitchen-bg.png" alt="Kitchen Background" class="bg-layer main-bg">
+        <div class="placeholder-bg-label"></div>
+    </div>
+
+    <div class="kitchen-ui">
+        <h2 class="screen-title">Plate the Dinner</h2>
+        <p class="subtitle">The King will judge your presentation.</p>
+
+        <div class="plating-options">
+            <button class="plate-btn" data-vessel="plate">
+                <!-- ASSET: plate.png -->
+                <div class="item-placeholder">🍽 [plate.png]</div>
+                Dinner Plate
+            </button>
+            <button class="plate-btn" data-vessel="platter">
+                <!-- ASSET: platter.png -->
+                <div class="item-placeholder">🫙 [platter.png]</div>
+                Royal Platter
+            </button>
+            <button class="plate-btn" data-vessel="bowl">
+                <!-- ASSET: bowl.png -->
+                <div class="item-placeholder">🥣 [bowl.png]</div>
+                Bowl
+            </button>
+        </div>
+
+        <div id="plating-preview" class="plating-preview hidden">
+            <p>Plated on: <strong id="plating-choice-label">—</strong></p>
+            <!-- ASSET: food-plated.gif — a little animation of the food being placed -->
+        </div>
+
+        <button class="btn-cdi hidden" id="btn-serve">👑 Serve To King →</button>
+    </div>
+
+    <!-- TIP: Link plating tip — bottom of screen -->
+    <div class="tip-bar" id="link-tip">
+        <img src="./assets/sprites/Link-CD-i.png" alt="Link" class="tip-char-img">
+        <div class="tip-bubble">
+            <strong>Link's Plating Tip</strong><br>
+            The King isn't always satisfied with just the food!<br>
+            Presentation matters to him as well!
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================================
+     SCREEN: JUDGEMENT  (King eats, scores the meal)
+     ============================================================ -->
+<div id="screen-judgement" class="screen">
+    <div class="bg-layer" style="background-image: url('./assets/backdrops/CD-i-castle-bg.png');"></div>
+
+    <div id="judgement-stage">
+
+        <!-- ASSET: king-eating.gif -->
+        <div class="char-placeholder" id="king-eating-anim">
+            <img src="./assets/GIFs/king-eating.gif" alt="King Harkinian Eating Animation">
+        </div>
+
+        <!-- ASSET: king-thinking.gif (reused) -->
+        <div class="char-placeholder hidden" id="king-judging-anim">
+            <img src="./assets/GIFs/thinking.gif" alt="King Harkinian Judging Animation">
+        </div>
+
+        <div id="score-reveal" class="score-reveal hidden">
+            <div class="score-number" id="score-number">—</div>
+            <div class="score-label" id="score-label">/ 10</div>
+        </div>
+
+        <!-- Outcome: GREAT (8-10) -->
+        <div id="outcome-great" class="outcome-panel hidden">
+            <img src="./assets/sprites/king-happy.png" alt="King Harkinian Happy" class="char-placeholder">
+            <div class="speech-bubble" id="great-speech"></div>
+            <!-- ASSET: king-compliment.mp3 -->
+        </div>
+
+        <!-- Outcome: MEH (6-7) -->
+        <div id="outcome-meh" class="outcome-panel hidden">
+            <img src="./assets/sprites/king-meh.png" alt="King Harkinian Shrug" class="char-placeholder">
+            <div class="speech-bubble" id="meh-speech"></div>
+        </div>
+
+        <!-- Outcome: BAD (0-5) -->
+        <div id="outcome-bad" class="outcome-panel hidden">
+            <div class="char-placeholder">
+               <img src="./assets/GIFs/scrub-all-the-floors-in-hyrule.gif" alt="Scrub all the floors in Hyrule">
+            </div>
+            <div class="speech-bubble" id="bad-speech"></div>
+        </div>
+    </div>
+    
+        <button class="btn-cdi hidden" id="btn-after-judgement">Continue →</button>
+    </div>
+</div>
+
+
+<!-- ============================================================
+     SCREEN: SCRUBBING MINIGAME  (punishment for score ≤ 5)
+     ============================================================ -->
+<div id="screen-scrub" class="screen">
+    <div class="bg-layer" style="background-image: url('./assets/backdrops/dirty-floor-bg.png');"></div>
+
+    <div class="scrub-ui">
+        <h2 class="screen-title">Scrub ALL the Floors in Hyrule!</h2>
+
+        <div class="scrub-hud">
+            <span>⏱ Time left: <strong id="scrub-timer">30</strong>s</span>
+            <span>🧹 Scrubbed: <strong id="scrub-progress">0</strong>%</span>
+        </div>
+
+        <!-- Click / mash to scrub. JS fills dirty spots -->
+        <div id="scrub-floor" class="scrub-floor">
+            <!-- JS dynamically injects dirt patches here -->
+        </div>
+
+        <div id="scrub-complete-msg" class="hidden big-msg">✨ Done! The floors shine!</div>
+    </div>
+</div>
+
+
+<!-- ============================================================
+     SCREEN: JUMPSCARE  (failed scrubbing)
+     ============================================================ -->
+<div id="screen-jumpscare" class="screen">
+    <div class="bg-layer" style="background-color:#000;"></div>
+
+    <div id="jumpscare-img" class="jumpscare-img">
+       <img src="./assets/sprites/king-angry-jumpscare.png" alt="King Harkinian Jumpscare">
+    </div>
+</div>
+
+
+<!-- ============================================================
+     SCREEN: SCRUB FAIL  (ran out of time — Mayor Cravendish appears)
+     ============================================================ -->
+<div id="screen-scrub-fail" class="screen">
+    <div class="bg-layer" style="background-image: url('./assets/backdrops/dungeon.png');"></div>
+    <div class="bg-layer" style="background-color: rgba(60, 0, 0, 0.55);"></div>
+
+    <div class="scrub-fail-ui">
+        <div class="char-placeholder" id="cravendish-anim">
+            <img src="./assets/GIFs/mayor-cravendish.gif" alt="Mayor Cravendish">
+        </div>
+        <h2 class="scrub-fail-title">This is Illegal!</h2>
+        <p class="scrub-fail-body">You failed to scrub the floors in time!<br>Mayor Cravendish has thrown you into the dungeon!</p>
+        <div class="menu-buttons">
+            <button class="btn-cdi" id="btn-scrub-fail-again">▶ RETURN</button>
+            <button class="btn-cdi" id="btn-scrub-fail-hub">⚑ HUB</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================================
+     SCREEN: DEFEAT  (punishment scrubbing failed or incomplete)
+     ============================================================ -->
+<div id="screen-defeat" class="screen">
+    <div class="bg-layer" style="background-image: url('./assets/backdrops/CD-i-castle-bg.png');"></div>
+    <div class="bg-layer" style="background-color: rgba(120, 0, 0, 0.65);"></div>
+
+    <div class="defeat-ui">
+        <img src="./assets/sprites/king-angry-jumpscare.png" alt="King Harkinian Angry" class="item-placeholder large">
+        <h2 class="defeat-title">Disgraceful!</h2>
+        <p id="defeat-text" class="defeat-body"></p>
+        <div class="menu-buttons">
+            <button class="btn-cdi" id="btn-defeat-again">▶ RETURN</button>
+            <button class="btn-cdi" id="btn-defeat-hub">⚑ HUB</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================================
+     SCREEN: VICTORY
+     ============================================================ -->
+<div id="screen-victory" class="screen">
+    <div class="bg-layer" style="background-image: url('./assets/backdrops/CD-i-castle-bg.png');"></div>
+
+    <div class="victory-ui">
+        <img src="./assets/sprites/king-very-happy.png" alt="King Harkinian Very Happy" class="item-placeholder large">
+        <h2 class="victory-title">Magnificent!</h2>
+        <p id="victory-text" class="victory-body"></p>
+        <div class="menu-buttons">
+            <button class="btn-cdi" id="btn-victory-again">▶ RETURN</button>
+            <button class="btn-cdi" id="btn-victory-hub">⚑ HUB</button>
+        </div>
+    </div>
+
+    <audio id="audio-victory" src="./assets/sounds/victory-fanfare.mp3"></audio>
+</div>
+
+
+<script src="king-harkinians-personal-chef-simulator.js"></script>
+</body>
+</html>
