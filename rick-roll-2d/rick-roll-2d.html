@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="googlebot" content="noindex, nofollow">
+    <title>Rick Roller 2D - Deluxe Edition</title>
+    <link rel="icon" type="image/x-icon" href="./rick-roll-2d.ico">
+    <link rel="stylesheet" href="rick-roll-2d.css">
+</head>
+<body>
+    <div id="game-ui">
+        <h1>Rick Roller 2D - Deluxe Edition</h1>
+        <div id="stats-bar" style="display: none;">
+            <span id="lives-display">Lives: 3</span> | 
+            <span id="level-display">Level: 1</span>
+        </div>
+    </div>
+    
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="main-menu">
+            <h2 style="color: #ffcc00;">DELUXE EDITION</h2>
+            <p>Collect the CDs for extra lives!</p>
+            <button id="start-btn">START GAME</button>
+        </div>
+    </div>
+
+    <audio id="bgMusic" src="8-bit-never-gonna-give-you-up.mp3" loop></audio>
+
+    <img id="rickSpriteSheet" src="Rick Astley HD transparent sprite sheet.png" crossorigin="anonymous" style="display:none;">
+
+    <script src="rick-roll-2d.js"></script>
+
+    <a href="../index.html" id="hub-btn">← HUB</a>
+    <a href="https://www.youtube.com/@That1DutchGuy" target="_blank" style="right: 10px;">Made by YouTuber That One Dutch Guy</a>
+</body>
+</html>
