@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weegee's Mansion</title>
+<link rel="icon" type="image/x-icon" href="./favicon.ico">
+<link rel="stylesheet" href="weegees_mansion.css">
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<div id="ui">
+  <div id="crosshair"></div>
+
+  <!-- DualShock 4 quick-reference tooltip: only ever shown while a controller
+       is actively being used during real gameplay. See weegees_mansion.js,
+       "On-screen DualShock control tooltip" section, for the show/hide logic. -->
+  <div id="gp-tooltip-panel">
+    <div class="gp-tooltip-title">CONTROLLER</div>
+    <div class="gp-tooltip-row">
+      <div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-Cross.png" alt="Cross"></div>
+      <span class="gp-tooltip-text">Pick Up Item</span>
+    </div>
+    <div class="gp-tooltip-row">
+      <div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-Square.png" alt="Square"></div>
+      <span class="gp-tooltip-text">Use / Throw</span>
+    </div>
+    <div class="gp-tooltip-row">
+      <div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-Triangle.png" alt="Triangle"></div>
+      <span class="gp-tooltip-text">Flashlight</span>
+    </div>
+    <div class="gp-tooltip-row">
+      <div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-Circle.png" alt="Circle"></div>
+      <span class="gp-tooltip-text">Sprint</span>
+    </div>
+    <div class="gp-tooltip-row">
+      <div class="gp-icon-group">
+        <div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-L1.png" alt="L1"></div>
+        <div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-R1.png" alt="R1"></div>
+      </div>
+      <span class="gp-tooltip-text">Cycle Items</span>
+    </div>
+  </div>
+
+  <div id="hud">WEEGEE'S MANSION — FLOOR <span id="floor-num">1</span></div>
+  <div id="floor-indicator">FLOOR <span id="floor-num2">1</span> / 5</div>
+  <button id="mobile-pause-btn" onclick="togglePause()">⏸ PAUSE</button>
+  
+  <div id="battery-wrap">
+    <div id="battery-label">LIGHT BATTERY</div>
+    <div id="battery-bar"><div id="battery-fill"></div></div>
+  </div>
+
+  <div id="stamina-wrap">
+    <div id="stamina-label">STAMINA</div>
+    <div id="stamina-bar"><div id="stamina-fill"></div></div>
+  </div>
+
+  <div id="hotbar-wrap">
+    <div class="hotbar-slot" id="slot-0" onclick="useItemSlot(0)"><span class="slot-num">1</span></div>
+    <div class="hotbar-slot" id="slot-1" onclick="useItemSlot(1)"><span class="slot-num">2</span></div>
+    <div class="hotbar-slot" id="slot-2" onclick="useItemSlot(2)"><span class="slot-num">3</span></div>
+    <div class="hotbar-slot" id="slot-3" onclick="useItemSlot(3)"><span class="slot-num">4</span></div>
+    <div class="hotbar-slot" id="slot-4" onclick="useItemSlot(4)"><span class="slot-num">5</span></div>
+  </div>
+
+  <button id="mobile-interact-btn" onclick="mobilePickupInteraction()">PANIC PICKUP</button>
+  <div id="warning"></div>
+  <div id="overlay"></div>
+  <div id="timer-bar-wrap">
+    <div id="timer-bar-label">LOOK AWAY!</div>
+    <div id="timer-bar"><div id="timer-fill"></div></div>
+  </div>
+  <canvas id="arms-overlay"></canvas>
+  <button class="floor-stair-btn" id="stair-btn" onclick="climbStairs()">⬆ NEXT FLOOR</button>
+  
+  <div id="start-screen">
+    <div id="start-vhs-scanlines"></div>
+    <div id="start-vhs-bar"></div>
+    <div id="start-vhs-bar2"></div>
+    <div id="start-vhs-hbar"></div>
+    <div id="start-vhs-hbar2"></div>
+    <div id="start-vhs-rgb-r"></div>
+    <div id="start-vhs-rgb-b"></div>
+    <div id="start-vhs-glitch-layer"></div>
+    <div id="start-vhs-noise"></div>
+    <div id="start-screen-content">
+      <h1>WEEGEE'S<br>MANSION</h1>
+
+      <!-- Tab Navigation -->
+      <div id="menu-tabs">
+        <button class="menu-tab active" onclick="switchTab('info')">INFO</button>
+        <button class="menu-tab" onclick="switchTab('controls')">CONTROLS</button>
+        <button class="menu-tab" onclick="switchTab('items')">ITEMS</button>
+        <button class="menu-tab" onclick="switchTab('about')">ABOUT</button>
+      </div>
+
+      <!-- INFO Tab -->
+      <div class="menu-panel" id="tab-info">
+        <div class="lore-section">
+          <div class="lore-heading">THE PLAYER</div>
+          <p> You are <strong style="color:#cc6666">Mario!</strong> After having smoked one too many mushrooms, you've ended up somewhere that no plumber should ever be. Your only goal: reach the top floor and escape before <em>he</em> finds you.</p>
+        </div>
+        <div class="lore-section">
+          <div class="lore-heading">THE MANSION</div>
+          <p>A cursed five-floor labyrinth that shifts and breathes on its own. It's dark. The walls close in. No map exists — no one who drew one ever made it out. Each floor is a new maze, darker and stranger than the last. Something about this place feels <em>wrong</em> in a way you can't name.</p>
+        </div>
+        <div class="lore-section">
+          <div class="lore-heading">WEEGEE</div>
+          <p>He roams every floor. He does not stop. <br> Eye contact is <strong style="color:#cc6666">FATAL!</strong> His origin is unknown. <br> His purpose is singular. You are it.</p>
+        </div>
+      </div>
+
+      <!-- CONTROLS Tab -->
+       
+      <div class="menu-panel" id="tab-controls" style="display:none">
+        <div class="controls-grid">
+          <div class="ctrl-row"><span class="ctrl-key">W A S D</span><span class="ctrl-desc" style="color:#9030b3">Move</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">MOUSE</span><span class="ctrl-desc" style="color:#9030b3">Look Around</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">SHIFT</span><span class="ctrl-desc" style="color:#00ff00">Sprint</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">F</span><span class="ctrl-desc" style="color:#00ffcc">Toggle Flashlight</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">Q</span><span class="ctrl-desc" style="color:#ffff00">Pick Up Item</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">1 – 5</span><span class="ctrl-desc" style="color:#88cc88">Select Item Slot</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">SCROLL</span><span class="ctrl-desc" style="color:#88cc88">Cycle Item Slots</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">LEFT CLICK</span><span class="ctrl-desc" style="color:#88cc88">Use / Throw Item</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">P</span><span class="ctrl-desc" style="color:#ffaa00">Pause Game</span></div>
+          <div class="ctrl-row"><span class="ctrl-key">SPACE</span><span class="ctrl-desc" style="color:#cc0000">Restart (Death Screen)</span></div>
+        </div>
+
+        <div class="lore-heading" style="margin-top:18px">DUALSHOCK 4</div>
+        <div class="controls-grid">
+          <div class="ctrl-row">
+            <div class="gp-icon-group"><div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-Left_Stick.png" alt="Left Stick"></div></div>
+            <span class="ctrl-desc" style="color:#9030b3">Move</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="gp-icon-group"><div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-Right_Stick.png" alt="Right Stick"></div></div>
+            <span class="ctrl-desc" style="color:#9030b3">Look Around</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="gp-icon-group"><div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-Circle.png" alt="Circle"></div></div>
+            <span class="ctrl-desc" style="color:#00ff00">Sprint</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="gp-icon-group"><div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-Triangle.png" alt="Triangle"></div></div>
+            <span class="ctrl-desc" style="color:#00ffcc">Toggle Flashlight</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="gp-icon-group"><div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-Cross.png" alt="Cross"></div></div>
+            <span class="ctrl-desc" style="color:#ffff00">Pick Up Item</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="gp-icon-group">
+              <div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-L1.png" alt="L1"></div>
+              <div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-R1.png" alt="R1"></div>
+            </div>
+            <span class="ctrl-desc" style="color:#88cc88">Cycle Item Slots</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="gp-icon-group"><div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-Square.png" alt="Square"></div></div>
+            <span class="ctrl-desc" style="color:#88cc88">Use / Throw Item</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="gp-icon-group"><div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-Options.png" alt="Options"></div></div>
+            <span class="ctrl-desc" style="color:#ffaa00">Pause Game</span>
+          </div>
+          <div class="ctrl-row">
+            <div class="gp-icon-group"><div class="gp-icon-box"><img src="DualShock4-button-icons/ButtonIcon-PS4-Dpad.png" alt="D-Pad"></div></div>
+            <span class="ctrl-desc" style="color:#ffaa00">Navigate Menus</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEMS Tab -->
+      <div class="menu-panel" id="tab-items" style="display:none">
+        <div class="items-grid">
+          <div class="item-card">
+            <div class="item-sprite-box"><img src="Item-Sprites/mtndewbottle.png" alt="Mountain Dew"></div>
+            <div class="item-card-name">Mountain Dew</div>
+            <div class="item-card-desc">Chug it for restoring your stamina and a burst of speed!</div>
+          </div>
+          <div class="item-card">
+            <div class="item-sprite-box"><img src="Item-Sprites/flashlightbattery.png" alt="Battery"></div>
+            <div class="item-card-name">Battery</div>
+            <div class="item-card-desc">Recharges your flashlight to full!</div>
+          </div>
+          <div class="item-card">
+            <div class="item-sprite-box"><img src="Item-Sprites/weegeestake.png" alt="Weegee Banishing Stake"></div>
+            <div class="item-card-name">Weegee Banishing Stake</div>
+            <div class="item-card-desc">A rare and sacred artifact! Use it wisely! </div>
+          </div>
+          <div class="item-card">
+            <div class="item-sprite-box"><img src="Item-Sprites/banana-peel.png" alt="Banana Peel"></div>
+            <div class="item-card-name">Banana Peel</div>
+            <div class="item-card-desc">Can be thrown and is very slippery!</div>
+          </div>
+          <div class="item-card">
+            <div class="item-sprite-box"><img src="Item-Sprites/plunger-item.png" alt="Plunger"></div>
+            <div class="item-card-name">Plunger</div>
+            <div class="item-card-desc">Can be thrown and it sticks to surfaces!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABOUT Tab -->
+      <div class="menu-panel" id="tab-about" style="display:none; overflow:hidden">
+        <p class="about-text" style="color:#ffaa00">This game is made by <a href="https://youtube.com/@that1dutchguy?si=64hwISFn48ZFbh9l" id="creator-link" target="_blank">That One Dutch Guy</a></p>
+        <p class="about-text" style="color:#ffaa00">This game is still in beta!</p>
+      </div>
+
+      <!-- Action Buttons (always visible below tabs) -->
+      <div class="menu-btn-stack">
+        <button id="start-btn">ENTER THE MANSION</button>
+        <a href="../index.html" id="hub-btn" class="hub-link">← HUB</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="pause-screen">
+    <div class="vhs-overlay"></div>
+    <div class="vhs-bar"></div>
+    <h2>GAME PAUSED</h2>
+    <div class="pause-btn-box">
+      <button class="styled-menu-btn" onclick="togglePause()">RESUME GAME</button>
+      <button class="styled-menu-btn" onclick="quitToMainMenu()">MAIN MENU</button>
+      <a href="../index.html" class="styled-menu-btn">← HUB</a>
+    </div>
+  </div>
+
+  <div id="death-screen">
+    <h2>YOU DIED</h2>
+    <p id="death-msg">Weegee got you.</p>
+    <button onclick="restartGame()">TRY AGAIN</button>
+    <div class="end-btn-row">
+      <button onclick="quitToMainMenu()">MAIN MENU</button>
+      <a href="../index.html" class="styled-menu-btn">← HUB</a>
+    </div>
+  </div>
+  <div id="victory-screen">
+    <h2>YOU ESCAPED!</h2>
+    <p id="victory-msg">You survived all five floors of Weegee's mansion!</p>
+    <button class="victory-btn" onclick="restartGame()">PLAY AGAIN</button>
+    <div class="end-btn-row">
+      <button class="victory-btn" onclick="quitToMainMenu()">MAIN MENU</button>
+      <a href="../index.html" class="victory-btn">← HUB</a>
+    </div>
+  </div>
+  <div id="mobile-controls">
+    <button id="mobile-flash-btn" onclick="toggleFlashlight()">💡 LIGHT ON</button>
+    <button id="mobile-sprint-btn" onclick="toggleMobileSprint()">🏃 SPRINT OFF</button>
+    <div id="joystick-area">
+      <div id="joystick-base"><div id="joystick-knob"></div></div>
+    </div>
+    <div id="look-joystick-area">
+      <div id="look-joystick-base"><div id="look-joystick-knob"></div></div>
+    </div>
+    <div id="look-area"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="weegees_mansion.js"></script>
+</body>
+</html>

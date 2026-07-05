@@ -1,0 +1,502 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; overflow: hidden; font-family: 'Courier New', monospace; user-select: none; }
+  #gameCanvas { display: block; width: 100%; height: 100%; }
+  #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+  #crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 12px; height: 12px; }
+  #crosshair::before, #crosshair::after { content: ''; position: absolute; background: rgba(255,255,255,0.6); }
+  #crosshair::before { width: 2px; height: 12px; left: 5px; top: 0; }
+  #crosshair::after { width: 12px; height: 2px; left: 0; top: 5px; }
+  #hud { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); color: #aaa; font-size: 13px; text-align: center; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 8px #000; }
+  #floor-indicator { position: absolute; top: 16px; right: 20px; color: #ffdd88; font-size: 12px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 8px #000; }
+  
+  /* Flashlight Battery HUD Layout */
+  #battery-wrap { position: absolute; top: 42px; right: 20px; width: 120px; display: flex; flex-direction: column; align-items: flex-end; }
+  #battery-label { color: #00ffcc; font-size: 10px; letter-spacing: 1px; margin-bottom: 4px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #000; }
+  #battery-bar { width: 100%; height: 6px; background: #220000; border: 1px solid #555; }
+  #battery-fill { height: 100%; background: #00ffcc; width: 100%; transition: width 0.1s linear; box-shadow: 0 0 8px #00ffcc; }
+
+  /* Stamina Bar HUD Layout */
+  #stamina-wrap { position: absolute; top: 16px; left: 20px; width: 150px; display: none; flex-direction: column; align-items: flex-start; pointer-events: auto; }
+  #stamina-label { color: #00ff00; font-size: 10px; letter-spacing: 1px; margin-bottom: 4px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #000; }
+  #stamina-bar { width: 100%; height: 8px; background: #222; border: 1px solid #555; }
+  #stamina-fill { height: 100%; background: #00ff00; width: 100%; box-shadow: 0 0 8px #00ff00; }
+
+  /* Inventory Hotbar Layout */
+  #hotbar-wrap { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: none; gap: 6px; background: rgba(0,0,0,0.6); padding: 6px; border: 2px solid #444; border-radius: 4px; pointer-events: auto; }
+  .hotbar-slot { width: 50px; height: 50px; background: rgba(30,30,30,0.8); border: 2px solid #555; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: all 0.15s; }
+  .hotbar-slot img { width: 85%; height: 85%; object-fit: contain; }
+  .hotbar-slot .slot-num { position: absolute; top: 2px; left: 4px; color: #666; font-size: 10px; font-weight: bold; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  .hotbar-slot.selected { border-color: #00ffcc !important; box-shadow: 0 0 10px #00ffcc; background: rgba(50,50,50,0.9); }
+
+  /* DualShock 4 In-Game Control Tooltip — center-left, overlays gameplay,
+     hidden by default. Toggled purely via JS (weegees_mansion.js) based on
+     whether a controller is actively being used. Reuses .gp-icon-box /
+     .gp-icon-group from the start-screen Controls tab so the icons match. */
+  #gp-tooltip-panel {
+    position: absolute; top: 50%; left: 20px; transform: translateY(-50%);
+    display: none; flex-direction: column; gap: 10px;
+    background: rgba(10,0,0,0.6); border: 1px solid #550000; border-radius: 4px;
+    padding: 12px 14px; pointer-events: none; z-index: 6;
+  }
+  #gp-tooltip-panel .gp-tooltip-title {
+    color: #cc0000; font-size: 11px; font-weight: bolder; letter-spacing: 2px;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 8px #ff0000;
+    border-bottom: 1px solid #330000; padding-bottom: 6px; margin-bottom: 2px;
+  }
+  #gp-tooltip-panel .gp-tooltip-row { display: flex; align-items: center; gap: 10px; }
+  #gp-tooltip-panel .gp-tooltip-text {
+    color: #999; font-size: 11px; font-weight: bold; letter-spacing: 1px; white-space: nowrap;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  }
+
+  /* Mobile HUD Interaction Button Hooks */
+  #mobile-interact-btn { position: absolute; right: 20px; bottom: 80px; background: rgba(200,200,0,0.3); border: 1px solid #ffff00; color: #fff; padding: 12px 20px; font-family: 'Courier New', monospace; font-size: 14px; border-radius: 4px; pointer-events: all; display: none; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 4px #000; }
+  #mobile-pause-btn { position: absolute; left: 20px; top: 16px; background: rgba(150,0,0,0.2); border: 1px solid #cc0000; color: #fff; padding: 8px 14px; font-family: 'Courier New', monospace; font-size: 12px; border-radius: 4px; pointer-events: all; display: none; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 4px #000; z-index: 5; cursor: pointer; }
+
+  #warning { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #cc0000; font-size: 28px; font-weight: bold; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 20px #ff0000; display: none; text-align: center; letter-spacing: 2px; }
+  #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0); pointer-events: none; transition: background 0.1s; }
+  
+  /* Start Screen Layout Setup */
+  #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000 url('Misc/Background.png') center/cover; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; pointer-events: all; }
+  #start-screen h1 { color: #cc0000; font-size: 36px; letter-spacing: 4px; text-shadow: 0 0 30px #ff0000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; text-align: center; -webkit-text-stroke: 1px #000; }
+  #start-screen p { color: #888; font-size: 13px; text-align: center; max-width: 400px; line-height: 1.8; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  .menu-btn-stack { display: flex; gap: 16px; justify-content: center; align-items: center; }
+  #start-screen button, #start-screen .hub-link { background: #1a0000; border: 1px solid #cc0000; color: #cc5500; padding: 12px 32px; font-family: 'Courier New', monospace; font-size: 15px; cursor: pointer; letter-spacing: 2px; transition: all 0.2s; text-decoration: none; display: inline-block; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  #start-screen button:hover, #start-screen .hub-link:hover { background: #cc0000; color: #ffff00; }
+  
+  /* Death Screen Layout Setup */
+  #death-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px; pointer-events: none; }
+  #death-screen h2 { color: #cc0000; font-size: 42px; letter-spacing: 6px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 40px #ff0000; }
+  #death-screen p { color: #cc6666; font-size: 13px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  #death-screen button, .styled-menu-btn { background: #1a0000; border: 1px solid #cc0000; color: #cc5500; padding: 10px 28px; font-family: 'Courier New', monospace; font-size: 14px; cursor: pointer; letter-spacing: 2px; pointer-events: all; text-decoration: none; display: inline-block; text-align: center; transition: all 0.2s; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  #death-screen button:hover, .styled-menu-btn:hover { background: #cc0000; color: #ffff00; }
+  .end-btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* Victory Screen Layout Setup */
+  #victory-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px; pointer-events: none; }
+  #victory-screen h2 { color: #00ff88; font-size: 42px; letter-spacing: 6px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 40px #00ff44, 0 0 80px #00aa33; }
+  #victory-screen p { color: #88ffcc; font-size: 13px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  .victory-btn { background: #001a0a; border: 1px solid #00cc66; color: #00cc66; padding: 10px 28px; font-family: 'Courier New', monospace; font-size: 14px; cursor: pointer; letter-spacing: 2px; pointer-events: all; text-decoration: none; display: inline-block; text-align: center; transition: all 0.2s; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  .victory-btn:hover { background: #00cc66; color: #000; }
+
+  /* Start Screen VHS — Extreme Intensity */
+  @keyframes start-vhs-scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+  @keyframes start-vhs-glitch {
+    0%   { clip-path: inset(40% 0 55% 0); transform: translate(-6px, 0) skewX(-2deg); opacity: 0.9; }
+    5%   { clip-path: inset(10% 0 85% 0); transform: translate(6px, 0) skewX(3deg);  opacity: 0.8; }
+    10%  { clip-path: inset(70% 0 5%  0); transform: translate(-4px, 0) skewX(-1deg); opacity: 1; }
+    15%  { clip-path: inset(25% 0 60% 0); transform: translate(8px, 0) skewX(4deg);  opacity: 0.7; }
+    20%  { clip-path: inset(0% 0 0% 0);   transform: translate(0,0) skewX(0deg);      opacity: 0; }
+    80%  { clip-path: inset(0% 0 0% 0);   transform: translate(0,0) skewX(0deg);      opacity: 0; }
+    82%  { clip-path: inset(55% 0 30% 0); transform: translate(-10px,0) skewX(-5deg); opacity: 0.85; }
+    86%  { clip-path: inset(5%  0 80% 0); transform: translate(10px, 0) skewX(5deg);  opacity: 0.9; }
+    90%  { clip-path: inset(0% 0 0% 0);   transform: translate(0,0) skewX(0deg);      opacity: 0; }
+    100% { clip-path: inset(0% 0 0% 0);   transform: translate(0,0) skewX(0deg);      opacity: 0; }
+  }
+  @keyframes start-vhs-rgb {
+    0%   { transform: translate(0,0); opacity: 0.55; }
+    10%  { transform: translate(-4px, 1px); opacity: 0.7; }
+    20%  { transform: translate(4px, -1px); opacity: 0.5; }
+    30%  { transform: translate(-3px, 2px); opacity: 0.65; }
+    40%  { transform: translate(3px, -2px); opacity: 0.6; }
+    50%  { transform: translate(0, 0); opacity: 0.55; }
+    60%  { transform: translate(-5px, 0); opacity: 0.75; }
+    70%  { transform: translate(5px, 1px); opacity: 0.5; }
+    80%  { transform: translate(-2px, -1px); opacity: 0.7; }
+    90%  { transform: translate(2px, 1px); opacity: 0.6; }
+    100% { transform: translate(0,0); opacity: 0.55; }
+  }
+  @keyframes start-vhs-flicker {
+    0%,100% { opacity: 1; }
+    3%       { opacity: 0.75; }
+    6%       { opacity: 1; }
+    30%      { opacity: 0.95; }
+    31%      { opacity: 0.6; }
+    32%      { opacity: 1; }
+    60%      { opacity: 0.9; }
+    61%      { opacity: 0.5; }
+    62%      { opacity: 1; }
+    90%      { opacity: 0.85; }
+    91%      { opacity: 0.4; }
+    92%      { opacity: 1; }
+  }
+  @keyframes start-noise-shift {
+    0%   { background-position: 0 0; }
+    10%  { background-position: -5% -10%; }
+    20%  { background-position: 10% 5%; }
+    30%  { background-position: -10% 10%; }
+    40%  { background-position: 5% -5%; }
+    50%  { background-position: -5% 5%; }
+    60%  { background-position: 10% -10%; }
+    70%  { background-position: -3% 8%; }
+    80%  { background-position: 8% -3%; }
+    90%  { background-position: -8% -8%; }
+    100% { background-position: 0 0; }
+  }
+  @keyframes start-hbar-drift {
+    0%   { top: -8px; opacity: 0.22; height: 8px; }
+    18%  { top: 35%; opacity: 0.35; height: 14px; }
+    36%  { top: 68%; opacity: 0.18; height: 6px; }
+    54%  { top: 12%; opacity: 0.4;  height: 20px; }
+    72%  { top: 82%; opacity: 0.25; height: 10px; }
+    90%  { top: 50%; opacity: 0.3;  height: 12px; }
+    100% { top: 100%; opacity: 0; height: 8px; }
+  }
+  @keyframes start-hbar2-drift {
+    0%   { top: 60%; opacity: 0.3;  height: 10px; }
+    20%  { top: 80%; opacity: 0.2;  height: 6px; }
+    40%  { top: 20%; opacity: 0.45; height: 18px; }
+    60%  { top: 5%;  opacity: 0.28; height: 12px; }
+    80%  { top: 45%; opacity: 0.38; height: 16px; }
+    100% { top: 60%; opacity: 0.3;  height: 10px; }
+  }
+  /* VHS layers for start screen — positioned absolute inside #start-screen */
+  #start-vhs-scanlines {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.28) 50%),
+                linear-gradient(90deg, rgba(255,0,0,0.07), rgba(0,255,0,0.02), rgba(0,0,255,0.07));
+    background-size: 100% 3px, 4px 100%;
+    pointer-events: none; z-index: 2;
+    animation: start-vhs-flicker 0.9s steps(1) infinite;
+  }
+  #start-vhs-bar {
+    position: absolute; width: 100%; height: 7px;
+    background: rgba(255,255,255,0.14);
+    box-shadow: 0 0 18px rgba(255,255,255,0.25);
+    top: 0; left: 0;
+    animation: start-vhs-scan 1.6s linear infinite;
+    pointer-events: none; z-index: 3;
+  }
+  #start-vhs-bar2 {
+    position: absolute; width: 100%; height: 3px;
+    background: rgba(255,100,100,0.18);
+    top: 0; left: 0;
+    animation: start-vhs-scan 2.3s linear infinite;
+    animation-delay: -0.9s;
+    pointer-events: none; z-index: 3;
+  }
+  #start-vhs-hbar {
+    position: absolute; width: 100%;
+    background: rgba(255,255,255,0.12);
+    left: 0;
+    animation: start-hbar-drift 2.1s ease-in-out infinite;
+    pointer-events: none; z-index: 3;
+  }
+  #start-vhs-hbar2 {
+    position: absolute; width: 100%;
+    background: rgba(255,60,60,0.15);
+    left: 0;
+    animation: start-hbar2-drift 3.3s ease-in-out infinite;
+    pointer-events: none; z-index: 3;
+  }
+  #start-vhs-rgb-r {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255,0,0,0.06);
+    mix-blend-mode: screen;
+    animation: start-vhs-rgb 0.7s steps(1) infinite;
+    pointer-events: none; z-index: 4;
+  }
+  #start-vhs-rgb-b {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,255,0.06);
+    mix-blend-mode: screen;
+    animation: start-vhs-rgb 0.7s steps(1) infinite;
+    animation-delay: -0.35s;
+    pointer-events: none; z-index: 4;
+  }
+  #start-vhs-glitch-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: inherit;
+    animation: start-vhs-glitch 4s steps(1) infinite;
+    pointer-events: none; z-index: 5;
+    mix-blend-mode: hard-light;
+    opacity: 0;
+  }
+  #start-vhs-noise {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    opacity: 0.09;
+    animation: start-noise-shift 0.12s steps(1) infinite;
+    pointer-events: none; z-index: 4;
+    mix-blend-mode: overlay;
+  }
+  /* Start screen content box */
+  #start-screen-content {
+    position: relative; z-index: 6;
+    background: rgba(0,0,0,0.55);
+    border: 2px solid #cc0000;
+    padding: 32px 40px;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+    max-width: 560px; width: 92%;
+    box-shadow: 0 0 30px rgba(200,0,0,0.4), inset 0 0 20px rgba(0,0,0,0.5);
+  }
+
+  /* ── Tab Navigation ── */
+  #menu-tabs {
+    display: flex; gap: 0; width: 100%;
+    border-bottom: 1px solid #cc0000;
+  }
+  .menu-tab {
+    flex: 1;
+    background: #0d0000;
+    border: 1px solid #660000;
+    border-bottom: none;
+    color: #664444;
+    padding: 8px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #000;
+  }
+  .menu-tab:hover { background: #1a0000; color: #cc6666; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  .menu-tab.active {
+    background: rgba(0,0,0,0.55);
+    color: #cc0000;
+    border-color: #cc0000;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 10px #ff0000;
+  }
+
+  /* ── Tab Panels ── */
+  .menu-panel {
+    width: 100%;
+    color: #888;
+    font-size: 12px;
+    line-height: 1.75;
+    text-align: left;
+    max-height: 260px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #660000 #0d0000;
+    padding-right: 4px;
+  }
+  .menu-panel::-webkit-scrollbar { width: 5px; }
+  .menu-panel::-webkit-scrollbar-track { background: #0d0000; }
+  .menu-panel::-webkit-scrollbar-thumb { background: #660000; }
+
+  /* ── INFO Tab ── */
+  .lore-section { margin-bottom: 16px; }
+  .lore-section:last-child { margin-bottom: 0; }
+  .lore-heading {
+    color: #cc0000;
+    font-size: 14px;
+    font-weight: bolder;
+    letter-spacing: 3px;
+    margin-bottom: 6px;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 8px #ff0000;
+    border-bottom: 1px solid #330000;
+    padding-bottom: 4px;
+  }
+  .lore-section p {
+    color: #888;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1.75;
+    text-align: left;
+    max-width: 100%;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  }
+
+  /* ── CONTROLS Tab ── */
+  .controls-grid { display: flex; flex-direction: column; gap: 8px; }
+  .ctrl-row {
+    display: flex; align-items: baseline; gap: 12px;
+    border-bottom: 1px solid #1a0000;
+    padding-bottom: 6px;
+  }
+  .ctrl-row:last-child { border-bottom: none; }
+  .ctrl-key {
+    min-width: 100px;
+    color: #ffff00;
+    font-size: 14px;
+    font-weight: bolder;
+    letter-spacing: 1px;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #aaaa00;
+    flex-shrink: 0;
+  }
+  .ctrl-desc {
+     color: #888; font-size: 12px;
+     font-weight: bold; letter-spacing: 1px;
+     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+     }
+  .gp-icon-group { display: flex; align-items: center; gap: 4px; min-width: 100px; flex-shrink: 0; }
+  .gp-icon-box {
+    width: 34px; height: 34px;
+    background: rgba(30,0,0,0.6);
+    border: 1px solid #550000;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .gp-icon-box img { width: 28px; height: 28px; object-fit: contain; }
+
+  /* ── ITEMS Tab ── */
+  .items-grid {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .item-card {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: rgba(20,0,0,0.5);
+    border: 1px solid #330000;
+    padding: 10px 12px;
+  }
+  .item-sprite-box {
+    width: 44px; height: 44px;
+    background: rgba(30,0,0,0.6);
+    border: 1px solid #550000;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .item-sprite-box img { width: 36px; height: 36px; object-fit: contain; image-rendering: pixelated; }
+  /* ── ABOUT Tab ── */
+  .about-text {
+    color: #ffaa00;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    padding: 16px 0;
+  }
+  #creator-link {
+    color: #ffff00;
+    font-weight: bolder;
+    text-decoration: none;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 10px #aaaa00;
+    transition: color 0.2s;
+  }
+  #creator-link:hover { color: #fff; }
+
+  .item-card-name {
+    color: #cc6666;
+    font-size: 14px;
+    font-weight: bolder;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #880000;
+  }
+  .item-card-desc { color: #777; font-size: 11px; font-weight: bold; line-height: 1.6; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+
+  /* Pause Screen & VHS Overlay Tracking Scanline Filters */
+  #pause-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 24px; pointer-events: all; z-index: 20; }
+  #pause-screen h2 { color: #cc0000; font-size: 42px; letter-spacing: 6px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 35px #ff0000; z-index: 22; }
+  .pause-btn-box { display: flex; flex-direction: column; gap: 12px; z-index: 22; width: 220px; }
+  
+  @keyframes vhs-scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+  .vhs-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.04)); background-size: 100% 4px, 6px 100%; pointer-events: none; z-index: 21; }
+  .vhs-bar { position: absolute; width: 100%; height: 5px; background: rgba(255, 255, 255, 0.08); box-shadow: 0 0 10px rgba(255, 255, 255, 0.15); top: 0; left: 0; animation: vhs-scan 3.8s linear infinite; pointer-events: none; z-index: 21; }
+
+  #timer-bar-wrap { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); width: 200px; display: none; }
+  #timer-bar-label { color: #ff4444; font-size: 11px; text-align: center; margin-bottom: 4px; letter-spacing: 1px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  #timer-bar { width: 100%; height: 8px; background: #330000; border: 1px solid #660000; }
+  #timer-fill { height: 100%; background: #ff0000; width: 100%; transition: width 0.05s linear; }
+  
+  #mobile-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 160px; display: none; pointer-events: all; }
+  #joystick-area { position: absolute; bottom: 20px; left: 20px; width: 110px; height: 110px; }
+  #joystick-base { width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); }
+  #joystick-knob { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); }
+  #look-area { position: absolute; bottom: 0; right: 0; width: calc(100% - 160px); height: 160px; }
+
+  /* Look joystick (right side, hidden by default, shown in landscape mobile) */
+  #look-joystick-area { position: absolute; bottom: 20px; right: 20px; width: 110px; height: 110px; display: none; pointer-events: all; }
+  #look-joystick-base { width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }
+  #look-joystick-knob { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(180,180,255,0.18); border: 1px solid rgba(180,180,255,0.28); }
+
+  /* Mobile Button Placements */
+  #mobile-flash-btn { position: absolute; left: 20px; bottom: 140px; background: rgba(0,255,200,0.2); border: 1px solid #00ffcc; color: #fff; padding: 10px 16px; font-family: 'Courier New', monospace; font-size: 13px; border-radius: 4px; pointer-events: all; display: none; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 4px #000; }
+  #mobile-sprint-btn { position: absolute; left: 150px; bottom: 140px; background: rgba(0,200,0,0.2); border: 1px solid #00ff00; color: #fff; padding: 10px 16px; font-family: 'Courier New', monospace; font-size: 13px; border-radius: 4px; pointer-events: all; display: none; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 4px #000; }
+  
+  .floor-stair-btn { position: absolute; right: 20px; bottom: 20px; background: rgba(100,60,0,0.6); border: 1px solid #664400; color: #bb8800; padding: 10px 18px; font-family: 'Courier New', monospace; font-size: 13px; cursor: pointer; pointer-events: all; display: none; letter-spacing: 1px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+  #arms-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     LANDSCAPE MOBILE LAYOUT — only applies to phones in landscape orientation.
+     Uses (max-height) + (pointer: coarse) so desktop is 100% unaffected.
+     ═══════════════════════════════════════════════════════════════════════════ */
+  @media screen and (max-height: 500px) and (pointer: coarse) {
+
+    /* ── HUD top bar ── */
+    #hud { font-size: 11px; top: 6px; }
+    #floor-indicator { font-size: 10px; top: 6px; right: 10px; }
+
+    /* Battery — tuck into top-right corner, smaller */
+    #battery-wrap { top: 22px; right: 10px; width: 90px; }
+    #battery-label { font-size: 9px; }
+
+    /* Stamina — top-left, compact */
+    #stamina-wrap { top: 6px; left: 10px; width: 110px; }
+    #stamina-label { font-size: 9px; }
+    #stamina-bar { height: 6px; }
+
+    /* Hotbar — centred, smaller slots, lifted above controls */
+    #hotbar-wrap { bottom: 170px; gap: 4px; padding: 4px; }
+    .hotbar-slot { width: 38px; height: 38px; }
+    .hotbar-slot .slot-num { font-size: 9px; }
+
+    /* Pause button — top-left, compact */
+    #mobile-pause-btn { top: 6px; left: 10px; padding: 5px 10px; font-size: 10px; }
+
+    /* Gamepad tooltip — smaller, tucked closer to the edge */
+    #gp-tooltip-panel { left: 10px; padding: 8px 10px; gap: 7px; }
+    #gp-tooltip-panel .gp-tooltip-title { font-size: 9px; }
+    #gp-tooltip-panel .gp-tooltip-text { font-size: 9px; }
+
+    /* Warning text */
+    #warning { font-size: 20px; }
+
+    /* Look-away timer bar — lift it above the control strip */
+    #timer-bar-wrap { bottom: 170px; }
+
+    /* ── Control strip ── taller to give joysticks room */
+    #mobile-controls { height: 160px; }
+
+    /* Move joystick — left side */
+    #joystick-area { bottom: 14px; left: 14px; width: 120px; height: 120px; }
+    #joystick-base { width: 120px; height: 120px; }
+    #joystick-knob { width: 46px; height: 46px; }
+
+    /* Look joystick — right side, shown in landscape */
+    #look-joystick-area { display: block; bottom: 14px; right: 14px; width: 120px; height: 120px; }
+    #look-joystick-base { width: 120px; height: 120px; }
+    #look-joystick-knob { width: 46px; height: 46px; }
+
+    /* Hide the old swipe-to-look area when we have a joystick */
+    #look-area { display: none; }
+
+    /* Flash / sprint buttons — sit above the move joystick, stacked vertically */
+    #mobile-flash-btn  { left: 148px; bottom: 96px; padding: 7px 12px; font-size: 11px; }
+    #mobile-sprint-btn { left: 148px; bottom: 52px; padding: 7px 12px; font-size: 11px; }
+
+    /* Pickup button — centre of screen, just above control strip */
+    #mobile-interact-btn { right: auto; left: 50%; transform: translateX(-50%); bottom: 168px; padding: 8px 18px; font-size: 12px; }
+
+    /* Stair button — sits above look joystick */
+    .floor-stair-btn { right: 148px; bottom: 96px; padding: 7px 14px; font-size: 11px; }
+
+    /* Start screen — compact for landscape */
+    #start-screen-content { padding: 14px 20px; gap: 10px; max-width: 94vw; }
+    #start-screen h1 { font-size: 22px; letter-spacing: 2px; }
+    .menu-panel { max-height: 160px; font-size: 11px; }
+    .menu-tab { font-size: 10px; padding: 6px 0; letter-spacing: 1px; }
+    .lore-section p { font-size: 11px; }
+    .item-card-name, .item-card-desc, .ctrl-desc, .ctrl-key { font-size: 10px; }
+    .gp-icon-box { width: 26px; height: 26px; }
+    .gp-icon-box img { width: 20px; height: 20px; }
+    .gp-icon-group { min-width: 76px; }
+    #start-screen button, #start-screen .hub-link { padding: 8px 18px; font-size: 12px; }
+
+    /* Death / victory screens */
+    #death-screen h2, #victory-screen h2 { font-size: 28px; }
+    #death-screen p,  #victory-screen p  { font-size: 11px; }
+    #death-screen button, .styled-menu-btn, .victory-btn { padding: 7px 18px; font-size: 12px; }
+
+    /* Pause screen */
+    #pause-screen h2 { font-size: 28px; }
+    .pause-btn-box { gap: 8px; width: 180px; }
+  }
