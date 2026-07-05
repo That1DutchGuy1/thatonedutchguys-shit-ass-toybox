@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="googlebot" content="noindex, nofollow">
+    <title>Weegee Memory Match</title>
+    <link rel="icon" type="image/x-icon" href="./weegee-memory-match.ico">
+    <link rel="stylesheet" href="WeegeeMemory.css">
+</head>
+<body>
+
+<div id="main-container">
+    
+    <h1>WEEGEE MEMORY MATCH</h1>
+    
+    <div id="marquee-warning">
+        <marquee scrollamount="4" behavior="scroll" direction="left">
+            WARNING: WEEGEE IS WATCHING YOU!!! FIND THE PAIRS BEFORE TIME RUNS OUT!!
+        </marquee>
+    </div>
+
+    <table class="hud-table">
+        <tr>
+            <td>TIME LEFT: <span id="hud-time">60</span>s</td>
+            <td>MOVES MADE: <span id="hud-moves">0</span></td>
+            <td>PAIRS FOUND: <span id="hud-pairs">0</span> / 8</td>
+        </tr>
+    </table>
+
+    <table id="game-table" cellspacing="8" cellpadding="0">
+        <tbody id="grid-body">
+        </tbody>
+    </table>
+
+    <div class="overlay-container">
+        
+        <div class="screen-overlay" id="start-screen" style="display: block;">
+            <div class="title-bar">Welcome to Weegee Memory Match</div>
+            <div class="content-box">
+                <p>Can you find all 8 matching Weegee pictures before the timer expires?!</p>
+                <p style="color: #555555; font-size: 11px;"><i>Optimized for Windows XP Display Settings</i></p>
+                <button class="ie-button" onclick="startGame()">CLICK HERE TO PLAY</button><br>
+                <a href="../index.html" class="hub-link">&lt;- Back to Main Hub</a>
+            </div>
+        </div>
+
+        <div class="screen-overlay" id="win-screen">
+            <div class="title-bar">!!! THE THREAT HAS BEEN SLAIN !!!</div>
+            <div class="content-box">
+                <p>You defeated Weegee! Excellent scores!!</p>
+                <p id="win-stats" style="font-weight: bold; background-color: #ffffff; border: 1px solid #7f9db9; padding: 6px; margin: 10px 0;"></p>
+                <button class="ie-button" onclick="startGame()">PLAY ONCE AGAIN</button><br>
+                <a href="../index.html" class="hub-link">&lt;- Back to Main Hub</a>
+            </div>
+        </div>
+
+        <div class="screen-overlay" id="lose-screen">
+            <div class="title-bar">GAME OVER !! OBEY WEEGEE !!</div>
+            <div class="content-box">
+                <p>You ran out of time! Weegee has turned you into a Luigi Doll!</p>
+                <button class="ie-button" onclick="startGame()">TRY AGAIN IF YOU DARE</button><br>
+                <a href="../index.html" class="hub-link">&lt;- Back to Main Hub</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="jumpscare-overlay">
+    <img id="jumpscare-img" src="Weegee-Head-Front.png" alt="OBEY WEEGEE">
+</div>
+
+<script src="WeegeeMemory.js"></script>
+</body>
+</html>

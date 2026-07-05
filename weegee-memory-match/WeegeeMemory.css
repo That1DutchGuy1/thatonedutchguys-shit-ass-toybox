@@ -1,0 +1,257 @@
+body {
+    background-color: #008080;
+    background-image: url('weegee-bliss-xp.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-attachment: fixed;
+    font-family: "Tahoma", "Segoe UI", sans-serif;
+    color: #000000;
+    margin: 0;
+    padding: 10px;
+}
+
+#main-container {
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+    position: relative;
+}
+
+/* Title styled like a prominent Windows XP Header Panel */
+h1 {
+    font-size: 28px;
+    font-family: "Trebuchet MS", Tahoma, sans-serif;
+    font-weight: bold;
+    color: #ffffff;
+    background: linear-gradient(to bottom, #0058e6 0%, #0046b8 100%);
+    border: 2px solid #ffffff;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+    padding: 8px 25px;
+    display: inline-block;
+    margin: 15px auto;
+    border-radius: 4px;
+    text-shadow: 1px 1px 2px #000000;
+}
+
+#marquee-warning {
+    background-color: #ffffe1;
+    color: #000000;
+    font-size: 13px;
+    font-family: "Tahoma", sans-serif;
+    border: 1px solid #808080;
+    margin: 0 auto 15px auto;
+    padding: 4px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
+
+/* HUD styled like a Windows XP Status Bar Window */
+.hud-table {
+    background-color: #f0f0f0;
+    color: #000000;
+    border: 1px solid #aca899;
+    font-family: "Tahoma", sans-serif;
+    font-size: 13px;
+    margin: 0 auto 20px auto;
+    padding: 2px;
+    border-collapse: collapse;
+    box-shadow: inset 1px 1px 2px #ffffff;
+}
+
+.hud-table td {
+    border: 1px solid #aca899;
+    padding: 6px 15px;
+    background-color: #ece9d8;
+}
+
+.hud-table span {
+    color: #b00000;
+    font-family: "Tahoma", sans-serif;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Classic App Window styling for the Game Grid Container */
+#game-table {
+    display: none; /* Hidden by default on the main menu */
+    margin: 0 auto;
+    background-color: #d6d3ce;
+    border: 3px solid #0054e3;
+    border-radius: 5px 5px 0 0;
+    padding: 12px;
+    box-shadow: 4px 4px 12px rgba(0,0,0,0.4);
+}
+
+/* Card slots resembling XP-style program blocks */
+.card-slot {
+    width: 130px;
+    height: 160px;
+    border: 1px solid #7f9db9;
+    background: linear-gradient(to bottom, #ffffff 0%, #e3efff 100%);
+    cursor: pointer;
+    text-align: center;
+    vertical-align: middle;
+    padding: 0;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+    transition: background 0.1s;
+    box-sizing: border-box; /* Prevents 2px match border from layout shifting */
+}
+
+.card-slot:hover {
+    background: linear-gradient(to bottom, #e3efff 0%, #c9e0ff 100%);
+}
+
+.card-back-text {
+    font-size: 56px;
+    font-family: "Trebuchet MS", sans-serif;
+    color: #0054e3;
+    font-weight: bold;
+    user-select: none;
+    text-shadow: 1px 1px 0px #ffffff;
+}
+
+/* Shifted down and centered over the board area to prevent HUD overlap */
+.overlay-container {
+    position: absolute;
+    top: 240px;
+    left: 0;
+    width: 100%;
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+}
+
+/* Authentic Windows XP Dialog Box styling */
+.screen-overlay {
+    display: none;
+    width: 420px;
+    background-color: #ece9d8;
+    border: 3px solid #0054e3;
+    border-radius: 5px 5px 0px 0px;
+    color: #000000;
+    padding: 0;
+    text-align: center;
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+}
+
+/* Luna Blue Title Bar */
+.screen-overlay .title-bar {
+    margin: 0;
+    font-family: "Trebuchet MS", Tahoma, sans-serif;
+    background: linear-gradient(to bottom, #0058e6 0%, #0046b8 100%);
+    color: #FFFFFF;
+    padding: 5px 8px;
+    font-size: 13px;
+    text-align: left;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px #002d7a;
+    border-bottom: 1px solid #002d7a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Little decorative XP Close window square accent */
+.screen-overlay .title-bar::after {
+    content: "X";
+    display: inline-block;
+    width: 16px;
+    height: 14px;
+    background: linear-gradient(to bottom, #e16040 0%, #b83c20 100%);
+    border: 1px solid #ffffff;
+    border-radius: 2px;
+    color: #ffffff;
+    font-family: "Arial Black", sans-serif;
+    font-size: 9px;
+    text-align: center;
+    line-height: 13px;
+    text-shadow: none;
+}
+
+.screen-overlay .content-box {
+    padding: 25px 20px;
+    font-family: "Tahoma", sans-serif;
+}
+
+.screen-overlay p {
+    font-family: "Tahoma", sans-serif;
+    font-size: 13px;
+    margin: 0 0 15px 0;
+    color: #000000;
+    line-height: 1.4;
+}
+
+/* True Windows XP Luna Command Button */
+.ie-button {
+    background: linear-gradient(to bottom, #ffffff 0%, #eae8e0 10%, #d4d0c8 100%);
+    border: 1px solid #003c74;
+    border-radius: 3px;
+    color: #000000;
+    font-family: "Tahoma", sans-serif;
+    font-size: 13px;
+    padding: 5px 18px;
+    cursor: pointer;
+    box-shadow: inset -1px -1px 1px #9c9a94, inset 1px 1px 1px #ffffff;
+    outline: none;
+}
+
+.ie-button:hover {
+    background: linear-gradient(to bottom, #ffffff 0%, #f1efe9 10%, #e3dfd6 100%);
+    border-color: #0054e3;
+}
+
+.ie-button:active {
+    background: linear-gradient(to bottom, #d4d0c8 0%, #eae8e0 100%);
+    box-shadow: inset 1px 1px 2px #7f7f7f;
+}
+
+.hub-link {
+    display: inline-block;
+    margin-top: 15px;
+    color: #004e82;
+    font-size: 11px;
+    text-decoration: underline;
+    font-family: "Tahoma", sans-serif;
+}
+.hub-link:hover {
+    color: #0054e3;
+}
+
+/* Jumpscare Elements */
+#jumpscare-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 10000;
+    overflow: hidden;
+    pointer-events: all; /* Completely blocks interaction with background elements */
+    justify-content: center;
+    align-items: center;
+}
+
+#jumpscare-img {
+    max-width: 10%;
+    max-height: 10%;
+    transform: scale(1);
+    animation: weegeeZoom 5s cubic-bezier(0.6, 0.04, 0.98, 0.33) forwards;
+}
+
+@keyframes weegeeZoom {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    85% {
+        transform: scale(45); /* Rapidly expands to almost engulf the view width/height */
+        opacity: 1;
+    }
+    100% {
+        transform: scale(55);
+        opacity: 0; /* Smooth fade away at the very end of the 5 seconds */
+    }
+}
