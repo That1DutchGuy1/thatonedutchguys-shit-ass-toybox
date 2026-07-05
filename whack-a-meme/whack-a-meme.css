@@ -1,0 +1,298 @@
+@font-face {
+  font-family: 'Comic Sans MS';
+  src: url('../Comic-Sans-MS.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+body {
+  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-weight: bold;
+  text-align: center;
+  background-color: #ffff00; /* Fallback color */
+  margin: 0;
+  overflow: hidden; /* Prevents scrollbars from the spinning background */
+  font-size: 3.5rem;
+  transition: color 0.2s ease;
+  text-shadow: 3px 3px 0px #fff;
+  cursor: auto;
+}
+
+/* --- THE SPINNING SUNBURST --- */
+body::before {
+  content: "";
+  position: fixed;
+  top: -100%; 
+  left: -100%;
+  width: 300%; 
+  height: 300%;
+  background-image: repeating-conic-gradient(
+    #ffff00 0deg 15deg,
+    #ffdb00 15deg 30deg
+  );
+  z-index: -1; 
+  transform: scale(1.5); 
+  animation: sunburst-spin 30s linear infinite;
+  transform-origin: center; 
+}
+
+@keyframes sunburst-spin {
+  from { transform: rotate(0deg) scale(1.5); }
+  to { transform: rotate(360deg) scale(1.5); }
+}
+
+/* --- VISIBILITY LOGIC --- */
+/* Hide game elements by default so they don't show on the menu */
+#scoreboard, .grid, #main-title {
+  display: none;
+}
+
+/* Show them only when the game starts */
+body.game-active #scoreboard {
+  display: inline-block;
+}
+body.game-active .grid {
+  display: grid;
+}
+
+/* NEW: Show the top title ONLY when the game is running */
+body.game-active #main-title {
+  display: block;
+}
+
+/* Hide real cursor when game is active */
+body.game-active {
+  cursor: none;
+}
+body.game-active .meme, 
+body.game-active .hole,
+body.game-active button {
+  cursor: none;
+}
+
+/* Custom Hammer Element */
+#hammer-cursor {
+  position: fixed;
+  width: 80px; 
+  height: 80px;
+  background-image: url('assets/cursor/Hammer.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 9999;
+  transform-origin: 50% 90%;
+  transform: translate(-50%, -80%) rotate(0deg); 
+  display: none;
+  filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.3));
+}
+
+body.game-active #hammer-cursor {
+  display: block;
+}
+
+.whacking {
+  animation: hammer-swing 0.18s cubic-bezier(0.1, 0.9, 0.2, 1);
+}
+
+@keyframes hammer-swing {
+  0% { transform: translate(-50%, -80%) rotate(0deg); }
+  25% { transform: translate(-50%, -80%) rotate(25deg); }
+  60% { transform: translate(-50%, -80%) rotate(-55deg); }
+  100% { transform: translate(-50%, -80%) rotate(0deg); }
+}
+
+h1 {
+  font-size: 3.5rem;
+  font-weight: bold;
+  margin-top: 20px;
+  text-shadow: 3px 3px 0px #fff;
+  transition: color 0.2s ease;
+}
+
+#scoreboard {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  background: white;
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 4px solid #333;
+  transition: color 0.2s ease;
+}
+
+.grid {
+  grid-template-columns: repeat(3, 140px);
+  grid-gap: 25px;
+  justify-content: center;
+  margin: 40px auto;
+  perspective: 1000px;
+}
+
+.hole {
+  width: 140px;
+  height: 140px;
+  background-color: #5c3d2e; 
+  border: 8px solid #32cd32;
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  box-shadow: inset 0 10px 20px rgba(0,0,0,0.6);
+}
+
+.meme {
+  position: absolute;
+  bottom: -100%; 
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
+  transition: bottom 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  user-select: none;
+}
+
+.meme.up {
+  bottom: 15%; 
+}
+
+.meme.whacked {
+  transform: translateX(-50%) scale(1.2) rotate(10deg);
+  opacity: 0;
+  transition: 0.1s;
+}
+
+.floating-text {
+  position: absolute;
+  pointer-events: none;
+  font-weight: bold;
+  font-size: 2.2rem;
+  animation: floatUp 0.8s ease-out forwards;
+  z-index: 2000;
+  text-shadow: 2px 2px 0px #000;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-120px); opacity: 0; }
+}
+
+button {
+  background-color: #ff00ff;
+  color: white;
+  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-size: 24px;
+  font-weight: bold;
+  padding: 15px 30px;
+  border: 4px solid #333;
+  border-radius: 15px;
+  transition: transform 0.1s;
+  cursor: pointer;
+}
+
+button:hover {
+  transform: scale(1.1);
+}
+
+/* --- MENU FIX --- */
+#start-screen {
+  position: fixed;
+  inset: 0;
+  background: transparent; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 1000;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 50px;
+}
+
+.options label {
+  display: block;
+  position: relative;
+  width: 600px;
+  text-align: left;
+  font-size: 2.5rem;
+  line-height: 1.5;
+}
+
+#duration {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Comic Sans MS', sans-serif, bold;
+  background-color: #ff00ff;
+  color: white;
+  border: 4px solid #333;
+  border-radius: 10px;
+  padding: 12px 45px 12px 15px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#game-over {
+  background: white;
+  padding: 30px;
+  border: 5px solid #333;
+  border-radius: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+
+#creator-link {
+  position: fixed;
+  bottom: 10px;
+  left: 25px;
+  text-decoration: none;
+  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-weight: bold;
+  font-size: 2rem;
+  color: #333;
+  z-index: 1001;
+  transition: transform 0.2s;
+}
+
+#creator-link:hover {
+  transform: scale(1.1);
+  color: #ff00ff;
+}
+
+#hub-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 2000;
+  font-family: 'Comic Sans MS', sans-serif, bold;
+  background-color: #ff00ff;
+  color: white;
+  padding: 10px 20px;
+  border: 4px solid #333;
+  border-radius: 12px;
+  text-decoration: none;
+  text-shadow: 2px 2px 0px #000000;
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: transform 0.1s;
+}
+
+#hub-btn:hover {
+  transform: scale(1.1);
+  background-color: #00ff00;
+}

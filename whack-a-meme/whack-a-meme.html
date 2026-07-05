@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="googlebot" content="noindex, nofollow">
+  <title>Whack A Meme</title>
+  <link rel="icon" type="image/x-icon" href="./whack-a-meme.ico">
+  <link rel="stylesheet" href="whack-a-meme.css" />
+</head>
+<body>
+  <div id="hammer-cursor"></div>
+
+  <h1 id="main-title">Whack A Meme</h1>
+
+  <div id="start-screen">
+    <h2 class="random-color">WHACK A MEME</h2>
+    <p class="random-color">Watch out for Rick Astley! He steals your time!</p>
+    <div class="options">
+      <label class="random-color">
+        Select your playtime:
+        <select id="duration" style="font-size: 1.2rem; padding: 5px;">
+          <option value="30" selected>30s (Default)</option>
+          <option value="45">45s</option>
+          <option value="60">60s</option>
+        </select>
+      </label>
+    </div>
+    <button id="start-btn">LETS GOOOO</button>
+  </div>
+
+  <div id="scoreboard">
+    Score: <span id="score">0</span> | Time: <span id="time">30</span>s
+  </div>
+
+  <div class="grid">
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+  </div>
+
+  <div id="game-over" class="hidden">
+    <h2 class="random-color">GAME OVER</h2>
+    <p style="font-size: 2.5rem; margin: 10px 0;" class="random-color">Final Score: <span id="final-score"></span></p>
+    <div style="display: flex; gap: 10px; justify-content: center;">
+      <button id="restart-btn">Play Again?</button>
+      <button id="back-to-menu-btn" style="background-color: #555;">Back to Menu</button>
+    </div>
+  </div>
+
+  <audio id="main-menu-theme" src="assets/sounds/main-menu-theme.mp3" loop></audio> <!-- Main menu background music -->
+  <audio id="hit-sound" src="assets/sounds/hit.mp3"></audio> <!-- Sound effect for hitting a meme -->
+  <audio id="rick-lol-sound" src="assets/sounds/rick-lol.mp3"></audio> <!-- Rick Astley stealing time sound, aka a sentence mixing that makes him say LOL! -->
+  <audio id="no-score-sound" src="assets/sounds/no-score.mp3"></audio> <!-- When the score is 0, an angry guy will be heard yelling GODDAMNIT and breaking something in the background -->
+  <audio id="bad-score-sound" src="assets/sounds/bad-score.mp3"></audio> <!-- Crowd booing sound effect for bad scores -->
+  <audio id="mediocre-score-sound" src="assets/sounds/mediocre-score.mp3"></audio> <!-- Nyeh, I guess that counts meme sound effect -->
+  <audio id="good-score-sound" src="assets/sounds/good-score.mp3"></audio> <!-- iDubbbz Hey that's pretty good meme sound effect -->
+  <audio id="nice-score-sound" src="assets/sounds/nice-score.mp3"></audio> <!-- Michael Rosen click Nice meme sound effect -->
+  <audio id="excellent-score-sound" src="assets/sounds/excellent-score.mp3"></audio> <!-- I DID IT! I DID IT! meme sound effect -->
+
+  <script src="whack-a-meme.js"></script>
+
+  <a href="../index.html" id="hub-btn" class="button">← HUB</a>
+  <a href="https://youtube.com/@that1dutchguy?si=64hwISFn48ZFbh9l" id="creator-link" target="_blank">
+  Made by YouTuber That One Dutch Guy
+</a>
+</body>
+</html>
