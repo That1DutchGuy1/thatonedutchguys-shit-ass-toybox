@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="googlebot" content="noindex, nofollow">
+    <title>Weegee Town XP</title>
+    <link rel="stylesheet" href="weegee-town-xp.css">
+</head>
+<body>
+    <div id="start-menu">
+        <div class="welcome-container">
+            <div class="welcome-sidebar">
+                <img src="windows-xp-icon-logo.png" alt="Windows XP Logo" class="xp-start-logo">
+                <div class="sidebar-logo">Windows<span>xp</span></div>
+            </div>
+            <div class="welcome-main">
+                <div class="welcome-header">
+                    <h1>Welcome to Weegee Town</h1>
+                    <p>To begin, click your user account to initiate the simulation.</p>
+                </div>
+                <div class="user-selection">
+                    <div id="play-button" class="user-account">
+                        <div class="avatar-frame">
+                            <img src="avatar.jpg" alt="Avatar" class="avatar-image">
+                        </div>
+                        <div class="account-details">
+                            <span class="username">Player 1</span>
+                            <span class="status">Click here to play...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="welcome-footer">
+                <div class="logoff-start-container">
+                    <a href="../index.html" id="hub-btn" class="button"><img src="XP-log-off.png" alt="Log Off"></a>
+                    <span class="logoff-text">Log Off</span>
+                </div>
+                <div class="footer-brand">Logon Screen Classic</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-canvas">
+        <div class="xp-hud">
+            <div class="logoff-hud-container">
+                <a href="../index.html" id="hub-btn" class="button"><img src="XP-log-off.png" alt="Log Off"></a>
+                <span class="logoff-text">Log Off</span>
+            </div>
+            <div class="hud-section">
+                <span class="hud-label">Score:</span>
+                <span id="score-val" class="hud-value">0</span>
+            </div>
+            <div class="hud-center-title">WeegeeTownXP.exe</div>
+            <div class="hud-section">
+                <span class="hud-label text-danger">System Intrusion:</span>
+                <span id="missed-val" class="hud-value">0</span><span class="hud-max">/5</span>
+            </div>
+        </div>
+
+        <div class="town-environment">
+            
+            <div class="building clock-tower crest-tier">
+                <div class="roof peak"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot clock-face" data-sprite="Weegee_Front.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout door-spot tower-base-door" data-sprite="Weegee_Right.png">
+                        <div class="wooden-door"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building windmill crest-tier">
+                <div class="roof cap"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot gears-win" data-sprite="Weegee_Left.png">
+                        <div class="glass-window"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building wizard-shack crest-tier">
+                <div class="roof steep-cone"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot attic" data-sprite="Weegee_Front.png">
+                        <div class="glass-window"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building observatory crest-tier">
+                <div class="roof dome"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot lens-win" data-sprite="Weegee_Front.png">
+                        <div class="glass-window"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building lookout-tower crest-tier">
+                <div class="roof steep"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot tower-top" data-sprite="Weegee_Right.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout window-spot tower-mid" data-sprite="Weegee_Left.png">
+                        <div class="glass-window"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building cottage mid-tier">
+                <div class="roof triangle"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot cottage-win" data-sprite="Weegee_Front.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout door-spot cottage-door" data-sprite="Weegee_Left.png">
+                        <div class="wooden-door"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building barn mid-tier">
+                <div class="roof gambrel"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot loft-window" data-sprite="Weegee_Front.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout door-spot barn-door" data-sprite="Weegee_Left.png">
+                        <div class="double-door"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building yellow-house mid-tier">
+                <div class="roof triangle"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot yellow-win" data-sprite="Weegee_Right.png">
+                        <div class="glass-window"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building log-cabin mid-tier">
+                <div class="roof cabin-roof"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot cabin-win" data-sprite="Weegee_Front.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout door-spot cabin-door" data-sprite="Weegee_Left.png">
+                        <div class="wooden-door"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building suburban-lavender mid-tier">
+                <div class="roof split"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot sub-win" data-sprite="Weegee_Front.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout door-spot sub-door" data-sprite="Weegee_Right.png">
+                        <div class="wooden-door"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building green-inn mid-tier">
+                <div class="roof triangle"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot inn-win" data-sprite="Weegee_Left.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout door-spot inn-door" data-sprite="Weegee_Front.png">
+                        <div class="wooden-door"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building shed front-tier">
+                <div class="roof shed-roof"></div>
+                <div class="building-body">
+                    <div class="hideout door-spot shed-door" data-sprite="Weegee_Front.png">
+                        <div class="wooden-door"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building bakery front-tier">
+                <div class="roof awning"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot bake-win" data-sprite="Weegee_Right.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout door-spot bake-door" data-sprite="Weegee_Front.png">
+                        <div class="wooden-door"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building town-hall front-tier">
+                <div class="roof interstate-mansard"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot win-left" data-sprite="Weegee_Front.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout window-spot win-right" data-sprite="Weegee_Front.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout door-spot grand-door" data-sprite="Weegee_Front.png">
+                        <div class="double-door"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building library front-tier">
+                <div class="roof flat"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot window-upper" data-sprite="Weegee_Front.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout window-spot window-lower" data-sprite="Weegee_Right.png">
+                        <div class="glass-window"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="building brick-office front-tier">
+                <div class="roof commercial"></div>
+                <div class="building-body">
+                    <div class="hideout window-spot office-win-1" data-sprite="Weegee_Left.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout window-spot office-win-2" data-sprite="Weegee_Front.png">
+                        <div class="glass-window"></div>
+                    </div>
+                    <div class="hideout door-spot office-door" data-sprite="Weegee_Right.png">
+                        <div class="wooden-door"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <img id="weegee" src="Weegee_Front.png" alt="Weegee" />
+
+        <div id="error-dialog" class="xp-window dialog" style="display: none;">
+            <div class="title-bar">
+                <div class="title-bar-text">Fatal System Error</div>
+            </div>
+            <div class="window-body dialog-content">
+                <div class="error-msg-layout">
+                    <div class="error-icon">❌</div>
+                    <p>A fatal exception OE has occurred at WeegeeTown.css. The visual matrix has been permanently corrupted by allowing 5 entities into your reality.</p>
+                </div>
+                <div class="dialog-footer-actions">
+                    <button id="menu-btn" class="xp-btn">Return to Menu</button>
+                    <button id="restart-btn" class="xp-btn">Reboot System</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="weegee-town-xp.js"></script>
+</body>
+</html>

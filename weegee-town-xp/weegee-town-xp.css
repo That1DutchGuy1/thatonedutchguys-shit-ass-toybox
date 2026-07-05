@@ -1,0 +1,523 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Tahoma', 'MS Sans Serif', sans-serif;
+    user-select: none;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000;
+}
+
+/* --- WINDOWS XP START SCREEN MENU --- */
+#start-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 999;
+    background: linear-gradient(to bottom, #5a7edc 0%, #00309c 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.welcome-container {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    grid-template-rows: 1fr 80px;
+    background: #5a7edc;
+}
+
+.welcome-sidebar {
+    background: linear-gradient(to bottom, #002e94 0%, #5a7edc 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    padding-right: 40px;
+    border-right: 2px solid #ffffff40;
+    gap: 15px;
+}
+
+.xp-start-logo {
+    width: 85px;
+    height: auto;
+    object-fit: contain;
+}
+
+.sidebar-logo {
+    color: white;
+    font-size: 44px;
+    font-weight: bold;
+    font-style: italic;
+}
+.sidebar-logo span {
+    color: #ff6600;
+    font-size: 22px;
+    vertical-align: super;
+}
+
+.welcome-main {
+    background: linear-gradient(to bottom, #7a9ee0 0%, #5a7edc 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 50px;
+    color: white;
+}
+
+.welcome-header h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    font-weight: normal;
+}
+.welcome-header p {
+    font-size: 14px;
+    color: #d6e2ff;
+    margin-bottom: 40px;
+}
+
+.user-account {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    width: fit-content;
+    padding: 10px;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    transition: background 0.2s;
+}
+.user-account:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.avatar-frame {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #ffffff;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.account-details .username {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+}
+.account-details .status {
+    font-size: 12px;
+    color: #b0c8ff;
+}
+
+.welcome-footer {
+    grid-column: span 2;
+    background: #002375;
+    border-top: 2px solid #ff9900;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 30px;
+    padding-right: 30px;
+    color: #7a9ee0;
+    font-size: 12px;
+}
+
+/* --- LOG OFF COMPONENT (START MENU) --- */
+.logoff-start-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.logoff-start-container img {
+    width: 32px;
+    height: 32px;
+    display: block;
+    cursor: pointer;
+    transition: filter 0.1s ease;
+}
+.logoff-start-container img:hover {
+    filter: brightness(1.2);
+}
+.logoff-start-container .logoff-text {
+    font-family: 'Tahoma', sans-serif;
+    font-size: 11px;
+    color: #ffffff;
+}
+
+/* --- VISUAL CANVAS ENVIRONMENT --- */
+#game-canvas {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('Bliss.png');
+    background-size: cover;
+    background-position: center bottom;
+    image-rendering: pixelated;
+    overflow: hidden;
+    cursor: crosshair;
+}
+
+/* Classic XP HUD Top Strip */
+.xp-hud {
+    position: relative; /* Context for absolute centering */
+    width: 100%;
+    height: 45px;
+    background: linear-gradient(to bottom, #245ddb 0%, #0e46ce 12%, #245ddb 100%);
+    border-bottom: 2px solid #1a3675;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    z-index: 500;
+}
+
+/* --- LOG OFF COMPONENT (IN-GAME HUD) --- */
+.logoff-hud-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 20px; /* Space between Logoff and next element */
+}
+.logoff-hud-container img {
+    width: 22px;
+    height: 22px;
+    display: block;
+    cursor: pointer;
+    transition: filter 0.1s ease;
+}
+.logoff-hud-container img:hover {
+    filter: brightness(1.2);
+}
+.logoff-hud-container .logoff-text {
+    font-family: 'Tahoma', sans-serif;
+    font-size: 11px;
+    color: #ffffff;
+}
+
+.hud-center-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-weight: bold;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 2px #000;
+    pointer-events: none;
+}
+
+.hud-section {
+    font-size: 16px;
+    font-weight: bold;
+    background: rgba(0,0,0,0.2);
+    padding: 4px 14px;
+    border-radius: 3px;
+    border: 1px solid #1a3675;
+}
+
+/* Force the last section to the right */
+.xp-hud .hud-section:last-of-type {
+    margin-left: auto;
+}
+
+.hud-value {
+    color: #ffcc00;
+    font-size: 18px;
+    margin-left: 5px;
+}
+.text-danger { color: #ff8888; }
+.hud-max { font-size: 12px; color: #ccc; }
+
+/* --- THE COZY TIERED HILLSIDE TOWN --- */
+.town-environment {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 80%;
+    z-index: 10;
+}
+
+.building {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+.building-body {
+    border: 3px solid #28211f;
+    position: relative;
+    box-shadow: inset -8px 0px rgba(0,0,0,0.15);
+}
+
+/* --- TIER 3: CREST RIDGE (Populating the highest ridge profiles) --- */
+.crest-tier { bottom: 53%; transform: scale(0.72); transform-origin: bottom center; }
+
+.clock-tower { left: 4%; width: 85px; }
+.clock-tower .building-body { height: 220px; background: #d1ccc0; }
+.clock-tower .roof.peak {
+    width: 0; height: 0; border-left: 42px solid transparent; border-right: 42px solid transparent; border-bottom: 50px solid #57606f; align-self: center;
+}
+.clock-tower .clock-face { top: 20px; left: 18px; width: 44px; height: 44px; border-radius: 50%; }
+.clock-tower .tower-base-door { bottom: 0; left: 22px; width: 34px; height: 60px; }
+
+.windmill { left: 24%; bottom: 56%; width: 75px; }
+.windmill .building-body { height: 140px; background: #eaedd0; border-radius: 40% 40% 0 0; }
+.windmill .roof.cap {
+    width: 80px; height: 35px; background: #a04040; border-radius: 50% 50% 0 0; align-self: center; border: 3px solid #28211f;
+}
+.windmill .gears-win { top: 35px; left: 21px; width: 28px; height: 32px; }
+
+.wizard-shack { left: 46%; bottom: 57%; width: 80px; }
+.wizard-shack .building-body { height: 80px; background: #6c5ce7; }
+.wizard-shack .roof.steep-cone {
+    width: 0; height: 0; border-left: 40px solid transparent; border-right: 40px solid transparent; border-bottom: 70px solid #2d3436; align-self: center;
+}
+.wizard-shack .attic { top: 15px; left: 22px; width: 30px; height: 30px; }
+
+.observatory { right: 28%; bottom: 49%; width: 90px; }
+.observatory .building-body { height: 85px; background: #bdc3c7; border-radius: 10px 10px 0 0; }
+.observatory .roof.dome {
+    width: 70px; height: 35px; background: #7f8c8d; border-radius: 35px 35px 0 0; align-self: center; border: 3px solid #28211f; border-bottom: none;
+}
+.observatory .lens-win { top: 20px; left: 27px; width: 30px; height: 35px; }
+
+.lookout-tower { right: 8%; bottom: 38% !important; width: 85px; }
+.lookout-tower .building-body { height: 230px; background: #878076; }
+.lookout-tower .roof.steep {
+    width: 0; height: 0; border-left: 42px solid transparent; border-right: 42px solid transparent; border-bottom: 65px solid #3d3b40; align-self: center;
+}
+.lookout-tower .tower-top { top: 20px; left: 20px; width: 40px; height: 40px; }
+.lookout-tower .tower-mid { top: 85px; left: 20px; width: 40px; height: 40px; }
+
+
+/* --- TIER 2: MID-HILLSIDE DISTRICT (Staggered midway along slopes) --- */
+.mid-tier { bottom: 25%; transform: scale(0.85); transform-origin: bottom center; }
+
+.cottage { left: 2%; width: 110px; }
+.cottage .building-body { height: 105px; background: #c26d52; }
+.cottage .roof.triangle {
+    width: 0; height: 0; border-left: 55px solid transparent; border-right: 55px solid transparent; border-bottom: 40px solid #733c3c; align-self: center;
+}
+.cottage .cottage-win { top: 15px; left: 12px; width: 34px; height: 34px; }
+.cottage .cottage-door { bottom: 0; right: 15px; width: 34px; height: 60px; }
+
+.barn { left: 18%; bottom: 28%; width: 135px; }
+.barn .building-body { height: 125px; background: #a53737; }
+.barn .roof.gambrel {
+    height: 40px; background: #5c1d1d; clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); border: 3px solid #28211f;
+}
+.barn .loft-window { top: 15px; left: 47px; width: 36px; height: 36px; }
+.barn .barn-door { bottom: 0; left: 32px; width: 66px; height: 65px; }
+
+.yellow-house { left: 38%; bottom: 29%; width: 100px; }
+.yellow-house .building-body { height: 95px; background: #f1c40f; }
+.yellow-house .roof.triangle {
+    width: 0; height: 0; border-left: 50px solid transparent; border-right: 50px solid transparent; border-bottom: 35px solid #d35400; align-self: center;
+}
+.yellow-house .yellow-win { top: 25px; left: 30px; width: 36px; height: 36px; }
+
+.log-cabin { right: 38%; bottom: 22%; width: 115px; }
+.log-cabin .building-body { height: 100px; background: #d35400; border-image: repeating-linear-gradient(0deg, #d35400, #d35400 15px, #ba4a00 15px, #ba4a00 18px) 10; }
+.log-cabin .roof.cabin-roof {
+    width: 0; height: 0; border-left: 58px solid transparent; border-right: 58px solid transparent; border-bottom: 38px solid #5e2700; align-self: center;
+}
+.log-cabin .cabin-win { top: 20px; left: 15px; width: 32px; height: 32px; }
+.log-cabin .cabin-door { bottom: 0; right: 15px; width: 32px; height: 58px; }
+
+.suburban-lavender { right: 20%; bottom: 21%; width: 120px; }
+.suburban-lavender .building-body { height: 115px; background: #82589f; }
+.suburban-lavender .roof.split {
+    height: 30px; background: #4b4b4b; clip-path: polygon(0% 100%, 50% 0%, 100% 100%); border: 3px solid #28211f;
+}
+.suburban-lavender .sub-win { top: 15px; left: 15px; width: 36px; height: 36px; }
+.suburban-lavender .sub-door { bottom: 0; right: 20px; width: 36px; height: 65px; }
+
+.green-inn { right: 3%; width: 125px; }
+.green-inn .building-body { height: 135px; background: #44bd32; }
+.green-inn .roof.triangle {
+    width: 0; height: 0; border-left: 62px solid transparent; border-right: 62px solid transparent; border-bottom: 45px solid #2f3640; align-self: center;
+}
+.green-inn .inn-win { top: 20px; left: 38px; width: 44px; height: 44px; }
+.green-inn .inn-door { bottom: 0; left: 42px; width: 36px; height: 65px; }
+
+
+/* --- TIER 1: VALLEY FOREGROUND (Base baseline alignment) --- */
+.front-tier { bottom: 0; transform: scale(1.0); }
+
+.shed { left: 1%; width: 80px; }
+.shed .building-body { height: 80px; background: #7f8c8d; }
+.shed .roof.shed-roof { height: 15px; background: #34495e; clip-path: polygon(0 0, 100% 70%, 100% 100%, 0 100%); border: 2px solid #28211f; }
+.shed .shed-door { bottom: 0; left: 20px; width: 40px; height: 60px; }
+
+.bakery { left: 12%; width: 130px; }
+.bakery .building-body { height: 130px; background: #f7d070; }
+.bakery .roof.awning { height: 25px; background: #d9534f; border: 3px solid #28211f; border-bottom: none; }
+.bakery .bake-win { top: 20px; left: 15px; width: 40px; height: 40px; }
+.bakery .bake-door { bottom: 0; right: 20px; width: 36px; height: 75px; }
+
+.town-hall { left: 32%; width: 220px; }
+.town-hall .building-body { height: 200px; background: #9fa6b5; }
+.town-hall .roof.interstate-mansard {
+    height: 45px; background: #495261; clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%); border: 3px solid #28211f;
+}
+.town-hall .win-left { top: 30px; left: 30px; width: 45px; height: 50px; }
+.town-hall .win-right { top: 30px; right: 30px; width: 45px; height: 50px; }
+.town-hall .grand-door { bottom: 0; left: 77px; width: 66px; height: 85px; }
+
+.library { right: 18%; width: 135px; }
+.library .building-body { height: 185px; background: #3c6382; }
+.library .roof.flat { height: 15px; background: #1e3799; border: 3px solid #28211f; border-bottom: none; }
+.library .window-upper { top: 20px; left: 42px; width: 46px; height: 46px; }
+.library .window-lower { bottom: 20px; left: 42px; width: 46px; height: 46px; }
+
+.brick-office { right: 2%; width: 145px; }
+.brick-office .building-body { height: 210px; background: #b22222; background-image: linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px); background-size: 10px 6px; }
+.brick-office .roof.commercial { height: 12px; background: #333; border-bottom: 3px solid #28211f; }
+.brick-office .office-win-1 { top: 25px; left: 20px; width: 40px; height: 45px; }
+.brick-office .office-win-2 { top: 25px; right: 20px; width: 40px; height: 45px; }
+.brick-office .office-door { bottom: 0; left: 50px; width: 42px; height: 75px; }
+
+
+/* --- DYNAMIC CLIPPING INTERNAL HIDING PORTS --- */
+.hideout {
+    position: absolute;
+    background: #0f1217;
+    border: 3px solid #28211f;
+    overflow: hidden;
+}
+
+.glass-window {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, rgba(135, 206, 250, 0.35) 0%, rgba(30, 144, 255, 0.15) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: inset 0 0 6px rgba(255,255,255,0.3);
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 25;
+    pointer-events: none;
+}
+
+.wooden-door, .double-door {
+    width: 100%; height: 100%;
+    border-right: 3px solid rgba(0,0,0,0.25);
+    background: #8a5229;
+    pointer-events: none;
+}
+.double-door {
+    background: #5c3a21;
+    border-left: 2px solid rgba(0,0,0,0.3);
+}
+
+
+/* --- WEEGEE SPRITE ENGINE MECHANICS --- */
+#weegee {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    cursor: pointer;
+    opacity: 0;
+}
+
+/* WINDOW OVERRIDES: HEAD ONLY PEEKS FROM THE TOP EDGE */
+.window-spot #weegee {
+    width: 145%;
+    height: auto;
+    top: 100%;
+    bottom: auto;
+    transition: top 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.14s ease;
+}
+.window-spot #weegee.visible {
+    top: 2%;
+    opacity: 1;
+}
+
+/* DOOR OVERRIDES: FULL STRUCTURAL BODY SLIDES UP */
+.door-spot #weegee {
+    width: auto;
+    height: 96%;
+    top: auto;
+    bottom: -100%;
+    transition: bottom 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.14s ease;
+}
+.door-spot #weegee.visible {
+    bottom: 0%;
+    opacity: 1;
+}
+
+
+/* --- SYSTEM ERROR DIALOG POPUPS --- */
+.xp-window {
+    background: #ece9d8;
+    border: 3px solid #0058e6;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+    box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.6);
+}
+.title-bar {
+    background: linear-gradient(to bottom, #0058e6 0%, #3a82f7 12%, #0058e6 100%);
+    padding: 5px 10px;
+    color: white;
+    font-weight: bold;
+    font-size: 13px;
+}
+.dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    width: 440px;
+}
+.dialog-content {
+    padding: 20px;
+    font-size: 13px;
+}
+.error-msg-layout {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+.error-icon {
+    font-size: 32px;
+}
+.dialog-footer-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    width: 100%;
+}
+.xp-btn {
+    padding: 5px 15px;
+    background: #ece9d8;
+    border: 1px solid #716f64;
+    box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff;
+    cursor: pointer;
+    font-weight: normal;
+    font-size: 12px;
+}
+.xp-btn:active {
+    box-shadow: inset 1px 1px #0a0a0a, inset -1px -1px #fff;
+}
+#restart-btn {
+    font-weight: bold;
+}
