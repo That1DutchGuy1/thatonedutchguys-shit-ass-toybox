@@ -1,0 +1,291 @@
+@font-face {
+  font-family: 'Comic Sans MS';
+  src: url('../Comic-Sans-MS.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+body {
+  background-image: url("bup.jpg");
+  background-color: #cccccc;
+  background-repeat: no-repeat;
+  background-size: 100vw 100vh;
+  background-attachment: fixed;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  text-align: center;
+  vertical-align: baseline;
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 125px;
+  color: blue;
+  -webkit-text-stroke-width: 2.0px;
+  -webkit-text-stroke-color: black;
+  margin: 0;
+}
+
+/* Main click button */
+button#button {
+  background-color: red;
+  border: 4px solid black;
+  border-radius: 4px;
+  padding: 32px 64px;
+  cursor: pointer;
+  font-family: 'Comic Sans MS', sans-serif;
+  font-size: 32px;
+  margin: 0;
+  position: absolute;
+  bottom: 121px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+div {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 64px;
+  color: green;
+  text-align: center;
+  -webkit-text-stroke-width: 1.0px;
+  -webkit-text-stroke-color: black;
+}
+
+p {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 48px;
+  color: yellow;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  -webkit-text-stroke-width: 1.0px;
+  -webkit-text-stroke-color: black;
+}
+
+a {
+  text-align: right;
+  text-decoration: none;
+  vertical-align: text-bottom;
+  font-family: 'Comic Sans MS', sans-serif;
+  font-size: 21px;
+  font-weight: bold;
+  color: purple;
+  position: absolute;
+  bottom: 10px;
+  -webkit-text-stroke-width: 1.0px;
+  -webkit-text-stroke-color: black;
+}
+
+.reset-button {
+  background-color: orange;
+  bottom: 30px;
+  right: 20px;
+  left: auto;
+  position: fixed;
+  transform: none;
+  padding: 14px 22px;
+  font-family: 'Comic Sans MS', sans-serif;
+  font-size: 20px;
+  border: 3px solid black;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 100;
+}
+
+button#button:active {
+  background-color: black;
+  color: white;
+}
+
+.reset-button:active {
+  background-color: black;
+  color: white;
+}
+
+#hub-btn {
+  background-color: rgb(255, 0, 200);
+  top: 20px;
+  left: 20px;
+  position: absolute;
+  bottom: auto;
+  right: auto;
+  transform: none;
+  padding: 16px 32px;
+  font-family: 'Comic Sans MS', sans-serif;
+  font-size: 24px;
+  border: 3px solid black;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 10;
+  display: inline-block;
+}
+
+/* ========= UPGRADES PANEL ========= */
+#upgrades-panel {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  bottom: 90px; /* leave room for reset button */
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 50;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Each upgrade button */
+.upgrade-btn {
+  background-color: #00aaff;
+  border: 4px solid black;
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-family: 'Comic Sans MS', sans-serif;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  position: static;
+  transform: none;
+  bottom: auto;
+  left: auto;
+  transition: background-color 0.1s;
+}
+
+.upgrade-btn:hover {
+  background-color: #0088dd;
+}
+
+.upgrade-btn:active {
+  background-color: black;
+  color: white;
+}
+
+#upgrade-toad {
+  background-color: #44cc44;
+}
+#upgrade-toad:hover { background-color: #33aa33; }
+
+#upgrade-egadd {
+  background-color: #ffdd00;
+}
+#upgrade-egadd:hover { background-color: #ddbb00; }
+
+#upgrade-gamble {
+  background-color: #ff44aa;
+}
+#upgrade-gamble:hover { background-color: #dd2288; }
+
+.upgrade-btn .upg-img {
+  width: 72px;
+  height: 62px;
+  object-fit: contain;
+  flex-shrink: 0;
+  image-rendering: auto;
+  border: 2px solid black;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.3);
+}
+
+.upgrade-btn .upg-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.upg-name {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 15px;
+  color: black;
+  -webkit-text-stroke-width: 0;
+  display: block;
+}
+
+.upg-desc {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-size: 11px;
+  color: #222;
+  -webkit-text-stroke-width: 0;
+  font-weight: normal;
+  display: block;
+  line-height: 1.3;
+}
+
+.upg-cost {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  color: #550000;
+  -webkit-text-stroke-width: 0;
+  display: block;
+}
+
+.upg-level {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-size: 12px;
+  color: #003366;
+  -webkit-text-stroke-width: 0;
+  display: inline;
+  margin-left: 8px;
+}
+
+.upg-maxed {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  color: #007700;
+  -webkit-text-stroke-width: 0;
+  display: block;
+}
+
+/* Milestone / upgrade messages */
+#milestone,
+#upgrade-msg {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 32px;
+  color: green;
+  -webkit-text-stroke-width: 1.0px;
+  -webkit-text-stroke-color: black;
+  text-align: center;
+  white-space: nowrap;
+  display: none;
+  z-index: 200;
+  pointer-events: none;
+}
+
+#upgrade-msg {
+  bottom: 320px;
+  color: blue;
+  font-size: 26px;
+}
+
+#milestone {
+  bottom: 370px;
+}
+
+/* Upgrades label */
+#upgrades-label {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 20px;
+  color: white;
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: black;
+  text-align: center;
+  text-shadow: 2px 2px 0 black;
+}
