@@ -6,6 +6,117 @@
 }
 
 /* =========================================
+   MOBILE PHONE BLOCK SCREEN
+   Shown INSTEAD of the warning splash (and instead of
+   everything else) when script.js detects a mobile phone.
+   Hidden by default — script.js adds body.mobile-blocked
+   which is the only thing that reveals it.
+   ========================================= */
+
+#mobile-block {
+  display: none;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 999999;
+  overflow: hidden;
+}
+
+body.mobile-blocked {
+  overflow: hidden;
+}
+
+/* Everything else on the page stays out of the way while blocked */
+body.mobile-blocked #warning-splash,
+body.mobile-blocked #page-content,
+body.mobile-blocked .about-toggle-btn,
+body.mobile-blocked .music-toggle-btn {
+  display: none !important;
+}
+
+body.mobile-blocked #mobile-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-block-content {
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  /* Enforce a standard 9:16 vertical phone canvas, centered and
+     letterboxed on anything wider/taller than that ratio. */
+  aspect-ratio: 9 / 16;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3vh;
+  padding: 5vh 6vw;
+  box-sizing: border-box;
+  text-align: center;
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  color: #ff0000;
+}
+
+.mobile-block-line {
+  margin: 0;
+  line-height: 1.15;
+  text-transform: uppercase;
+  animation: mobile-block-glow 1.4s ease-in-out infinite;
+}
+
+@keyframes mobile-block-glow {
+  0%, 100% {
+    text-shadow:
+      0 0 6px rgba(255, 0, 0, 0.5),
+      0 0 12px rgba(255, 0, 0, 0.3);
+  }
+  50% {
+    text-shadow:
+      0 0 22px rgba(255, 0, 0, 1),
+      0 0 45px rgba(255, 0, 0, 0.8),
+      0 0 70px rgba(255, 0, 0, 0.5);
+  }
+}
+
+.mobile-block-line.line-1 {
+  font-size: 11vw;
+}
+
+.mobile-block-line.line-2 {
+  font-size: 8vw;
+}
+
+.mobile-block-img {
+  width: 60vw;
+  max-width: 320px;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+}
+
+.mobile-block-img.tap-bounce {
+  animation: mobile-block-img-tap 0.3s ease;
+}
+
+@keyframes mobile-block-img-tap {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* =========================================
    WARNING SPLASH SCREEN
    ========================================= */
 
@@ -524,8 +635,10 @@ h1, .game-card h3 {
 .about-toggle-btn {
   position: fixed;
   top: 20px;
-  right: 20px;
+  left: 20px;
   z-index: 1002;
+  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-weight: bold;
   font-size: 1.1rem;
   padding: 12px 20px;
 }

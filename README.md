@@ -16,7 +16,7 @@
 
 <p><strong><font size="6">⚠️ BREAKING NEWS!</font></strong></p>
 
-**The site is getting relocated to a brand new repository!** <br>
+**The site has relocated to a brand new repository!** <br>
 **I wanted to start clean again because I need a new url for the new rebranded site and the old one had too many commits!** <br>
 
 ---
@@ -31,7 +31,8 @@
 * Added an actual background music track, replacing that old ass web-synthesized tune! 🎵
 * Added a music toggle button, but you wouldn't dare actually use it... right?! 🥺
 * Added an ABOUT button so you can read the fabulous README.md on the page! 📖
-* And so much more! Go visit and find out!
+* Added a banning system for mobile phones, tablets, iPad, and even fucking Smart Fridges! 🚫
+* And so much more! Go visit and find out! 👇🏻
 
 ---
 
@@ -44,7 +45,7 @@
 * Rick Roller 2D (Beta / WIP)
 * Weegee Memory Match (Finished, unless I come up with some big brain additions)
 * Weegee Town XP (Beta / WIP)
-* Weegee's Mansion 3D (Beta / WIP)
+* Weegee's Mansion 3D (Finished, unless I come up with some big brain additions)
 * Whack A Meme (Finished, unless I come up with some big brain additions)
 * King Harkinian's Personal Chef Simulator
 
@@ -89,7 +90,7 @@
 
 ---
 
-> 👉🏻 [Go check it out live!](https://that1dutchguy1.github.io/thatonedutchguysminigamehub.github.io/)
+> 👉🏻 [Go check it out live!](https://that1dutchguy1.github.io/thatonedutchguys-shit-ass-toybox.github.io/)
 
 ---
 
