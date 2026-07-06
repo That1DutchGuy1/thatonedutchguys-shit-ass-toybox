@@ -170,6 +170,53 @@ function playToy(toy) {
 
 buildToysPanel();
 
+// =========================================
+// ABOUT / README VIEW
+// =========================================
+const aboutToggleBtn = document.getElementById('about-toggle');
+const readmeContentEl = document.getElementById('readme-content');
+let aboutIsOpen = false;
+let readmeHasLoaded = false;
+
+function setAboutOpen(open) {
+    aboutIsOpen = open;
+    document.body.classList.toggle('about-active', open);
+
+    if (aboutToggleBtn) {
+        aboutToggleBtn.textContent = open ? '✖️ CLOSE' : '📖 ABOUT';
+        aboutToggleBtn.setAttribute('aria-pressed', open ? 'true' : 'false');
+    }
+
+    if (open && !readmeHasLoaded) {
+        loadReadme();
+    }
+}
+
+function loadReadme() {
+    fetch('README.md')
+        .then(res => {
+            if (!res.ok) throw new Error('status ' + res.status);
+            return res.text();
+        })
+        .then(markdown => {
+            // marked.parse() converts the markdown to HTML and leaves any
+            // raw HTML tags already in README.md completely untouched.
+            readmeContentEl.innerHTML = marked.parse(markdown);
+            readmeHasLoaded = true;
+        })
+        .catch(err => {
+            readmeContentEl.innerHTML =
+                '<p>Could not load README.md (' + err.message + '). ' +
+                'Make sure README.md sits in the same folder as index.html, ' +
+                'and that you\'re viewing this over a local/real server rather ' +
+                'than opening the file directly.</p>';
+        });
+}
+
+if (aboutToggleBtn) {
+    aboutToggleBtn.addEventListener('click', () => setAboutOpen(!aboutIsOpen));
+}
+
 // --- LOGO SMOOTH SPIN ANIMATION ---
 const logo = document.querySelector('.main-logo');
 let animationFrameId;
