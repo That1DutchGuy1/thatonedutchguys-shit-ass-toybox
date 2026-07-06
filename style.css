@@ -517,3 +517,174 @@ h1, .game-card h3 {
   opacity: 0.75;
   filter: grayscale(60%);
 }
+
+/* =========================================
+   ABOUT BUTTON (top-right)
+   ========================================= */
+.about-toggle-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1002;
+  font-size: 1.1rem;
+  padding: 12px 20px;
+}
+
+/* =========================================
+   ABOUT / README VIEW
+   ========================================= */
+#readme-view {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 110px 20px 60px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  /* Hide the scrollbar, same trick used on html/body above */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+#readme-view::-webkit-scrollbar {
+  display: none;
+}
+
+/* Toggled on <body> by script.js when ABOUT is active */
+body.about-active #readme-view {
+  display: flex;
+}
+
+body.about-active .brand-header,
+body.about-active .site-title,
+body.about-active #toys-panel,
+body.about-active .game-container {
+  display: none;
+}
+
+#readme-panel {
+  max-width: 780px;
+  width: 100%;
+  /* Semi-transparent so the meme-wave background still shows through
+     behind the text, instead of a flat white block. */
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border: 6px solid #333;
+  border-radius: 25px;
+  padding: 40px 50px;
+  box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.15);
+  text-align: left;
+}
+
+.readme-loading {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #333;
+  -webkit-text-stroke: 0px;
+}
+
+/* Reset headings inside the README so they stay readable on the
+   translucent panel instead of inheriting the page's spinning
+   rainbow h1 / text-stroke treatment. */
+#readme-content h1,
+#readme-content h2,
+#readme-content h3 {
+  background: none;
+  color: #d6009a;
+  -webkit-text-stroke: 0px;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  text-transform: none;
+  text-shadow: none;
+  animation: none;
+}
+
+#readme-content h1 {
+  font-size: 2.3rem;
+  text-align: center;
+  margin-top: 0;
+}
+
+#readme-content h2 {
+  font-size: 1.6rem;
+  color: #ff6f00;
+  border-bottom: 3px dashed #ff6f00;
+  padding-bottom: 6px;
+}
+
+#readme-content h3 {
+  font-size: 1.25rem;
+  color: #0088aa;
+}
+
+#readme-content p,
+#readme-content li {
+  font-size: 1.05rem;
+  font-weight: normal;
+  line-height: 1.6;
+  color: #1a1a1a;
+  -webkit-text-stroke: 0px;
+}
+
+#readme-content a {
+  color: #d6009a;
+  font-weight: bold;
+}
+#readme-content a:hover {
+  color: #ff6f00;
+}
+
+#readme-content code {
+  background: #111;
+  color: #7CFC00;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  -webkit-text-stroke: 0px;
+}
+
+#readme-content pre {
+  background: #111;
+  color: #7CFC00;
+  padding: 15px;
+  border-radius: 10px;
+  overflow-x: auto;
+  -webkit-text-stroke: 0px;
+}
+#readme-content pre code {
+  background: none;
+  padding: 0;
+}
+
+#readme-content blockquote {
+  border-left: 5px solid #ff00ff;
+  margin: 15px 0;
+  padding: 6px 18px;
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.4);
+  color: #1a1a1a;
+}
+
+#readme-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+}
+#readme-content th,
+#readme-content td {
+  border: 2px solid #333;
+  padding: 6px 10px;
+  color: #1a1a1a;
+}
+#readme-content th {
+  background: #333;
+  color: #fff;
+}
+
+#readme-content img {
+  max-width: 100%;
+  border-radius: 10px;
+}
