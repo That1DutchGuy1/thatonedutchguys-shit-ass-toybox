@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow, noarchive">
-    <meta name="googlebot" content="noindex, nofollow">
     <title>That One Dutch Guy's Shit Ass Toybox</title>
     <link rel="icon" type="image/x-icon" href="./index.ico">
     <link rel="preload" href="That-One-Dutch-Guy-Channel-Logo-Circle.png" as="image">
@@ -12,6 +10,8 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <button id="about-toggle" class="play-button about-toggle-btn" type="button" aria-pressed="false">📖 ABOUT</button>
 
     <div id="warning-splash" role="dialog" aria-modal="true" aria-labelledby="splash-title">
         <div class="splash-content">
@@ -45,9 +45,18 @@
     <img src="That-One-Dutch-Guy-Logo-Text.png" alt="That One Dutch Guy" class="text-logo">
     </header>
 
-    <h1>SHIT ASS TOYBOX</h1>
+    <h1 class="site-title">SHIT ASS TOYBOX</h1>
     <!-- Toys panel — built dynamically by script.js -->
     <div id="toys-panel"></div>
+
+    <!-- README / About view — hidden until the ABOUT button is clicked -->
+    <div id="readme-view">
+        <div id="readme-panel">
+            <div id="readme-content">
+                <p class="readme-loading">loading readme.md ...</p>
+            </div>
+        </div>
+    </div>
 
     <div class="game-container">
     <div class="game-card card-bg-whack-a-meme">
@@ -103,6 +112,7 @@
 
 <button id="music-toggle" class="play-button music-toggle-btn" aria-label="Toggle music">🔊 MUSIC ON</button>
 
+<script src="marked.min.js"></script>
 <script src="script.js"></script>
 
 </body>
