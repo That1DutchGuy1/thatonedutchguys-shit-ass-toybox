@@ -30,6 +30,7 @@
 * Changed the layout of the whole main site while still staying eye-bleedingly fabulous! 😎
 * Added an actual background music track, replacing that old ass web-synthesized tune! 🎵
 * Added a music toggle button, but you wouldn't dare actually use it... right?! 🥺
+* Added an ABOUT button so you can read the fabulous README.md on the page! 📖
 * And so much more! Go visit and find out!
 
 ---
@@ -93,9 +94,9 @@
 ---
 
 <p><strong><font size="3">📝 Project Overview</font></strong></p>
-This is a work-in-progress minigame hub that I am currently developing as a fun side project! 
+<p><strong><font size="2">This is a work-in-progress minigame hub that I am currently developing as a fun side project!</font></strong></p>
 
-For those who don't know me, I am a retired YouTuber known as **That One Dutch Guy**. If you want a quick laugh and loose braincells simultaneously, then feel free to check out some of my old videos! More interactive toys and games will be continually added here in the future.
+<p><strong><font size="2">For those who don't know me, I am a retired YouTuber known as That One Dutch Guy. <br> If you want a quick laugh and loose braincells simultaneously, then feel free to check out some of my old videos! More interactive toys and games will be continually added here in the future.</font></strong></p>
 
 ---
 
