@@ -60,12 +60,16 @@
 
 ---
 
-<p><strong><font size="4">🚨 NEW GAME ADDED TO THE HUB!</font></strong></p>
+<p><strong><font size="4">🚨 GAME UPDATE!</font></strong></p>
 
 > King Harkinian's Personal Chef Simulator <br>
-> In this game, you gotta make dinner for King Harkinian! <br>
-> Whatever you make, it better be good! <br>
-> Or else...
+<p><strong><font size="3.5">Version 1.1 is now out for the game!</font></strong></p>
+<p><strong><font size="3">Changelog</font></strong></p>
+
+* Added two brand new meals to cook! 🧑🏻‍🍳
+* Made the font selection better with an awful mix of Charlemagne Std Bold and Comic Sans! 🔤
+* Added cooking timers to all appliances, just to make y'all suffer even more! 🎛️🥘🍲
+* And so much more! Go check it out! Or else... 🔫
 
 ---
 
