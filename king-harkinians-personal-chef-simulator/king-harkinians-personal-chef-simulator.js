@@ -21,7 +21,38 @@ const state = {
     scrubTimer:        null,
     scrubBgm:          null,
     bgmStarted:        false,
+    fireAudio:         null,
+    morshuSpeaking:    false,  // true while Morshu's greeting/can't-afford audio is playing — locks the kitchen button
 };
+
+/* ─────────────────────────────────────────────
+   MORSHU VOICE LINE DURATIONS
+   Exact clip lengths, used to time the kitchen-button
+   lock and the can't-afford GIF/audio restart.
+───────────────────────────────────────────── */
+const MORSHU_GREETING_DURATION_MS      = 7600; // 7s 600ms
+const MORSHU_CANT_AFFORD_DURATION_MS   = 7100; // 7s 100ms
+
+/* Dialogue lines tied to the two Morshu GIFs. Each stays on screen for the
+   full duration of its matching audio clip — see playMorshuGreeting() and
+   playMorshuCantAfford() below. */
+const MORSHU_DEFAULT_SPEECH     = "Fish? Cheese? Pasta! You want it? It's yours my friend, as long as you have enough rupees!";
+const MORSHU_CANT_AFFORD_SPEECH = "Sorry, I can't give credit! Come back when you're a little... MMMMMM... richer!";
+
+function setMorshuSpeech(text) {
+    document.getElementById("morshu-speech").textContent = text;
+}
+
+/* ─────────────────────────────────────────────
+   LETHAL INGREDIENTS
+   If any of these end up cooked into the meal
+   (i.e. added to the vessel), the King dies.
+───────────────────────────────────────────── */
+const DEADLY_INGREDIENT_IDS = ["toxin", "poison", "venom", "nuclear", "motoroil", "lipstick", "soap", "bomb", "scorpion", "unicorn, human, pufferfish"];
+
+function containsDeadlyIngredient() {
+    return state.addedIngredients.some(id => DEADLY_INGREDIENT_IDS.includes(id));
+}
 
 /* ─────────────────────────────────────────────
    MEAL DEFINITIONS
@@ -43,7 +74,8 @@ const MEALS = {
             { id: "basil",      name: "Fresh Basil",   price: 15, icon: "🌿", essential: false, bad: false },
             { id: 'worms',      name: "Worms",         price: 7,  icon: "🪱", essential: false, bad: true  },
             { id: "pickles",    name: "Pickles",       price: 10, icon: "🥒", essential: false, bad: true  },
-            { id: "toxin",      name: "Shiga Toxin",   price: 50, icon: "☣️", essential: false, bad: true },
+            { id: "toxin",      name: "Shiga Toxin",   price: 57, icon: "☣️", essential: false, bad: true  },
+            { id: "motoroil",   name: "Motor Oil",     price: 27, icon: "🛢️", essential: false, bad: true  },
         ],
     },
     pizza: {
@@ -53,15 +85,16 @@ const MEALS = {
         idealPlating:  "platter",
         idealTemp:     425,
         ingredients: [
-            { id: "dough",      name: "Pizza Dough",   price: 20, icon: "🫓", essential: true,  bad: false },
+            { id: "dough",      name: "Pizza Dough",   price: 30, icon: "🫓", essential: true,  bad: false },
             { id: "sauce",      name: "Pizza Sauce",   price: 15, icon: "🍅", essential: true,  bad: false },
             { id: "mozzarella", name: "Mozzarella",    price: 30, icon: "🧀", essential: true,  bad: false },
             { id: "pepperoni",  name: "Pepperoni",     price: 30, icon: "🍖", essential: true,  bad: false },
-            { id: "mushrooms",  name: "Mushrooms",     price: 15, icon: "🍄", essential: false, bad: false },
-            { id: "olives",     name: "Olives",        price: 10, icon: "🫒", essential: false, bad: false },
-            { id: "anchovies",  name: "Anchovies",     price: 9,  icon: "🐠", essential: false, bad: true  },
-            { id: "bubblegum",  name: "Bubblegum",     price: 4,  icon: "🫧", essential: false, bad: true  },
-            { id: "poison",     name: "Deadly Poison", price: 18, icon: "☠️", essential: false, bad: true  },
+            { id: "mushrooms",  name: "Mushrooms",     price: 20, icon: "🍄", essential: false, bad: false },
+            { id: "olives",     name: "Olives",        price: 18, icon: "🫒", essential: false, bad: false },
+            { id: "anchovies",  name: "Anchovies",     price: 13,  icon: "🐠", essential: false, bad: true  },
+            { id: "bubblegum",  name: "Bubblegum",     price: 9,  icon: "🫧", essential: false, bad: true  },
+            { id: "poison",     name: "Deadly Poison", price: 40, icon: "☠️", essential: false, bad: true  },
+            { id: "lipstick",   name: "Zelda's Lipstick", price: 12, icon: "💄", essential: false, bad: true  },
         ],
     },
     chicken: {
@@ -75,14 +108,36 @@ const MEALS = {
             { id: "herbs",      name: "Herb Mix",      price: 15, icon: "🌿", essential: true,  bad: false },
             { id: "butter",     name: "Butter",        price: 20, icon: "🧈", essential: false, bad: false },
             { id: "lemon",      name: "Lemon",         price: 10, icon: "🍋", essential: false, bad: false },
-            { id: "potato",     name: "Potatoes",      price: 20, icon: "🥔", essential: false, bad: false },
+            { id: "potato",     name: "Potatoes",      price: 25, icon: "🥔", essential: true, bad: false },
             { id: "carrot",     name: "Carrots",       price: 10, icon: "🥕", essential: false, bad: false },
             { id: "hotpepper",  name: "Ghost Pepper",  price: 12, icon: "🌶️", essential: false, bad: true  },
             { id: "rawonion",   name: "Raw Onions",    price: 7,  icon: "🧅", essential: false, bad: true  },
-            { id: "venom",      name: "Snake Venom",   price: 28, icon: "🐍", essential: false, bad: true  },
+            { id: "venom",      name: "Snake Venom",   price: 32, icon: "🐍", essential: false, bad: true  },
+            { id: "bomb",       name: "Bomb",          price: 71, icon: "💣️", essential: false, bad: true },
         ],
     },
-    seafood: {
+
+    burger: {
+        label: "Burger Dinner",
+        announceAudio: "./assets/sounds/king-wants-burger.mp3",
+        idealMethod:   "pan",
+        idealPlating:  "platter",
+        idealTemp:     null,
+        ingredients: [
+            { id: "bun",        name: "Burger Bun",    price: 15, icon: "🍔", essential: true,  bad: false },
+            { id: "patty",      name: "Burger Patty",  price: 35, icon: "🥩", essential: true,  bad: false },
+            { id: "cheese",     name: "Cheddar Cheese", price: 20, icon: "🧀", essential: true,  bad: false },
+            { id: "lettuce",    name: "Lettuce",       price: 10, icon: "🥬", essential: false, bad: false },
+            { id: "tomato",     name: "Tomato",        price: 10, icon: "🍅", essential: false, bad: false },
+            { id: "onion",      name: "Onion",         price: 8,  icon: "🧅", essential: false, bad: false },
+            { id: "beans",      name: "Black Beans",   price: 6,  icon: "🫘", essential: false, bad: true },
+            { id: "lollipop",   name: "Lollipop",      price: 5,  icon: "🍭", essential: false, bad: true },
+            { id: "scorpion",   name: "Scorpion Venom", price: 15, icon: "🦂", essential: false, bad: true },
+            { id: "unicorn",    name: "Unicorn Piss",   price: 100, icon: "🦄", essential: false, bad: true },
+        ],
+    },
+
+seafood: {
         label: "Seafood Dinner",
         announceAudio: "./assets/sounds/king-wants-seafood.mp3",
         idealMethod:   "pan",
@@ -94,12 +149,33 @@ const MEALS = {
             { id: "clams",      name: "Clams",         price: 30, icon: "🦪", essential: true,  bad: false },
             { id: "butter",     name: "Butter",        price: 20, icon: "🧈", essential: false, bad: false },
             { id: "lemon",      name: "Lemon",         price: 10, icon: "🍋", essential: false, bad: false },
-            { id: "whitewine",  name: "White Wine",    price: 25, icon: "🍷", essential: false, bad: false },
+            { id: "whitewine",  name: "White Wine",    price: 25, icon: "🥂", essential: true, bad: false },
             { id: "ketchup",    name: "Ketchup",       price: 7,  icon: "🍅", essential: false, bad: true  },
             { id: "candybar",   name: "Candy Bar",     price: 4,  icon: "🍫", essential: false, bad: true  },
-            { id: "nuclear",    name: "Nuclear Waste", price: 185, icon: "☢️", essential: false,bad: true  },
+            { id: "nuclear",    name: "Nuclear Waste", price: 83, icon: "☢️", essential: false, bad: true  },
+            { id: "soap",       name: "Soap",          price: 6,  icon: "🧼", essential: false, bad: true  },
         ],
     },
+
+    steakfrites: {
+        label: "Steak Frites",
+        announceAudio: "./assets/sounds/king-wants-steak-frites.mp3",
+        idealMethod:   "both",
+        idealPlating:  "plate",
+        idealTemp:     null,
+        ingredients: [
+            { id: "steak",      name: "Steak",         price: 60, icon: "🥩", essential: true,  bad: false },
+            { id: "fries",      name: "French Fries",  price: 23, icon: "🍟", essential: true,  bad: false },
+            { id: "butter",     name: "Butter",        price: 18, icon: "🧈", essential: false, bad: false },
+            { id: "garlic",     name: "Garlic",        price: 13, icon: "🧄", essential: false, bad: false },
+            { id: "thyme",      name: "Thyme",         price: 9, icon: "🌿",  essential: false, bad: false },
+            { id: "seasalt",    name: "Sea Salt",      price: 6,  icon: "🧂", essential: false, bad: false },
+            { id: "kiwi",       name: "Kiwi",          price: 8,  icon: "🥝", essential: false, bad: true  },
+            { id: "spacecake",  name: "Space Cake",    price: 12, icon: "🧁", essential: false, bad: true  },
+            { id: "human",      name: "Human Flesh",   price: 100, icon: "🫀", essential: false, bad: true },
+            { id: "pufferfish",    name: "Pufferfish",    price: 50, icon: "🐡", essential: false, bad: true  },
+        ]
+    }
 };
 
 /* ─────────────────────────────────────────────
@@ -171,6 +247,14 @@ function stopGameBgmAndPlayStinger() {
     }
 
     new Audio("./assets/sounds/king-oh.mp3").play().catch(() => {});
+}
+
+function stopGameBgm() {
+    if (gameBgm) {
+        gameBgm.pause();
+        gameBgm.currentTime = 0;
+        gameBgm = null;
+    }
 }
 
 /* ─────────────────────────────────────────────
@@ -283,14 +367,15 @@ function startIntro() {
         bubble.textContent = `I want ${meal.label} for dinner! Now go and make it!`;
 
         // Play per-meal announcement audio
-        playAudio(meal.announceAudio);
+        const announceAudioObj = playAudio(meal.announceAudio);
+
+        // 3. Go to market once the announce audio finishes (+ small buffer)
+        const TRANSITION_DELAY_MS = 500;
+        announceAudioObj.addEventListener("ended", () => {
+            setTimeout(initMarket, TRANSITION_DELAY_MS);
+        });
 
     }, 5500);
-
-    // 3. Short delay then go to market
-    setTimeout(() => {
-        initMarket();
-    }, 8500);
 }
 
 /* ─────────────────────────────────────────────
@@ -303,18 +388,21 @@ function initMarket() {
 
     startGameBgm();
 
-    // Reset Morshu's GIF and play his greeting
+    // Make sure we're showing the idle GIF (not a leftover can't-afford overlay)
+    document.getElementById("morshu-cant-afford-img").classList.add("hidden");
+    document.getElementById("morshu-idle-img").classList.remove("hidden");
+
+    // Reset Morshu's GIF and play his greeting (locks the kitchen button until he's done)
     replayGifsInContainer(document.getElementById("screen-market"));
-    playAudio("./assets/sounds/morshu-greeting.mp3");
+    playMorshuGreeting();
 
     updateMarketHUD();
     renderIngredientShelf();
 
     const btnKitchen = document.getElementById("btn-to-kitchen");
-    btnKitchen.disabled = true;
 
     btnKitchen.onclick = () => {
-        if (state.cart.length === 0) return;
+        if (state.cart.length === 0 || state.morshuSpeaking) return;
         initKitchen();
     };
 }
@@ -324,7 +412,69 @@ function updateMarketHUD() {
     document.getElementById("cart-count").textContent  = state.cart.length;
 
     const btnKitchen = document.getElementById("btn-to-kitchen");
-    if (btnKitchen) btnKitchen.disabled = state.cart.length === 0;
+    // Locked while cart is empty OR while Morshu is mid-line (greeting / can't-afford).
+    if (btnKitchen) btnKitchen.disabled = state.cart.length === 0 || state.morshuSpeaking;
+}
+
+/* ─────────────────────────────────────────────
+   MORSHU VOICE LINES
+   Handles the greeting (on market entry) and the
+   can't-afford GIF+audio (on failed purchase),
+   both of which lock the "To The Kitchen" button
+   until Morshu finishes speaking.
+───────────────────────────────────────────── */
+function playMorshuGreeting() {
+    state.morshuSpeaking = true;
+    updateMarketHUD();
+
+    // Dialogue box is locked to the greeting line for the full length of the
+    // greeting audio — nothing else is allowed to overwrite it until then
+    // (see the state.morshuSpeaking guards in buyIngredient()).
+    setMorshuSpeech(MORSHU_DEFAULT_SPEECH);
+
+    playAudio("./assets/sounds/morshu-greeting.mp3");
+
+    setTimeout(() => {
+        state.morshuSpeaking = false;
+        updateMarketHUD();
+    }, MORSHU_GREETING_DURATION_MS);
+}
+
+function playMorshuCantAfford() {
+    state.morshuSpeaking = true;
+    updateMarketHUD();
+
+    const idleImg       = document.getElementById("morshu-idle-img");
+    const cantAffordImg = document.getElementById("morshu-cant-afford-img");
+
+    // Force the GIF to restart from its first frame every time it's triggered
+    // (cache-busting query string tricks the browser into reloading it).
+    cantAffordImg.src = "./assets/GIFs/morshu-cant-afford.gif?t=" + Date.now();
+
+    // Swap the idle GIF out for the can't-afford GIF.
+    idleImg.classList.add("hidden");
+    cantAffordImg.classList.remove("hidden");
+
+    // Dialogue box is locked to the can't-afford line for the full length of
+    // the can't-afford audio — it used to snap back after a fixed 2 seconds
+    // while the audio (and GIF) kept playing for 7.1s, so the bubble was
+    // "unlocking" well before Morshu actually stopped talking.
+    setMorshuSpeech(MORSHU_CANT_AFFORD_SPEECH);
+
+    // Audio starts the instant the GIF begins.
+    playAudio("./assets/sounds/morshu-cant-afford.mp3");
+
+    setTimeout(() => {
+        // Swap back to morshu-idle.gif. Since the idle <img> was never reloaded
+        // while hidden, it settles back exactly where it left off — its last frame.
+        cantAffordImg.classList.add("hidden");
+        idleImg.classList.remove("hidden");
+
+        // Only unlock the dialogue right as the audio finishes.
+        setMorshuSpeech(MORSHU_DEFAULT_SPEECH);
+        state.morshuSpeaking = false;
+        updateMarketHUD();
+    }, MORSHU_CANT_AFFORD_DURATION_MS);
 }
 
 function renderIngredientShelf() {
@@ -358,14 +508,12 @@ function buyIngredient(ing, card) {
     if (state.cart.includes(ing.id)) return;
 
     if (state.rupees < ing.price) {
-        // ASSET: playAudio("morshu-cant-afford.mp3")
-        playAudio("morshu-cant-afford.mp3");
-        document.getElementById("morshu-speech").textContent =
-            "Rupees, lamp oil, bombs — you need more rupees!";
-        setTimeout(() => {
-            document.getElementById("morshu-speech").textContent =
-                "Welcome! Buy what you need for the King's dinner!";
-        }, 2000);
+        // ASSET: morshu-cant-afford.gif (resets to frame 1 + plays morshu-cant-afford.mp3 in sync)
+        // playMorshuCantAfford() owns the dialogue box itself now — it locks the
+        // can't-afford line for the exact length of its audio, then restores
+        // the default line. Restarting it here (e.g. a second failed buy while
+        // Morshu is already mid-line) simply re-locks for a fresh full duration.
+        playMorshuCantAfford();
         return;
     }
 
@@ -374,11 +522,17 @@ function buyIngredient(ing, card) {
     card.classList.add("purchased");
     updateMarketHUD();
 
-    document.getElementById("morshu-speech").textContent = `${ing.name} added to your bag!`;
-    setTimeout(() => {
-        document.getElementById("morshu-speech").textContent =
-            "Welcome! Buy what you need for the King's dinner!";
-    }, 1500);
+    // Don't step on a locked dialogue line (greeting or can't-afford) that's
+    // still playing out its audio — skip the transient "added to your bag"
+    // message rather than cutting the locked line short.
+    if (!state.morshuSpeaking) {
+        setMorshuSpeech(`${ing.name} added to your bag!`);
+        setTimeout(() => {
+            if (!state.morshuSpeaking) {
+                setMorshuSpeech("Anything else you wanna buy?");
+            }
+        }, 1500);
+    }
 }
 
 /* ─────────────────────────────────────────────
@@ -386,9 +540,11 @@ function buyIngredient(ing, card) {
 ───────────────────────────────────────────── */
 function initKitchen() {
     showScreen("screen-kitchen");
-    state.cookingMethod    = null;
-    state.ovenTemp         = null;
-    state.addedIngredients = [];
+    state.cookingMethod     = null;
+    state.ovenTemp          = null;
+    state.addedIngredients  = [];
+    state.cookingInProgress = false;
+    state.cookingDone       = false;
 
     document.getElementById("panel-cooking").classList.add("hidden");
     document.getElementById("oven-temp-panel").classList.add("hidden");
@@ -397,8 +553,20 @@ function initKitchen() {
     document.getElementById("cooking-status-label").textContent = "Cooking...";
 
     // Reset appliance button states
-    document.querySelectorAll(".appliance-btn").forEach(b => b.classList.remove("selected"));
-    document.querySelectorAll(".temp-btn").forEach(b => b.classList.remove("selected"));
+    document.querySelectorAll(".appliance-btn").forEach(b => {
+        b.classList.remove("selected");
+        b.disabled = false;
+    });
+    document.querySelectorAll(".temp-btn").forEach(b => {
+        b.classList.remove("selected");
+        b.disabled = false;
+    });
+
+    // Reset action buttons — Start needs ingredients, Done needs a finished cook
+    const startBtn = document.getElementById("btn-start-cooking");
+    const doneBtn  = document.getElementById("btn-done-cooking");
+    startBtn.disabled = true;
+    doneBtn.disabled  = true;
 
     // Appliance selection
     document.querySelectorAll(".appliance-btn").forEach(btn => {
@@ -410,8 +578,9 @@ function initKitchen() {
         btn.onclick = () => selectOvenTemp(parseInt(btn.dataset.temp), btn);
     });
 
-    // Done cooking button
-    document.getElementById("btn-done-cooking").onclick = doneCooking;
+    // Cooking action buttons
+    startBtn.onclick = startCooking;
+    doneBtn.onclick  = doneCooking;
 }
 
 function selectAppliance(method) {
@@ -441,6 +610,18 @@ function showCookingPanel() {
     const panel = document.getElementById("panel-cooking");
     panel.classList.remove("hidden");
 
+    // Fresh cooking round each time the panel is (re)shown
+    state.addedIngredients  = [];
+    state.cookingInProgress = false;
+    state.cookingDone       = false;
+    document.getElementById("vessel-contents").innerHTML = "";
+    document.getElementById("oven-timer-display").classList.add("hidden");
+
+    const startBtn = document.getElementById("btn-start-cooking");
+    const doneBtn  = document.getElementById("btn-done-cooking");
+    startBtn.disabled = true;
+    doneBtn.disabled  = true;
+
     // Populate ingredient tray with purchased items
     const tray = document.getElementById("ingredients-in-hand");
     tray.innerHTML = "<p><em>Your ingredients — click to add:</em></p>";
@@ -456,11 +637,6 @@ function showCookingPanel() {
         chip.onclick = () => addIngredientToVessel(ingId, ing, chip);
         tray.appendChild(chip);
     });
-
-    // Oven timer
-    if (state.cookingMethod === "oven") {
-        startOvenTimer();
-    }
 
     // Appliance visual image
     const applianceImgMap = {
@@ -478,15 +654,43 @@ function showCookingPanel() {
 }
 
 function addIngredientToVessel(id, ing, chip) {
+    if (state.cookingInProgress || state.cookingDone) return; // locked once cooking starts
     if (state.addedIngredients.includes(id)) return;
     state.addedIngredients.push(id);
     chip.classList.add("added");
 
     const vessel = document.getElementById("vessel-contents");
     vessel.innerHTML += `<span>${ing.icon} ${ing.name}  </span>`;
+
+    // At least one ingredient in the vessel unlocks Start Cooking
+    document.getElementById("btn-start-cooking").disabled = state.addedIngredients.length === 0;
 }
 
-function startOvenTimer() {
+function startCooking() {
+    if (state.addedIngredients.length === 0) return; // guard, button should already be disabled
+    if (state.cookingInProgress || state.cookingDone) return; // can't restart/skip an active or finished cook
+
+    state.cookingInProgress = true;
+    document.getElementById("btn-start-cooking").disabled = true;
+
+    // Lock the ingredient tray so nothing more can be added mid-cook
+    document.querySelectorAll("#ingredients-in-hand .tray-item").forEach(chip => {
+        chip.style.pointerEvents = "none";
+    });
+
+    // Lock the appliance/temp choice so nothing can be switched mid-cook
+    document.querySelectorAll(".appliance-btn").forEach(b => b.disabled = true);
+    document.querySelectorAll(".temp-btn").forEach(b => b.disabled = true);
+
+    document.getElementById("cooking-status-label").textContent =
+        state.cookingMethod === "oven"
+            ? `Cooking at ${state.ovenTemp}°F...`
+            : "Cooking...";
+
+    startCookingTimer();
+}
+
+function startCookingTimer() {
     const timerDisplay = document.getElementById("oven-timer-display");
     const timerBar     = document.getElementById("oven-timer-bar");
     const timerLabel   = document.getElementById("oven-timer-label");
@@ -495,6 +699,8 @@ function startOvenTimer() {
     timerBar.style.width = "100%";
     timerLabel.textContent = "10s";
 
+    // A plain setInterval countdown with no click handlers on the bar/label —
+    // there's no way for the player to fast-forward or skip this 10s cook.
     let remaining = 10;
     const interval = setInterval(() => {
         remaining--;
@@ -504,12 +710,16 @@ function startOvenTimer() {
         if (remaining <= 0) {
             clearInterval(interval);
             timerLabel.textContent = "Done!";
-            document.getElementById("cooking-status-label").textContent = "✅ Oven done! Plate it up.";
+            state.cookingInProgress = false;
+            state.cookingDone = true;
+            document.getElementById("cooking-status-label").textContent = "✅ Done! Plate it up.";
+            document.getElementById("btn-done-cooking").disabled = false;
         }
     }, 1000);
 }
 
 function doneCooking() {
+    if (!state.cookingDone) return; // guard, button should already be disabled
     initPlating();
 }
 
@@ -604,20 +814,31 @@ function initJudgement() {
     const eatingAnim  = document.getElementById("king-eating-anim");
     const judgingAnim = document.getElementById("king-judging-anim");
     const scoreReveal = document.getElementById("score-reveal");
+    const deathReveal = document.getElementById("death-reveal");
     const outcomeGreat= document.getElementById("outcome-great");
     const outcomeMeh  = document.getElementById("outcome-meh");
     const outcomeBad  = document.getElementById("outcome-bad");
+    const outcomeDeath= document.getElementById("outcome-death");
     const btnAfter    = document.getElementById("btn-after-judgement");
 
+    // Was a lethal ingredient cooked into this meal?
+    const isDeath = containsDeadlyIngredient();
+
     // Reset
-    [eatingAnim, judgingAnim, scoreReveal, outcomeGreat, outcomeMeh, outcomeBad, btnAfter].forEach(el => {
+    [eatingAnim, judgingAnim, scoreReveal, deathReveal, outcomeGreat, outcomeMeh, outcomeBad, outcomeDeath, btnAfter].forEach(el => {
         el.classList.add("hidden");
     });
 
     eatingAnim.classList.remove("hidden");
     replayGifsInContainer(eatingAnim); // Reset GIF
     
-    // ASSET: playAudio("king-eating.mp3")
+    playAudio("./assets/sounds/king-eating.mp3");
+
+    // Eating phase duration matches the king-eating.gif's actual length
+    // (00:00:04.56) so the GIF finishes its single loop before we swap it out.
+    const EATING_ANIM_DURATION_MS = 4560;
+    const THINKING_ANIM_DURATION_MS = 2500;
+    const SCORE_REVEAL_DURATION_MS = 2000;
 
     // 1. Eating phase
     setTimeout(() => {
@@ -625,23 +846,47 @@ function initJudgement() {
         judgingAnim.classList.remove("hidden");
         replayGifsInContainer(judgingAnim); // Reset GIF
         playAudio("./assets/sounds/king-think.mp3");
-    }, 2500);
+    }, EATING_ANIM_DURATION_MS);
 
     // 2. Score reveal
     setTimeout(() => {
         judgingAnim.classList.add("hidden");
         state.finalScore = calculateScore();
-        document.getElementById("score-number").textContent = state.finalScore;
-        scoreReveal.classList.remove("hidden");
-        stopGameBgmAndPlayStinger();
-    }, 5000);
+
+        if (isDeath) {
+            // No score for a dead King — just the grim headline, a stopped BGM, and a gasping crowd
+            deathReveal.classList.remove("hidden");
+            stopGameBgm();
+            playAudio("./assets/sounds/crowd-gasp.mp3");
+        } else {
+            document.getElementById("score-number").textContent = state.finalScore;
+            scoreReveal.classList.remove("hidden");
+            stopGameBgmAndPlayStinger();
+        }
+    }, EATING_ANIM_DURATION_MS + THINKING_ANIM_DURATION_MS);
 
     // 3. Outcome
     setTimeout(() => {
         const s = state.finalScore;
         btnAfter.classList.remove("hidden");
 
-        if (s >= 8) {
+        if (isDeath) {
+            outcomeDeath.classList.remove("hidden");
+            replayGifsInContainer(outcomeDeath); // Reset image (harmless no-op for a static PNG)
+
+            const deathSpeeches = [
+                "Guards! Sound the alarm — the royal food taster has failed us all!",
+                "Zelda screams. Link faints. Somewhere, Morshu shrugs and says 'that'll be 40 rupees for the funeral.'",
+                "The last thing King Harkinian ever said was 'Mah boi, this needs more sal— *gurgle*'",
+                "Well. That's certainly one way to end a dinner service.",
+            ];
+            document.getElementById("death-speech").textContent =
+                deathSpeeches[Math.floor(Math.random() * deathSpeeches.length)];
+
+            btnAfter.textContent = "😱 Begin Punishment";
+            btnAfter.onclick = initDeathPunishment;
+
+        } else if (s >= 8) {
             outcomeGreat.classList.remove("hidden");
             replayGifsInContainer(outcomeGreat); // Reset GIF
             const speechMap = {
@@ -684,7 +929,7 @@ function initJudgement() {
             // Fallback: enable after 7 seconds in case the audio event doesn't fire
             setTimeout(() => { btnAfter.disabled = false; }, 7000);
         }
-    }, 7000);
+    }, EATING_ANIM_DURATION_MS + THINKING_ANIM_DURATION_MS + SCORE_REVEAL_DURATION_MS);
 }
 
 /* ─────────────────────────────────────────────
@@ -790,7 +1035,7 @@ function initDefeat() {
     const defeatMessages = [
         `The King is furious. Your ${meal.label} was an insult to Hyrule, and you couldn't even clean up the mess!`,
         `You have shamed the Royal Kitchen! Not even Ganon would eat that ${meal.label}!`,
-        `The King has fired you on the spot for the blunder that was your ${meal.label}! Even Link wouldn't eat that!`,
+        `The King has fired you on the spot for the blunder that was your ${meal.label}!\nEven Link wouldn't eat that!`,
         `The floors remain filthy! The King demands you to never set foot in the kitchen again!`,
     ];
     document.getElementById("defeat-text").textContent =
@@ -821,6 +1066,43 @@ function initVictory() {
 
     document.getElementById("btn-victory-again").onclick = () => initMainMenu(true);
     document.getElementById("btn-victory-hub").onclick   = () => { window.location.href = "../index.html"; };
+}
+
+/* ─────────────────────────────────────────────
+   DEATH PUNISHMENT  (you killed the King)
+───────────────────────────────────────────── */
+function initDeathPunishment() {
+    showScreen("screen-death-punishment");
+
+    const meal = MEALS[state.chosenMeal];
+    const deathPunishmentMessages = [
+        `Turns out royal food-tasting laws exist for a reason. Your ${meal.label} has earned you a permanent reservation in Hyrule's eternal fire pits!`,
+        `Congratulations — you've unlocked the rare "Regicide by Dinner" ending! The Royal Guard did NOT appreciate your ${meal.label}.`,
+        `The King choked out his last "Mah Boi" thanks to your ${meal.label}. Now it's your turn to feel the heat. Literally.`,
+        `The royal kitchen is now a crime scene. Your ${meal.label} has made you the most infamous chef in Hyrule's history.`,
+        `Somewhere, Ganon is taking notes. Nobody has ever ended a royal dinner service quite like this before.`,
+        `Duke Onkled would be proud of that epic betrayal. At least you don't have to scrub all they floors in Hyrule anymore — you're too busy being roasted alive.`,
+        `Well, now that the King is dead, Princess Zelda took over the reigns and ordered your immediate execution. She is not happy with the death of her father.`,
+        `SQUEAL! The royal food taster has failed. The King is dead, and the royal family members are not happy with your ${meal.label}.`,
+    ];
+    document.getElementById("death-punishment-text").textContent =
+        deathPunishmentMessages[Math.floor(Math.random() * deathPunishmentMessages.length)];
+
+    replayGifsInContainer(document.getElementById("screen-death-punishment"));
+
+    playAudio("./assets/sounds/player-death-scream.mp3");
+    state.fireAudio = playAudio("./assets/sounds/fire.mp3", { loop: true });
+
+    document.getElementById("btn-death-punishment-again").onclick = () => {
+        stopAudio(state.fireAudio);
+        state.fireAudio = null;
+        initMainMenu(true);
+    };
+    document.getElementById("btn-death-punishment-hub").onclick = () => {
+        stopAudio(state.fireAudio);
+        state.fireAudio = null;
+        window.location.href = "../index.html";
+    };
 }
 
 /* ─────────────────────────────────────────────

@@ -22,6 +22,7 @@
     <div class="menu-overlay">
         <h1 class="game-title">King Harkinian's<br><span>Personal Chef Simulator</span></h1>
         <div class="menu-buttons">
+            <h2 class="menu-subtitle">Starring <br> King Harkinian <br> Morshu <br> Princess Zelda <br> Link <br> Mayor Cravendish</h2>
             <button class="btn-cdi" id="btn-start">▶ START</button>
             <button class="btn-cdi" id="btn-hub">⚑ HUB</button>
         </div>
@@ -74,14 +75,16 @@
 
         <!-- ASSET: morshu-idle.gif standing behind counter -->
         <div class="char-placeholder" id="morshu-anim">
-            <img src="./assets/GIFs/morshu-idle.gif" alt="Morshu Idle Animation">
+            <img src="./assets/GIFs/morshu-idle.gif" alt="Morshu Idle Animation" id="morshu-idle-img">
+            <!-- ASSET: morshu-cant-afford.gif — overlaid on top of idle when player can't afford an item -->
+            <img src="./assets/GIFs/morshu-cant-afford.gif" alt="Morshu Can't Afford Animation" id="morshu-cant-afford-img" class="hidden">
         </div>
 
         <div id="morshu-speech" class="speech-bubble">Fish? Cheese? Pasta! You want it? It's yours my friend, as long as you have enough rupees!</div>
 
         <div class="market-hud">
             <span>💎 Rupees: <strong id="rupee-count">200</strong></span>
-            <span id="cart-label">🛍 Cart: <strong id="cart-count">0</strong> items</span>
+            <span id="cart-label">🛍 Bag: <strong id="cart-count">0</strong> items</span>
         </div>
 
         <!-- Ingredient shelf — populated by JS based on chosen meal -->
@@ -95,8 +98,7 @@
         </div>
     </div>
 
-    <!-- ASSET: morshu-cant-afford.mp3 played when player can't buy an item -->
-    <!-- <audio id="audio-morshu-poor" src="morshu-cant-afford.mp3"></audio> -->
+    <!-- ASSET: morshu-cant-afford.mp3 played when player can't buy an item — triggered dynamically in JS via playMorshuCantAfford() -->
 </div>
 
 
@@ -157,7 +159,7 @@
                     <div id="vessel-contents"></div>
                 </div>
 
-                <!-- Oven timer — 10 seconds, shown for oven meals -->
+                <!-- Cooking timer — 10 seconds, now shown for every appliance (pot/pan/both/oven) -->
                 <div id="oven-timer-display" class="hidden">
                     <div class="timer-bar-wrap">
                         <div id="oven-timer-bar" class="timer-bar"></div>
@@ -165,7 +167,10 @@
                     <span id="oven-timer-label">10s</span>
                 </div>
 
-                <button class="btn-cdi" id="btn-done-cooking">✅ Done Cooking →</button>
+                <div class="cooking-actions">
+                    <button class="btn-cdi" id="btn-start-cooking" disabled>▶ Start Cooking</button>
+                    <button class="btn-cdi" id="btn-done-cooking" disabled>✅ Done Cooking →</button>
+                </div>
             </div>
 
         </div>
@@ -197,25 +202,21 @@
 
         <div class="plating-options">
             <button class="plate-btn" data-vessel="plate">
-                <!-- ASSET: plate.png -->
-                <div class="item-placeholder">🍽 [plate.png]</div>
+                <img src="./assets/sprites/plate.png" alt="Dinner Plate" class="item-placeholder">
                 Dinner Plate
             </button>
             <button class="plate-btn" data-vessel="platter">
-                <!-- ASSET: platter.png -->
-                <div class="item-placeholder">🫙 [platter.png]</div>
+                <img src="./assets/sprites/platter.png" alt="Royal Platter" class="item-placeholder">
                 Royal Platter
             </button>
             <button class="plate-btn" data-vessel="bowl">
-                <!-- ASSET: bowl.png -->
-                <div class="item-placeholder">🥣 [bowl.png]</div>
+                <img src="./assets/sprites/bowl.png" alt="Bowl" class="item-placeholder">
                 Bowl
             </button>
         </div>
 
         <div id="plating-preview" class="plating-preview hidden">
             <p>Plated on: <strong id="plating-choice-label">—</strong></p>
-            <!-- ASSET: food-plated.gif — a little animation of the food being placed -->
         </div>
 
         <button class="btn-cdi hidden" id="btn-serve">👑 Serve To King →</button>
@@ -253,14 +254,18 @@
 
         <div id="score-reveal" class="score-reveal hidden">
             <div class="score-number" id="score-number">—</div>
-            <div class="score-label" id="score-label">/ 10</div>
+            <div class="score-label" id="score-label">/10</div>
+        </div>
+
+        <!-- DEATH REVEAL: shown instead of score-reveal when a lethal ingredient was cooked into the meal -->
+        <div id="death-reveal" class="score-reveal hidden">
+            <div class="death-reveal-msg">YOU KILLED THE KING!</div>
         </div>
 
         <!-- Outcome: GREAT (8-10) -->
         <div id="outcome-great" class="outcome-panel hidden">
             <img src="./assets/sprites/king-happy.png" alt="King Harkinian Happy" class="char-placeholder">
             <div class="speech-bubble" id="great-speech"></div>
-            <!-- ASSET: king-compliment.mp3 -->
         </div>
 
         <!-- Outcome: MEH (6-7) -->
@@ -275,6 +280,12 @@
                <img src="./assets/GIFs/scrub-all-the-floors-in-hyrule.gif" alt="Scrub all the floors in Hyrule">
             </div>
             <div class="speech-bubble" id="bad-speech"></div>
+        </div>
+
+        <!-- Outcome: DEATH (lethal ingredient was cooked into the meal) -->
+        <div id="outcome-death" class="outcome-panel hidden">
+            <img src="./assets/sprites/king-dead.png" alt="King Harkinian Dead" class="char-placeholder">
+            <div class="speech-bubble" id="death-speech"></div>
         </div>
     </div>
     
@@ -376,6 +387,24 @@
     </div>
 
     <audio id="audio-victory" src="./assets/sounds/victory-fanfare.mp3"></audio>
+</div>
+
+
+<!-- ============================================================
+     SCREEN: DEATH PUNISHMENT  (you killed the King with a lethal ingredient)
+     ============================================================ -->
+<div id="screen-death-punishment" class="screen">
+    <div class="bg-layer" style="background-image: url('./assets/backdrops/death-punishment-bg.png');"></div>
+
+    <div class="death-punishment-ui">
+        <img src="./assets/GIFs/player-burning.gif" alt="Player Burning" class="char-placeholder">
+        <h2 class="death-punishment-title">The Kingmaker's Bane!</h2>
+        <p id="death-punishment-text" class="death-punishment-body"></p>
+        <div class="menu-buttons">
+            <button class="btn-cdi" id="btn-death-punishment-again">▶ RETURN</button>
+            <button class="btn-cdi" id="btn-death-punishment-hub">⚑ HUB</button>
+        </div>
+    </div>
 </div>
 
 

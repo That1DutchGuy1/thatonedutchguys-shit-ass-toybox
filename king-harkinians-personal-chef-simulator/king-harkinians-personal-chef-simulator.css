@@ -1,3 +1,17 @@
+@font-face {
+  font-family: 'Charlemagne Std Bold';
+  src: url('./assets/fonts/Charlemagne\ Std\ Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+    font-family: Comic Sans MS;
+    src: url('../Comic-Sans-MS.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 /* ============================================================
    RESET & BASE
    ============================================================ */
@@ -7,7 +21,7 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    font-family: 'Courier New', Courier, monospace; /* swap for a CD-i pixel font if you find one */
+    font-family: 'Charlemagne Std Bold', bold;
     background: #000;
     color: #fff;
 }
@@ -63,7 +77,7 @@ html, body {
     display: inline-block;
     padding: 12px 28px;
     margin: 8px;
-    font-family: inherit;
+    font-family: Comic Sans MS, sans-serif;
     font-size: 18px;
     font-weight: bold;
     color: #ffe066;
@@ -88,6 +102,7 @@ html, body {
    SPEECH BUBBLE
    ============================================================ */
 .speech-bubble {
+    font-family: Comic Sans MS, sans-serif;
     background: rgba(255,255,220,0.95);
     color: #222;
     border: 3px solid #b8860b;
@@ -139,12 +154,17 @@ html, body {
 
 .screen-title {
     font-size: 26px;
-    color: #ffe066;
-    text-shadow: 2px 2px 0 #000, 0 0 16px #ff8800;
+    background-image: linear-gradient(to bottom, #ffe066, #ff8800);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 2px 2px 0, 0 0 16px #ff8800;
     margin-bottom: 10px;
     text-align: center;
     letter-spacing: 2px;
 }
+
 
 .subtitle {
     font-size: 14px;
@@ -181,16 +201,45 @@ html, body {
 
 .game-title {
     font-size: 36px;
-    color: #ffe066;
-    text-shadow: 3px 3px 0 #000, 0 0 20px #ff8800;
+    font-family: 'Charlemagne Std Bold', bold;
+    background-image: linear-gradient(to bottom, #ffe066, #ff8800);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 3px 3px 0, 0 0 20px #ff8800;
     text-align: center;
     line-height: 1.25;
     letter-spacing: 2px;
+    animation: mainPulse 0.5s infinite alternate;
 }
+
 .game-title span {
     font-size: 22px;
     display: block;
-    color: #ffcc44;
+    background-image: linear-gradient(to bottom, #ffcc44, #ff8800);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+}
+
+@keyframes mainPulse {
+    from { opacity: 1; transform: scale(0.97); }
+    to   { opacity: 1;    transform: scale(1.04); }
+}
+
+.menu-subtitle {
+    font-size: 18px;
+    background-image: linear-gradient(to bottom, #ffcc44, #ff8800);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    line-height: 1.4;
+    letter-spacing: 1px;
 }
 
 .menu-buttons { display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -244,7 +293,24 @@ html, body {
     overflow-y: auto;
 }
 
-#morshu-anim { margin-bottom: 0; min-height: 120px; }
+/* Fixed to the GIFs' actual 371x209 canvas so the container can't collapse
+   to the .char-placeholder min-width fallback when morshu-idle-img is
+   hidden (display:none) — that collapse was making the absolutely-positioned
+   morshu-cant-afford-img get capped by max-width:100% at a much smaller size. */
+#morshu-anim { margin-bottom: 0; width: 371px; height: 209px; position: relative; }
+
+/* Stack morshu-idle.gif and morshu-cant-afford.gif on top of one another so
+   swapping between them (via the .hidden utility class) doesn't shift layout. */
+#morshu-idle-img,
+#morshu-cant-afford-img {
+    width: 100%;
+    height: 100%;
+}
+#morshu-cant-afford-img {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+}
 
 .market-hud {
     display: flex;
@@ -339,7 +405,7 @@ html, body {
     border: 2px solid #b8860b;
     border-radius: 6px;
     color: #ffe066;
-    font-family: inherit;
+    font-family: Charlemagne Std Bold, bold;
     font-size: 13px;
     cursor: pointer;
     text-align: center;
@@ -348,6 +414,13 @@ html, body {
 .appliance-btn:hover { background: rgba(80,40,0,0.8); }
 .appliance-btn.selected { background: rgba(120,80,0,0.9); border-color: #ffcc00; }
 .appliance-btn small { display: block; color: #ffcc44; font-size: 11px; }
+.appliance-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    filter: grayscale(0.8);
+    background: rgba(0,0,0,0.6);
+}
+.appliance-btn:disabled:hover { background: rgba(0,0,0,0.6); }
 
 /* Oven temp */
 #oven-temp-panel { margin-top: 14px; text-align: center; color: #ffe066; }
@@ -359,12 +432,19 @@ html, body {
     border: 2px solid #b8860b;
     border-radius: 4px;
     color: #ffe066;
-    font-family: inherit;
+    font-family: Comic Sans MS, sans-serif;
     cursor: pointer;
     transition: background 0.15s;
 }
 .temp-btn:hover { background: rgba(80,40,0,0.8); }
 .temp-btn.selected { background: rgba(120,80,0,0.9); border-color: #ffcc00; }
+.temp-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    filter: grayscale(0.8);
+    background: rgba(0,0,0,0.6);
+}
+.temp-btn:disabled:hover { background: rgba(0,0,0,0.6); }
 
 /* Cooking area */
 .appliance-visual {
@@ -436,7 +516,16 @@ html, body {
     height: 100%;
     width: 100%;
     background: linear-gradient(90deg, #ff4400, #ffaa00);
-    transition: width 1s linear;
+}
+
+.cooking-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+.cooking-actions .btn-cdi {
+    margin: 8px 0;
 }
 
 .appliance-visual-img {
@@ -468,7 +557,7 @@ html, body {
     border: 2px solid #b8860b;
     border-radius: 8px;
     color: #ffe066;
-    font-family: inherit;
+    font-family: Comic Sans MS, sans-serif;
     font-size: 13px;
     cursor: pointer;
     text-align: center;
@@ -504,7 +593,7 @@ html, body {
 .score-reveal {
     display: flex;
     align-items: baseline;
-    gap: 6px;
+    gap: 0;
     animation: scorePop 0.5s cubic-bezier(0.36, 1.5, 0.6, 1);
 }
 
@@ -520,7 +609,14 @@ html, body {
     text-shadow: 4px 4px 0 #000, 0 0 30px #ff8800;
     line-height: 1;
 }
-.score-label { font-size: 36px; color: #ffcc44; }
+.score-label {
+    font-size: 100px;
+    color: #ffcc44;
+    font-weight: bold;
+    text-shadow: 4px 4px 0 #000, 0 0 30px #ff8800;
+    line-height: 1;
+    margin-left: -14px;
+}
 
 .outcome-panel {
     display: flex;
@@ -531,6 +627,27 @@ html, body {
 }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ============================================================
+   DEATH REVEAL  (replaces the score number when a lethal
+   ingredient was cooked into the King's meal)
+   ============================================================ */
+.death-reveal-msg {
+    font-size: 46px;
+    font-weight: bold;
+    color: #ff2222;
+    text-shadow: 3px 3px 0 #000, 0 0 30px #ff0000, 0 0 60px #990000;
+    text-align: center;
+    line-height: 1.15;
+    letter-spacing: 1px;
+    max-width: 480px;
+    animation: deathPulse 0.5s infinite alternate;
+}
+
+@keyframes deathPulse {
+    from { opacity: 0.75; transform: scale(0.97); }
+    to   { opacity: 1;    transform: scale(1.04); }
+}
 
 /* ============================================================
    SCRUBBING MINIGAME
@@ -548,6 +665,7 @@ html, body {
     display: flex;
     gap: 30px;
     font-size: 18px;
+    font-family: Comic Sans MS, sans-serif;
     color: #ffe066;
     background: rgba(0,0,0,0.6);
     padding: 8px 20px;
@@ -624,6 +742,7 @@ html, body {
     color: #ffaaaa;
     max-width: 380px;
     line-height: 1.6;
+    white-space: pre-line;
 }
 
 /* ============================================================
@@ -651,6 +770,36 @@ html, body {
 .victory-body {
     font-size: 16px;
     color: #ffdd88;
+    max-width: 380px;
+    line-height: 1.6;
+}
+
+/* ============================================================
+   DEATH PUNISHMENT  (you killed the King — permanent flames)
+   ============================================================ */
+.death-punishment-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    background: rgba(40,0,0,0.85);
+    border: 3px solid #ff4500;
+    border-radius: 8px;
+    padding: 30px 50px;
+    text-align: center;
+}
+
+.death-punishment-title {
+    font-size: 40px;
+    color: #ff6600;
+    text-shadow: 3px 3px 0 #000, 0 0 24px #ff2200;
+    letter-spacing: 3px;
+    animation: deathPulse 0.5s infinite alternate;
+}
+
+.death-punishment-body {
+    font-size: 16px;
+    color: #ffcc99;
     max-width: 380px;
     line-height: 1.6;
 }
@@ -701,6 +850,7 @@ html, body {
     transform: translateX(-50%);
     font-size: 22px;
     font-weight: bold;
+    font-family: Comic Sans MS, sans-serif;
     color: #3be515;
     text-shadow: 0 0 6px #3a5d32, 0 2px 3px #000;
     letter-spacing: 1px;
@@ -712,6 +862,7 @@ html, body {
 }
 
 .yt-credit {
+    font-family: Comic Sans MS, sans-serif;
     position: absolute !important;
     top: 16px;
     left: 16px;
@@ -722,11 +873,11 @@ html, body {
     letter-spacing: 1px;
     z-index: 2;
     text-decoration: none;
-    font-family: inherit;
 }
 
 .yt-credit:hover {
     text-decoration: underline;
+    font-family: Comic Sans MS, sans-serif;
 }
 
 @keyframes bgm-hint-pulse {
@@ -761,6 +912,7 @@ html, body {
 }
 
 .tip-bubble {
+    font-family: Comic Sans MS, sans-serif;
     width: 280px;
     flex-shrink: 0;
     background: rgba(255, 255, 220, 0.95);
@@ -775,6 +927,7 @@ html, body {
 }
 
 .tip-bubble strong {
+    font-family: Charlemagne Std Bold, bold;
     display: block;
     font-size: 17px;
     color: #7a3d00;
