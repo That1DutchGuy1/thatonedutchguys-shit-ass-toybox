@@ -60,6 +60,16 @@
 
 ---
 
+<p><strong><font size="4">🚨 NEW BETA GAME!</font></strong></p>
+
+<p><strong><font size="3">CD-i Tinder</font></strong></p>
+
+* Chat with your favorite CD-i characters!
+* Currently in very early Beta!
+* Real AI is currently work in progress but coming soon!
+
+---
+
 <p><strong><font size="4">🚨 GAME UPDATE!</font></strong></p>
 
 > King Harkinian's Personal Chef Simulator <br>

@@ -475,6 +475,9 @@ h1 {
 .card-bg-king-harkinian {
   background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-harkinianschef.png');
 }
+.card-bg-cd-i-tinder {
+  background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-cd-i-tinder.png');
+}
 
 /* Card hover effect: slight scale up and rotation, plus border color change */
 
