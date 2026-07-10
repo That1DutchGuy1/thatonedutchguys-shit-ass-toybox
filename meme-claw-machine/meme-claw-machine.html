@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../device-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meme Claw Machine 🤯</title>
+    <link rel="stylesheet" href="meme-claw-machine.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="main-menu">
+        <h1>🕹️ Meme Claw Machine</h1>
+        <p>Grab the memes before time runs out!</p>
+        <p><strong>Controls:</strong> W A S D to move | SPACEBAR to drop</p>
+        <div class="menu-buttons">
+            <button id="start-btn" class="menu-btn">TIMED (120s)</button>
+            <button id="endless-btn" class="menu-btn">ENDLESS MODE</button>
+        </div>
+    </div>
+
+<audio id="bg-music" loop>
+    <source src="Pixel-Peeker-Polka-faster.mp3" type="audio/mpeg">
+</audio>
+
+    <div id="game-ui" style="display: none;">
+        <div class="hud">Time: <span id="timer">120s</span></div>
+        <div class="hud">Score: <span id="score">0</span></div>
+        <div class="hud">Memes Collected: <span id="memes-collected">0</span></div>
+    </div>
+
+<!-- New Game Over Screen -->
+<div id="game-over-screen" style="display: none;">
+    <h1 id="game-over-title">GAME OVER</h1>
+    <p>Final Score: <span id="final-score">0</span></p>
+    <p>Memes Collected: <span id="final-collected">0</span></p>
+    <button class="menu-btn">PLAY AGAIN</button>
+</div>
+
+    <script type="module" src="meme-claw-machine.js"></script>
+</body>
+</html>

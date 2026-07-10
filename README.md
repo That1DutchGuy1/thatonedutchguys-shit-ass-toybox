@@ -47,7 +47,9 @@
 * Weegee Town XP (Beta / WIP)
 * Weegee's Mansion 3D (Finished, unless I come up with some big brain additions)
 * Whack A Meme (Finished, unless I come up with some big brain additions)
-* King Harkinian's Personal Chef Simulator
+* King Harkinian's Personal Chef Simulator (Finished, unless I come up with some big brain additions)
+* CD-i Tinder (Beta / WIP)
+* Meme Claw Machine (I dunno, stable, logic works, but might add more shit in the future)
 
 ---
 
@@ -60,6 +62,14 @@
 
 ---
 
+<p><strong><font size="4">🚨 NEW GAME!</font></strong></p>
+
+<p><strong><font size="3">Meme Claw Machine</font></strong></p>
+
+* Grab as many memes as you fucking can in timed mode before the time runs out! ⏰
+* Can't get enough, huh? I know you do! That's why Endless Mode is here! ♾️
+* Features classic memes, 2010s memes, and even a few modern entries, but trust me, no Gen Alpha bullshit! Hell yeah! 🤘🏻
+
 <p><strong><font size="4">🚨 NEW BETA GAME!</font></strong></p>
 
 <p><strong><font size="3">CD-i Tinder</font></strong></p>
@@ -67,19 +77,6 @@
 * Chat with your favorite CD-i characters!
 * Currently in very early Beta!
 * Real AI is currently work in progress but coming soon!
-
----
-
-<p><strong><font size="4">🚨 GAME UPDATE!</font></strong></p>
-
-> King Harkinian's Personal Chef Simulator <br>
-<p><strong><font size="3.5">Version 1.1 is now out for the game!</font></strong></p>
-<p><strong><font size="3">Changelog</font></strong></p>
-
-* Added two brand new meals to cook! 🧑🏻‍🍳
-* Made the font selection better with an awful mix of Charlemagne Std Bold and Comic Sans! 🔤
-* Added cooking timers to all appliances, just to make y'all suffer even more! 🎛️🥘🍲
-* And so much more! Go check it out! Or else... 🔫
 
 ---
 
@@ -100,7 +97,14 @@
 
 <p><strong><font size="3">⏮️ THE PREVIOUS UPDATE!</font></strong></p>
 
-* I'm too lazy to note all of that shit down, lol, cuz it's a lot!
+> King Harkinian's Personal Chef Simulator <br>
+<p><strong><font size="3.5">Version 1.1 is now out for the game!</font></strong></p>
+<p><strong><font size="3">Changelog</font></strong></p>
+
+* Added two brand new meals to cook! 🧑🏻‍🍳
+* Made the font selection better with an awful mix of Charlemagne Std Bold and Comic Sans! 🔤
+* Added cooking timers to all appliances, just to make y'all suffer even more! 🎛️🥘🍲
+* And so much more! Go check it out! Or else... 🔫
 
 ---
 

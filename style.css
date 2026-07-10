@@ -478,6 +478,9 @@ h1 {
 .card-bg-cd-i-tinder {
   background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-cd-i-tinder.png');
 }
+.card-bg-meme-claw-machine {
+  background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-meme-claw-machine.png');
+}
 
 /* Card hover effect: slight scale up and rotation, plus border color change */
 

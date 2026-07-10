@@ -1,0 +1,158 @@
+@font-face {
+  font-family: 'Comic Sans MS';
+  src: url('../Comic-Sans-MS.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@property --spin-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spin-text-rainbow {
+  0% { --spin-angle: 0deg; }
+  100% { --spin-angle: 360deg; }
+}
+
+@keyframes meme-wave {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 0%; }
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background: linear-gradient(-45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #FF13F0, #ff0000);
+    background-size: 300% 300%;
+    animation: meme-wave 10s ease infinite;
+    font-family: 'Comic Sans MS', sans-serif;
+    font-weight: bold;
+    color: white;
+}
+
+#main-menu {
+    position: absolute;
+    inset: 0;
+    width: 100vw; 
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(20, 20, 30, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10;
+    text-align: center;
+}
+
+#main-menu h1 {
+    font-size: 4rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    background: conic-gradient(
+        from var(--spin-angle), 
+        red, orange, yellow, green, cyan, blue, magenta, red
+    );
+    color: transparent !important;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-stroke: 2px #000;
+    text-shadow: none;
+    animation: spin-text-rainbow 2s linear infinite; 
+}
+
+#main-menu p {
+    font-size: 1.5rem;
+    color: #88ff00;
+    -webkit-text-stroke: 0.6px #000;
+    margin: 10px 0;
+}
+
+.menu-buttons {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.menu-btn {
+    padding: 15px 40px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-family: 'Comic Sans MS', sans-serif;
+    cursor: pointer;
+    border: 4px solid #333;
+    border-radius: 15px;
+    color: black;
+    background: conic-gradient(
+        from var(--spin-angle), 
+        red, orange, yellow, green, cyan, blue, magenta, red
+    );
+    animation: spin-text-rainbow 2s linear infinite; 
+    transition: transform 0.1s;
+    box-shadow: 4px 4px 0px rgba(0,0,0,0.35);
+}
+
+.menu-btn:hover {
+    transform: scale(1.1);
+    background-color: #ff33ff;
+}
+
+.menu-btn:active {
+    transform: scale(0.95);
+}
+
+#game-ui {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: calc(100% - 40px);
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.hud {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    padding: 15px 25px;
+    border-radius: 20px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: 4px solid #333;
+    color: #1a1a1a;
+    box-shadow: 5px 5px 0px rgba(0,0,0,0.15);
+    -webkit-text-stroke: 0px;
+}
+
+#game-over-screen {
+    position: absolute;
+    inset: 0;
+    width: 100vw; 
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(20, 20, 30, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 20;
+    text-align: center;
+}
+
+#game-over-screen h1 {
+    font-size: 5rem;
+    margin-bottom: 20px;
+    -webkit-text-stroke: 3px #000;
+}
