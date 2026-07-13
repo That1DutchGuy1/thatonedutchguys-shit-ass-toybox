@@ -208,7 +208,7 @@
       <!-- ABOUT Tab -->
       <div class="menu-panel" id="tab-about" style="display:none; overflow:hidden">
         <p class="about-text" style="color:#ffaa00">This game is made by <a href="https://youtube.com/@that1dutchguy?si=64hwISFn48ZFbh9l" id="creator-link" target="_blank">That One Dutch Guy</a></p>
-        <p class="about-text" style="color:#ffaa00">This game is still in beta!</p>
+        <p class="about-text" style="color:#ffaa00">Made using HTML, CSS, JavaScript <br> Three.js <br> And a whole lot of love for old memes</p>
       </div>
 
       <!-- Action Buttons (always visible below tabs) -->
@@ -239,13 +239,17 @@
       <a href="../index.html" class="styled-menu-btn">← HUB</a>
     </div>
   </div>
+  <div id="victory-fade-overlay"></div>
   <div id="victory-screen">
-    <h2>YOU ESCAPED!</h2>
-    <p id="victory-msg">You survived all five floors of Weegee's mansion!</p>
-    <button class="victory-btn" onclick="restartGame()">PLAY AGAIN</button>
-    <div class="end-btn-row">
-      <button class="victory-btn" onclick="quitToMainMenu()">MAIN MENU</button>
-      <a href="../index.html" class="victory-btn">← HUB</a>
+    <div id="victory-bg"></div>
+    <div id="victory-content">
+      <h2>YOU ESCAPED!</h2>
+      <p id="victory-msg">You survived all five floors of Weegee's mansion!</p>
+      <button class="victory-btn" onclick="restartGame()">PLAY AGAIN</button>
+      <div class="end-btn-row">
+        <button class="victory-btn" onclick="quitToMainMenu()">MAIN MENU</button>
+        <a href="../index.html" class="victory-btn">← HUB</a>
+      </div>
     </div>
   </div>
   <div id="mobile-controls">

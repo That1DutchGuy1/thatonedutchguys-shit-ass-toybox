@@ -19,6 +19,7 @@
 (function preloadAllAssets() {
   const PRELOAD_IMAGES = [
     'Misc/Background.png',
+    'Misc/victory.png',
     'DualShock4-button-icons/ButtonIcon-PS4-Left_Stick.png',
     'DualShock4-button-icons/ButtonIcon-PS4-Right_Stick.png',
     'DualShock4-button-icons/ButtonIcon-PS4-Circle.png',
@@ -1446,7 +1447,10 @@ function quitToMainMenu() {
   if (document.getElementById('stair-btn')) document.getElementById('stair-btn').style.display = 'none';
   
   bgMusic.pause();
+  bgMusic.pause();
   bgMusic.currentTime = 0;
+  bgMusic.volume = 1;
+  footstepsAudio.volume = 1;
   if (isWalking) {
     isWalking = false;
     footstepsAudio.pause();
@@ -1455,6 +1459,7 @@ function quitToMainMenu() {
   laughAudio.currentTime = 0;
   yayAudio.pause();
   yayAudio.currentTime = 0;
+  yayAudio.volume = 1;
   if (weegeeVoiceAudio && weegeeVoicePlaying) {
     weegeeVoiceAudio.pause();
     weegeeVoicePlaying = false;
@@ -1470,7 +1475,9 @@ function quitToMainMenu() {
   overlayEl.style.background = 'rgba(0,0,0,0)';
   warningEl.style.display = 'none';
   const vs2 = document.getElementById('victory-screen');
-  if (vs2) { vs2.style.display = 'none'; vs2.style.pointerEvents = 'none'; }
+  if (vs2) { vs2.style.display = 'none'; vs2.style.pointerEvents = 'none'; vs2.classList.remove('victory-reveal'); }
+  const _vsFadeQuit = document.getElementById('victory-fade-overlay');
+  if (_vsFadeQuit) { _vsFadeQuit.style.transition = 'none'; _vsFadeQuit.classList.remove('active'); requestAnimationFrame(() => { if (_vsFadeQuit) _vsFadeQuit.style.transition = ''; }); }
   const ds2 = document.getElementById('death-screen');
   if (ds2) { ds2.style.display = 'none'; ds2.style.pointerEvents = 'none'; }
 }
@@ -1742,19 +1749,33 @@ function restartGame() {
   laughAudio.currentTime = 0;
   yayAudio.pause();
   yayAudio.currentTime = 0;
+  yayAudio.volume = 1; // reset in case audio fade was still running
   if (weegeeVoiceAudio && weegeeVoicePlaying) {
     weegeeVoiceAudio.pause();
     weegeeVoicePlaying = false;
   }
   weegeeVoiceCooldown = WEEGEE_AUDIO_COOLDOWN_MIN + Math.random() * (WEEGEE_AUDIO_COOLDOWN_MAX - WEEGEE_AUDIO_COOLDOWN_MIN);
   
+  bgMusic.volume = 1;
   bgMusic.play().catch(err => console.warn(err));
   
+  // ── Victory sequence teardown ─────────────────────────────────────────────
+  // Kill the black overlay immediately (no transition) so it doesn't persist
+  // over the restarted game. Also strip victory-reveal so the next run's
+  // victory sequence starts from opacity:0 again.
+  const _vsFadeOverlay = document.getElementById('victory-fade-overlay');
+  if (_vsFadeOverlay) {
+    _vsFadeOverlay.style.transition = 'none';
+    _vsFadeOverlay.classList.remove('active');
+    requestAnimationFrame(() => { if (_vsFadeOverlay) _vsFadeOverlay.style.transition = ''; });
+  }
+
   const ds = document.getElementById('death-screen');
   ds.style.display = 'none';
   const vs = document.getElementById('victory-screen');
   vs.style.display = 'none';
   vs.style.pointerEvents = 'none';
+  vs.classList.remove('victory-reveal');
   overlayEl.style.background = 'rgba(0,0,0,0)';
   warningEl.style.display = 'none';
   document.getElementById('timer-bar-wrap').style.display = 'none';
@@ -1776,14 +1797,92 @@ function climbStairs() {
       footstepsAudio.pause();
     }
 
-    yayAudio.currentTime = 0;
-    yayAudio.play().catch(err => console.warn(err));
-    
-    const vs = document.getElementById('victory-screen');
-    vs.style.display = 'flex';
-    vs.style.pointerEvents = 'all';
+    // ── New victory sequence ─────────────────────────────────────────────────
+    // Phase 1 (0–3 s): black overlay fades IN, all game audio fades OUT.
+    // Phase 2 (3 s):   overlay is now fully black; victory screen becomes
+    //                   visible behind it (still invisible to the player).
+    // Phase 3 (3 s):   black overlay fades OUT, victory.png bg + content fade
+    //                   IN simultaneously, yay.mp3 begins playing.
     document.getElementById('mobile-pause-btn').style.display = 'none';
-    overlayEl.style.background = 'rgba(0,80,0,0.6)';
+
+    // Snapshot all live audio volumes so we can interpolate them to 0.
+    const audioFadeTargets = [
+      bgMusic,
+      footstepsAudio
+    ];
+    if (weegeeVoiceAudio && weegeeVoicePlaying) audioFadeTargets.push(weegeeVoiceAudio);
+
+    const startVolumes = audioFadeTargets.map(a => a.volume);
+    const FADE_DURATION = 3000; // ms
+    const fadeStart = performance.now();
+
+    // Kick off the black overlay fade-in immediately.
+    const fadeOverlay = document.getElementById('victory-fade-overlay');
+    fadeOverlay.style.transition = 'opacity 3s linear';
+    // Force a reflow so the transition fires from opacity:0.
+    void fadeOverlay.offsetWidth;
+    fadeOverlay.classList.add('active'); // CSS: opacity → 1 over 3 s
+
+    // Gradually lower all audio volumes over 3 s using rAF.
+    function fadeAudioStep(now) {
+      const elapsed = now - fadeStart;
+      const t = Math.min(elapsed / FADE_DURATION, 1);
+      audioFadeTargets.forEach((a, i) => {
+        try { a.volume = startVolumes[i] * (1 - t); } catch(e) {}
+      });
+      if (t < 1) {
+        requestAnimationFrame(fadeAudioStep);
+      } else {
+        // All audio fully silent — now hard-stop everything.
+        bgMusic.pause(); bgMusic.currentTime = 0; bgMusic.volume = 1;
+        footstepsAudio.pause(); footstepsAudio.volume = 1;
+        if (isWalking) { isWalking = false; }
+        if (weegeeVoiceAudio && weegeeVoicePlaying) {
+          weegeeVoiceAudio.pause(); weegeeVoicePlaying = false;
+          weegeeVoiceAudio.volume = 1;
+        }
+      }
+    }
+    requestAnimationFrame(fadeAudioStep);
+
+    // After 3 s (overlay is fully black): show victory screen then reverse overlay.
+    const CONTENT_FADE_DURATION = 3000; // must match #victory-bg/#victory-content CSS transition
+    setTimeout(() => {
+      const vs = document.getElementById('victory-screen');
+      vs.style.display = 'flex';
+      vs.style.pointerEvents = 'all';
+      overlayEl.style.background = 'rgba(0,0,0,0)';
+
+      // Small delay so the browser paints the victory screen before we
+      // trigger the reveal transitions (bg image + content fade-in).
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // IMPORTANT: fade the victory bg/content IN first while the black
+          // overlay is still fully opaque (fadeOverlay keeps its 'active'
+          // class here). This happens fully hidden behind the black screen,
+          // so the live game view is never exposed. Only once the victory
+          // screen is completely opaque do we start fading the black
+          // overlay away — at that point there's nothing but the (already
+          // fully-formed) victory screen underneath it, so no crossfade
+          // gap ever reveals the game behind it.
+          vs.classList.add('victory-reveal'); // bg + content opacity → 1 (still hidden behind black)
+
+          setTimeout(() => {
+            // Victory screen is now fully opaque. Safe to fade the black
+            // overlay out — it only ever reveals the victory screen, never
+            // the game.
+            fadeOverlay.style.transition = 'opacity 3s linear';
+            fadeOverlay.classList.remove('active'); // opacity → 0
+
+            // Play yay.mp3 as the reveal begins.
+            yayAudio.currentTime = 0;
+            yayAudio.volume = 1;
+            yayAudio.play().catch(err => console.warn(err));
+          }, CONTENT_FADE_DURATION);
+        });
+      });
+    }, FADE_DURATION);
+
     return;
   }
   currentFloor++;

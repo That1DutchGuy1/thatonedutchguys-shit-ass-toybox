@@ -74,6 +74,15 @@
 
   /* Victory Screen Layout Setup */
   #victory-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px; pointer-events: none; }
+  /* Background image layer — shown after the black fade, fades in over 3s */
+  #victory-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('Misc/victory.png') center center / cover no-repeat; opacity: 0; transition: opacity 3s ease-in; pointer-events: none; }
+  /* Content wrapper sits above the bg and also fades in over 3s */
+  #victory-content { position: relative; display: flex; flex-direction: column; align-items: center; gap: 20px; opacity: 0; transition: opacity 3s ease-in; }
+  #victory-screen.victory-reveal #victory-bg { opacity: 1; }
+  #victory-screen.victory-reveal #victory-content { opacity: 1; }
+  /* Black fade-to-black overlay — covers the 3D game view before the victory bg appears */
+  #victory-fade-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; opacity: 0; pointer-events: none; transition: opacity 3s linear; z-index: 500; }
+  #victory-fade-overlay.active { opacity: 1; }
   #victory-screen h2 { color: #00ff88; font-size: 42px; letter-spacing: 6px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 40px #00ff44, 0 0 80px #00aa33; }
   #victory-screen p { color: #88ffcc; font-size: 13px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
   .victory-btn { background: #001a0a; border: 1px solid #00cc66; color: #00cc66; padding: 10px 28px; font-family: 'Courier New', monospace; font-size: 14px; cursor: pointer; letter-spacing: 2px; pointer-events: all; text-decoration: none; display: inline-block; text-align: center; transition: all 0.2s; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
