@@ -49,10 +49,6 @@
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
   }
 
-  /* Mobile HUD Interaction Button Hooks */
-  #mobile-interact-btn { position: absolute; right: 20px; bottom: 80px; background: rgba(200,200,0,0.3); border: 1px solid #ffff00; color: #fff; padding: 12px 20px; font-family: 'Courier New', monospace; font-size: 14px; border-radius: 4px; pointer-events: all; display: none; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 4px #000; }
-  #mobile-pause-btn { position: absolute; left: 20px; top: 16px; background: rgba(150,0,0,0.2); border: 1px solid #cc0000; color: #fff; padding: 8px 14px; font-family: 'Courier New', monospace; font-size: 12px; border-radius: 4px; pointer-events: all; display: none; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 4px #000; z-index: 5; cursor: pointer; }
-
   #warning { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #cc0000; font-size: 28px; font-weight: bold; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 20px #ff0000; display: none; text-align: center; letter-spacing: 2px; }
   #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0); pointer-events: none; transition: background 0.1s; }
   
@@ -406,106 +402,6 @@
   #timer-bar { width: 100%; height: 8px; background: #330000; border: 1px solid #660000; }
   #timer-fill { height: 100%; background: #ff0000; width: 100%; transition: width 0.05s linear; }
   
-  #mobile-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 160px; display: none; pointer-events: all; }
-  #joystick-area { position: absolute; bottom: 20px; left: 20px; width: 110px; height: 110px; }
-  #joystick-base { width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); }
-  #joystick-knob { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); }
-  #look-area { position: absolute; bottom: 0; right: 0; width: calc(100% - 160px); height: 160px; }
-
-  /* Look joystick (right side, hidden by default, shown in landscape mobile) */
-  #look-joystick-area { position: absolute; bottom: 20px; right: 20px; width: 110px; height: 110px; display: none; pointer-events: all; }
-  #look-joystick-base { width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }
-  #look-joystick-knob { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(180,180,255,0.18); border: 1px solid rgba(180,180,255,0.28); }
-
-  /* Mobile Button Placements */
-  #mobile-flash-btn { position: absolute; left: 20px; bottom: 140px; background: rgba(0,255,200,0.2); border: 1px solid #00ffcc; color: #fff; padding: 10px 16px; font-family: 'Courier New', monospace; font-size: 13px; border-radius: 4px; pointer-events: all; display: none; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 4px #000; }
-  #mobile-sprint-btn { position: absolute; left: 150px; bottom: 140px; background: rgba(0,200,0,0.2); border: 1px solid #00ff00; color: #fff; padding: 10px 16px; font-family: 'Courier New', monospace; font-size: 13px; border-radius: 4px; pointer-events: all; display: none; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 4px #000; }
   
   .floor-stair-btn { position: absolute; right: 20px; bottom: 20px; background: rgba(100,60,0,0.6); border: 1px solid #664400; color: #bb8800; padding: 10px 18px; font-family: 'Courier New', monospace; font-size: 13px; cursor: pointer; pointer-events: all; display: none; letter-spacing: 1px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
   #arms-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-
-  /* ═══════════════════════════════════════════════════════════════════════════
-     LANDSCAPE MOBILE LAYOUT — only applies to phones in landscape orientation.
-     Uses (max-height) + (pointer: coarse) so desktop is 100% unaffected.
-     ═══════════════════════════════════════════════════════════════════════════ */
-  @media screen and (max-height: 500px) and (pointer: coarse) {
-
-    /* ── HUD top bar ── */
-    #hud { font-size: 11px; top: 6px; }
-    #floor-indicator { font-size: 10px; top: 6px; right: 10px; }
-
-    /* Battery — tuck into top-right corner, smaller */
-    #battery-wrap { top: 22px; right: 10px; width: 90px; }
-    #battery-label { font-size: 9px; }
-
-    /* Stamina — top-left, compact */
-    #stamina-wrap { top: 6px; left: 10px; width: 110px; }
-    #stamina-label { font-size: 9px; }
-    #stamina-bar { height: 6px; }
-
-    /* Hotbar — centred, smaller slots, lifted above controls */
-    #hotbar-wrap { bottom: 170px; gap: 4px; padding: 4px; }
-    .hotbar-slot { width: 38px; height: 38px; }
-    .hotbar-slot .slot-num { font-size: 9px; }
-
-    /* Pause button — top-left, compact */
-    #mobile-pause-btn { top: 6px; left: 10px; padding: 5px 10px; font-size: 10px; }
-
-    /* Gamepad tooltip — smaller, tucked closer to the edge */
-    #gp-tooltip-panel { left: 10px; padding: 8px 10px; gap: 7px; }
-    #gp-tooltip-panel .gp-tooltip-title { font-size: 9px; }
-    #gp-tooltip-panel .gp-tooltip-text { font-size: 9px; }
-
-    /* Warning text */
-    #warning { font-size: 20px; }
-
-    /* Look-away timer bar — lift it above the control strip */
-    #timer-bar-wrap { bottom: 170px; }
-
-    /* ── Control strip ── taller to give joysticks room */
-    #mobile-controls { height: 160px; }
-
-    /* Move joystick — left side */
-    #joystick-area { bottom: 14px; left: 14px; width: 120px; height: 120px; }
-    #joystick-base { width: 120px; height: 120px; }
-    #joystick-knob { width: 46px; height: 46px; }
-
-    /* Look joystick — right side, shown in landscape */
-    #look-joystick-area { display: block; bottom: 14px; right: 14px; width: 120px; height: 120px; }
-    #look-joystick-base { width: 120px; height: 120px; }
-    #look-joystick-knob { width: 46px; height: 46px; }
-
-    /* Hide the old swipe-to-look area when we have a joystick */
-    #look-area { display: none; }
-
-    /* Flash / sprint buttons — sit above the move joystick, stacked vertically */
-    #mobile-flash-btn  { left: 148px; bottom: 96px; padding: 7px 12px; font-size: 11px; }
-    #mobile-sprint-btn { left: 148px; bottom: 52px; padding: 7px 12px; font-size: 11px; }
-
-    /* Pickup button — centre of screen, just above control strip */
-    #mobile-interact-btn { right: auto; left: 50%; transform: translateX(-50%); bottom: 168px; padding: 8px 18px; font-size: 12px; }
-
-    /* Stair button — sits above look joystick */
-    .floor-stair-btn { right: 148px; bottom: 96px; padding: 7px 14px; font-size: 11px; }
-
-    /* Start screen — compact for landscape */
-    #start-screen-content { padding: 14px 20px; gap: 10px; max-width: 94vw; }
-    #start-screen h1 { font-size: 22px; letter-spacing: 2px; }
-    .menu-panel { max-height: 160px; font-size: 11px; }
-    .menu-tab { font-size: 10px; padding: 6px 0; letter-spacing: 1px; }
-    .lore-section p { font-size: 11px; }
-    .item-card-name, .item-card-desc, .ctrl-desc, .ctrl-key { font-size: 10px; }
-    .gp-icon-box { width: 26px; height: 26px; }
-    .gp-icon-box img { width: 20px; height: 20px; }
-    .gp-icon-group { min-width: 76px; }
-    #start-screen button, #start-screen .hub-link { padding: 8px 18px; font-size: 12px; }
-
-    /* Death / victory screens */
-    #death-screen h2, #victory-screen h2 { font-size: 28px; }
-    #death-screen p,  #victory-screen p  { font-size: 11px; }
-    #death-screen button, .styled-menu-btn, .victory-btn { padding: 7px 18px; font-size: 12px; }
-
-    /* Pause screen */
-    #pause-screen h2 { font-size: 28px; }
-    .pause-btn-box { gap: 8px; width: 180px; }
-  }

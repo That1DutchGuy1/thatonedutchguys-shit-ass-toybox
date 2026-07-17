@@ -94,8 +94,6 @@
 })();
 // ═══════════════════════════════════════════════════════════════════════════
 
-const isMobile = /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth < 600;
-
 const FLOOR_COUNT = 5;
 const CELL = 4;
 const MAZE_W = 11;
@@ -129,8 +127,6 @@ let stairPositions = [];
 let walls3D = [];
 let warningEl, overlayEl, timerBarWrap, timerFill;
 let armsCanvas, armsCtx;
-let joystickActive = false, joystickBase = {x:0,y:0}, joystickDelta = {x:0,y:0};
-let lookTouchId = null, lastLookPos = {x:0,y:0};
 let flashTimer = 0;
 let weegeeActive = false;
 let weegeeSpawnTimer = 0;
@@ -148,7 +144,6 @@ const BATTERY_DRAIN_RATE = 3.6;
 // Stamina Management Settings
 let staminaCurrent = 100;
 let isSprinting = false;
-let mobileSprintActive = false;
 const STAMINA_DRAIN_RATE = 5.0; 
 const STAMINA_REGEN_RATE = 12.0;
 
@@ -1358,34 +1353,6 @@ function toggleFlashlight() {
   if (batteryCurrent <= 0) return;
   
   flashlightActive = !flashlightActive;
-  
-  const mobileBtn = document.getElementById('mobile-flash-btn');
-  if (mobileBtn) {
-    if (flashlightActive) {
-      mobileBtn.textContent = '💡 LIGHT ON';
-      mobileBtn.style.background = 'rgba(0,255,200,0.2)';
-      mobileBtn.style.borderColor = '#00ffcc';
-    } else {
-      mobileBtn.textContent = '🔦 LIGHT OFF';
-      mobileBtn.style.background = 'rgba(0,0,0,0.6)';
-      mobileBtn.style.borderColor = '#555';
-    }
-  }
-}
-
-function toggleMobileSprint() {
-  if (isDead || !gameStarted || isPaused) return;
-  mobileSprintActive = !mobileSprintActive;
-  const btn = document.getElementById('mobile-sprint-btn');
-  if(mobileSprintActive) {
-    btn.textContent = '🏃 SPRINT ON';
-    btn.style.background = 'rgba(0,255,0,0.4)';
-    btn.style.borderColor = '#00ff00';
-  } else {
-    btn.textContent = '🏃 SPRINT OFF';
-    btn.style.background = 'rgba(0,200,0,0.2)';
-    btn.style.borderColor = '#555';
-  }
 }
 
 // Global Pause Menu Toggle & Suspension Mechanics Hook
@@ -1419,9 +1386,7 @@ function togglePause() {
       footstepsAudio.play().catch(err => console.warn(err));
     }
     
-    if (!isMobile) {
-      document.getElementById('gameCanvas').requestPointerLock();
-    }
+    document.getElementById('gameCanvas').requestPointerLock();
   }
 }
 
@@ -1443,7 +1408,6 @@ function quitToMainMenu() {
   document.getElementById('stamina-wrap').style.display = 'none';
   document.getElementById('hotbar-wrap').style.display = 'none';
   document.getElementById('timer-bar-wrap').style.display = 'none';
-  document.getElementById('mobile-pause-btn').style.display = 'none';
   if (document.getElementById('stair-btn')) document.getElementById('stair-btn').style.display = 'none';
   
   bgMusic.pause();
@@ -1520,12 +1484,6 @@ function useCurrentItem() {
     // Battery charge is applied once the full swap animation finishes
     // (see the itemUseAnim completion handler below).
     inventory[selectedSlot] = null;
-    const mobileBtn = document.getElementById('mobile-flash-btn');
-    if (mobileBtn && flashlightActive) {
-      mobileBtn.textContent = '💡 LIGHT ON';
-      mobileBtn.style.background = 'rgba(0,255,200,0.2)';
-      mobileBtn.style.borderColor = '#00ffcc';
-    }
   } else if(item === 'stake') {
     inventory[selectedSlot] = null;
     // If a plunger is currently stuck to Weegee, clear that state so he
@@ -1621,45 +1579,6 @@ function tryPickupItem() {
   }
 }
 
-function mobilePickupInteraction() {
-  if(isDead || !gameStarted || isPaused) return;
-  let closestIdx = -1;
-  let minDist = 2.5; 
-  
-  for(let i=0; i<spawnedItems.length; i++) {
-    const dx = spawnedItems[i].x - player.x;
-    const dz = spawnedItems[i].z - player.z;
-    const d = Math.sqrt(dx*dx + dz*dz);
-    if(d < minDist) {
-      minDist = d;
-      closestIdx = i;
-    }
-  }
-  
-  if(closestIdx !== -1) {
-    const itemData = spawnedItems[closestIdx];
-    if(addItemToInventory(itemData.typeId)) {
-      scene.remove(itemData.mesh);
-      spawnedItems.splice(closestIdx, 1);
-    }
-  }
-}
-
-// Scan loop bounding logic tracking item proximity indices 
-function checkMobileItemsProximity() {
-  if(!isMobile || isPaused) return;
-  let nearItem = false;
-  for(let i=0; i<spawnedItems.length; i++) {
-    const dx = spawnedItems[i].x - player.x;
-    const dz = spawnedItems[i].z - player.z;
-    if((dx*dx + dz*dz) < 6.25) { 
-      nearItem = true;
-      break;
-    }
-  }
-  document.getElementById('mobile-interact-btn').style.display = nearItem ? 'block' : 'none';
-}
-
 function killPlayer(msg) {
   if (isDead) return;
   isDead = true;
@@ -1687,7 +1606,6 @@ function killPlayer(msg) {
   document.getElementById('death-msg').textContent = msg || "Weegee got you.";
   ds.style.display = 'flex';
   ds.style.pointerEvents = 'all';
-  document.getElementById('mobile-pause-btn').style.display = 'none';
   overlayEl.style.background = 'rgba(150,0,0,0.85)';
   setTimeout(() => { overlayEl.style.background = 'rgba(0,0,0,0.7)'; }, 400);
 }
@@ -1722,24 +1640,10 @@ function restartGame() {
   batteryCurrent = 100; // Reset battery
   flashlightActive = true; // Turn flashlight back on
   isSprinting = false;
-  mobileSprintActive = false;
   speedBoostTimeLeft = 0;
   inventory = [null, null, null, null, null];
   updateInventoryUI();
 
-  const mobileBtn = document.getElementById('mobile-flash-btn');
-  if (mobileBtn) {
-    mobileBtn.textContent = '💡 LIGHT ON';
-    mobileBtn.style.background = 'rgba(0,255,200,0.2)';
-    mobileBtn.style.borderColor = '#00ffcc';
-  }
-  const sprBtn = document.getElementById('mobile-sprint-btn');
-  if (sprBtn) {
-    sprBtn.textContent = '🏃 SPRINT OFF';
-    sprBtn.style.background = 'rgba(0,200,0,0.2)';
-    sprBtn.style.borderColor = '#555';
-  }
-  
   if (isWalking) {
     isWalking = false;
     footstepsAudio.pause();
@@ -1779,9 +1683,6 @@ function restartGame() {
   overlayEl.style.background = 'rgba(0,0,0,0)';
   warningEl.style.display = 'none';
   document.getElementById('timer-bar-wrap').style.display = 'none';
-  if (isMobile) {
-    document.getElementById('mobile-pause-btn').style.display = 'block';
-  }
   buildFloorScene(0);
 }
 
@@ -1803,7 +1704,6 @@ function climbStairs() {
     //                   visible behind it (still invisible to the player).
     // Phase 3 (3 s):   black overlay fades OUT, victory.png bg + content fade
     //                   IN simultaneously, yay.mp3 begins playing.
-    document.getElementById('mobile-pause-btn').style.display = 'none';
 
     // Snapshot all live audio volumes so we can interpolate them to 0.
     const audioFadeTargets = [
@@ -1903,11 +1803,7 @@ function checkNearStairs() {
   const stairBtn = document.getElementById('stair-btn');
   if (near) {
     stairBtn.style.display = 'block';
-    if (!isMobile) {
-      stairBtn.textContent = '⬆ NEXT FLOOR (Press Up Arrow / W)';
-    } else {
-      stairBtn.textContent = '⬆ NEXT FLOOR';
-    }
+    stairBtn.textContent = '⬆ NEXT FLOOR (Press Up Arrow / W)';
   } else {
     stairBtn.style.display = 'none';
   }
@@ -1918,37 +1814,22 @@ function movePlayer(dt) {
   let baseSpeed = 3.5;
   let movingInput = false;
 
-  if (isMobile) {
-    if (Math.abs(joystickDelta.x) > 0.05 || Math.abs(joystickDelta.y) > 0.05) {
-      movingInput = true;
-    }
-    isSprinting = mobileSprintActive && movingInput && staminaCurrent > 0;
-  } else {
-    if (keys['w'] || keys['s'] || keys['a'] || keys['d'] || keys['arrowup'] || keys['arrowdown']) {
-      movingInput = true;
-    }
-    if (gamepadState.moveX !== 0 || gamepadState.moveY !== 0) {
-      movingInput = true;
-    }
-    // Circle button TOGGLES sprint (like the mobile sprint button) rather
-    // than needing to be held, but it still ORs cleanly with Shift so
-    // keyboard sprinting is completely unaffected.
-    isSprinting = (keys['shift'] || gamepadState.sprintToggle) && movingInput && staminaCurrent > 0;
+  if (keys['w'] || keys['s'] || keys['a'] || keys['d'] || keys['arrowup'] || keys['arrowdown']) {
+    movingInput = true;
   }
+  if (gamepadState.moveX !== 0 || gamepadState.moveY !== 0) {
+    movingInput = true;
+  }
+  // Circle button TOGGLES sprint rather than needing to be held, but it
+  // still ORs cleanly with Shift so keyboard sprinting is unaffected.
+  isSprinting = (keys['shift'] || gamepadState.sprintToggle) && movingInput && staminaCurrent > 0;
 
   if (isSprinting) {
     staminaCurrent -= STAMINA_DRAIN_RATE * dt;
     if(staminaCurrent <= 0) {
       staminaCurrent = 0;
       isSprinting = false;
-      mobileSprintActive = false;
       gamepadState.sprintToggle = false;
-      const sprBtn = document.getElementById('mobile-sprint-btn');
-      if (sprBtn) {
-        sprBtn.textContent = '🏃 SPRINT OFF';
-        sprBtn.style.background = 'rgba(0,200,0,0.2)';
-        sprBtn.style.borderColor = '#555';
-      }
     }
   } else if (!movingInput) {
     staminaCurrent = Math.min(100, staminaCurrent + STAMINA_REGEN_RATE * dt);
@@ -1969,28 +1850,23 @@ function movePlayer(dt) {
   const rx = Math.cos(player.yaw);
   const rz = -Math.sin(player.yaw);
 
-  if (isMobile) {
-    dx = (joystickDelta.x * rx + joystickDelta.y * fx) * currentSpeed * dt;
-    dz = (joystickDelta.x * rz + joystickDelta.y * fz) * currentSpeed * dt;
-  } else {
-    if (keys['w']||keys['arrowup']) { dx += fx * currentSpeed * dt; dz += fz * currentSpeed * dt; }
-    if (keys['s']||keys['arrowdown']) { dx -= fx * currentSpeed * dt; dz -= fz * currentSpeed * dt; }
-    if (keys['a']) { dx -= rx * currentSpeed * dt; dz -= rz * currentSpeed * dt; }
-    if (keys['d']) { dx += rx * currentSpeed * dt; dz += rz * currentSpeed * dt; }
-    if (keys['arrowleft']) { player.yaw += 1.5 * dt; }
-    if (keys['arrowright']) { player.yaw -= 1.5 * dt; }
+  if (keys['w']||keys['arrowup']) { dx += fx * currentSpeed * dt; dz += fz * currentSpeed * dt; }
+  if (keys['s']||keys['arrowdown']) { dx -= fx * currentSpeed * dt; dz -= fz * currentSpeed * dt; }
+  if (keys['a']) { dx -= rx * currentSpeed * dt; dz -= rz * currentSpeed * dt; }
+  if (keys['d']) { dx += rx * currentSpeed * dt; dz += rz * currentSpeed * dt; }
+  if (keys['arrowleft']) { player.yaw += 1.5 * dt; }
+  if (keys['arrowright']) { player.yaw -= 1.5 * dt; }
 
-    // Left stick — forward/back on Y (pushed up = negative), strafe on X.
-    // Additive with WASD so keyboard + gamepad can never conflict.
-    if (gamepadState.moveY !== 0) {
-      const fwd = -gamepadState.moveY;
-      dx += fx * fwd * currentSpeed * dt;
-      dz += fz * fwd * currentSpeed * dt;
-    }
-    if (gamepadState.moveX !== 0) {
-      dx += rx * gamepadState.moveX * currentSpeed * dt;
-      dz += rz * gamepadState.moveX * currentSpeed * dt;
-    }
+  // Left stick — forward/back on Y (pushed up = negative), strafe on X.
+  // Additive with WASD so keyboard + gamepad can never conflict.
+  if (gamepadState.moveY !== 0) {
+    const fwd = -gamepadState.moveY;
+    dx += fx * fwd * currentSpeed * dt;
+    dz += fz * fwd * currentSpeed * dt;
+  }
+  if (gamepadState.moveX !== 0) {
+    dx += rx * gamepadState.moveX * currentSpeed * dt;
+    dz += rz * gamepadState.moveX * currentSpeed * dt;
   }
   const r = 0.35;
   const nx = player.x + dx, nz = player.z + dz;
@@ -3392,7 +3268,6 @@ function drawArms(canvas, ctx) {
   const w = canvas.width, h = canvas.height;
   const t = Date.now() / 1000;
   const moving = keys['w']||keys['s']||keys['a']||keys['d']||keys['arrowup']||keys['arrowdown']||keys['arrowleft']||keys['arrowright']
-    || (isMobile && (Math.abs(joystickDelta.x) > 0.05 || Math.abs(joystickDelta.y) > 0.05))
     || (Math.abs(gamepadState.moveX) > 0.05 || Math.abs(gamepadState.moveY) > 0.05);
 
   // Light bob while walking, heavier bob (with extra sway) while sprinting.
@@ -3436,19 +3311,6 @@ function gameLoop() {
 
   movePlayer(dt);
 
-  // Apply look-joystick rotation (right-side joystick, landscape mobile)
-  if (isMobile && window._lookJoystickDelta) {
-    const ld = window._lookJoystickDelta;
-    if (Math.abs(ld.x) > 0.05 || Math.abs(ld.y) > 0.05) {
-      // Block look while slipping
-      if (!playerSlipState.active) {
-        player.yaw   -= ld.x * (window._LOOK_SENSITIVITY || 2.2) * dt;
-        player.pitch -= ld.y * (window._LOOK_SENSITIVITY || 2.2) * dt;
-        player.pitch  = Math.max(-0.8, Math.min(0.8, player.pitch));
-      }
-    }
-  }
-
   // Right stick — camera look. Independent of mouse movement, so mouse
   // and gamepad look can both be used interchangeably without conflict.
   if (gamepadState.lookX !== 0 || gamepadState.lookY !== 0) {
@@ -3469,7 +3331,6 @@ function gameLoop() {
   updateWeegeePlungerStuckTimer(dt);
   updateHahaPending(dt);
   checkNearStairs();
-  checkMobileItemsProximity();
 
   const elapsed = clock.getElapsedTime();
   for(let i=0; i<spawnedItems.length; i++) {
@@ -3525,7 +3386,7 @@ function gameLoop() {
   }
 
   if (handMesh && handMesh.material.visible) {
-    const moving = keys['w']||keys['s']||keys['a']||keys['d']||keys['arrowup']||keys['arrowdown']||keys['arrowleft']||keys['arrowright'] || (isMobile && (Math.abs(joystickDelta.x) > 0.05 || Math.abs(joystickDelta.y) > 0.05)) || (Math.abs(gamepadState.moveX) > 0.05 || Math.abs(gamepadState.moveY) > 0.05);
+    const moving = keys['w']||keys['s']||keys['a']||keys['d']||keys['arrowup']||keys['arrowdown']||keys['arrowleft']||keys['arrowright'] || (Math.abs(gamepadState.moveX) > 0.05 || Math.abs(gamepadState.moveY) > 0.05);
     const bSpeed = isSprinting ? 12 : (moving ? 7 : 2);
     const bAmt = isSprinting ? 0.03 : (moving ? 0.015 : 0.003);
     handMesh.position.y = -0.22 + Math.sin(elapsed * bSpeed) * bAmt;
@@ -3537,12 +3398,6 @@ function gameLoop() {
     if (batteryCurrent <= 0) {
       batteryCurrent = 0;
       flashlightActive = false;
-      const mobileBtn = document.getElementById('mobile-flash-btn');
-      if (mobileBtn) {
-        mobileBtn.textContent = '🔦 OUT OF JUICE';
-        mobileBtn.style.background = 'rgba(40,0,0,0.6)';
-        mobileBtn.style.borderColor = '#444';
-      }
     }
   }
   document.getElementById('battery-fill').style.width = batteryCurrent + '%';
@@ -3566,9 +3421,8 @@ function gameLoop() {
   }
 
   const currentlyWalking = gameStarted && !isDead && (
-    isMobile ? (Math.abs(joystickDelta.x) > 0.1 || Math.abs(joystickDelta.y) > 0.1) :
-    (keys['w'] || keys['s'] || keys['a'] || keys['d'] || keys['arrowup'] || keys['arrowdown'] ||
-     Math.abs(gamepadState.moveX) > 0.1 || Math.abs(gamepadState.moveY) > 0.1)
+    keys['w'] || keys['s'] || keys['a'] || keys['d'] || keys['arrowup'] || keys['arrowdown'] ||
+    Math.abs(gamepadState.moveX) > 0.1 || Math.abs(gamepadState.moveY) > 0.1
   );
 
   if (currentlyWalking) {
@@ -3657,7 +3511,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 
 window.addEventListener('wheel', e => {
-  if (!gameStarted || isDead || isMobile || isPaused) return;
+  if (!gameStarted || isDead || isPaused) return;
   if (e.deltaY > 0) {
     selectedSlot = (selectedSlot + 1) % 5;
   } else if (e.deltaY < 0) {
@@ -3673,7 +3527,7 @@ document.addEventListener('click', (e) => {
   // document (e.g. a hotbar slot) could also be treated as a gameplay click
   // and fire a redundant requestPointerLock()/useCurrentItem() call.
   if (e.target.id !== 'gameCanvas') return;
-  if (gameStarted && !isMobile && !isPaused) {
+  if (gameStarted && !isPaused) {
     if (!pointerLocked) {
       const lockPromise = document.getElementById('gameCanvas').requestPointerLock();
       if (lockPromise && typeof lockPromise.catch === 'function') {
@@ -3694,7 +3548,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('pointerlockchange', () => {
   pointerLocked = document.pointerLockElement === document.getElementById('gameCanvas');
   // Auto-pause if pointer lock dropped externally by desktop browsers focus shifts
-  if (!pointerLocked && gameStarted && !isDead && !isMobile && !isPaused) {
+  if (!pointerLocked && gameStarted && !isDead && !isPaused) {
     togglePause();
   }
 });
@@ -3707,127 +3561,6 @@ document.addEventListener('mousemove', e => {
   player.pitch = Math.max(-0.8, Math.min(0.8, player.pitch));
 });
 
-if (isMobile) {
-  document.getElementById('mobile-controls').style.display = 'block';
-  document.getElementById('mobile-flash-btn').style.display = 'block';
-  document.getElementById('mobile-sprint-btn').style.display = 'block';
-
-  // ── Move joystick ──────────────────────────────────────────────────────────
-  const jBase = document.getElementById('joystick-base');
-  const jKnob = document.getElementById('joystick-knob');
-  const jArea = document.getElementById('joystick-area');
-  let moveJoystickTouchId = null;
-
-  const getMoveRect = () => jBase.getBoundingClientRect();
-  const MOVE_MAX_R = 36;
-
-  jArea.addEventListener('touchstart', e => {
-    if (isPaused) return;
-    if (moveJoystickTouchId === null) {
-      moveJoystickTouchId = e.changedTouches[0].identifier;
-      joystickActive = true;
-    }
-    e.preventDefault();
-  }, {passive: false});
-
-  // ── Look joystick ──────────────────────────────────────────────────────────
-  const lBase = document.getElementById('look-joystick-base');
-  const lKnob = document.getElementById('look-joystick-knob');
-  const lArea = document.getElementById('look-joystick-area');
-  let lookJoystickTouchId = null;
-  let lookJoystickDelta = {x: 0, y: 0};
-  const LOOK_MAX_R = 36;
-  // Sensitivity for look joystick (radians per second per normalised unit)
-  const LOOK_SENSITIVITY = 2.2;
-
-  const getLookRect = () => lBase.getBoundingClientRect();
-
-  lArea.addEventListener('touchstart', e => {
-    if (isPaused) return;
-    if (lookJoystickTouchId === null) {
-      lookJoystickTouchId = e.changedTouches[0].identifier;
-    }
-    e.preventDefault();
-  }, {passive: false});
-
-  // ── Fallback swipe-to-look area (portrait / non-landscape) ─────────────────
-  document.getElementById('look-area').addEventListener('touchstart', e => {
-    if (isPaused) return;
-    if (lookTouchId === null) {
-      lookTouchId = e.changedTouches[0].identifier;
-      lastLookPos = {x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY};
-    }
-    e.preventDefault();
-  }, {passive: false});
-
-  // ── Unified touchmove ──────────────────────────────────────────────────────
-  document.addEventListener('touchmove', e => {
-    if (isPaused) return;
-    for (const t of e.changedTouches) {
-      // Move joystick
-      if (t.identifier === moveJoystickTouchId) {
-        const r = getMoveRect();
-        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-        const dx = t.clientX - cx, dy = t.clientY - cy;
-        const d = Math.sqrt(dx * dx + dy * dy);
-        const clampedX = d > MOVE_MAX_R ? (dx / d) * MOVE_MAX_R : dx;
-        const clampedY = d > MOVE_MAX_R ? (dy / d) * MOVE_MAX_R : dy;
-        jKnob.style.transform = `translate(calc(-50% + ${clampedX}px), calc(-50% + ${clampedY}px))`;
-        joystickDelta.x = clampedX / MOVE_MAX_R;
-        joystickDelta.y = clampedY / MOVE_MAX_R;
-      }
-
-      // Look joystick (right-side joystick, landscape mode)
-      if (t.identifier === lookJoystickTouchId) {
-        const r = getLookRect();
-        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-        const dx = t.clientX - cx, dy = t.clientY - cy;
-        const d = Math.sqrt(dx * dx + dy * dy);
-        const clampedX = d > LOOK_MAX_R ? (dx / d) * LOOK_MAX_R : dx;
-        const clampedY = d > LOOK_MAX_R ? (dy / d) * LOOK_MAX_R : dy;
-        lKnob.style.transform = `translate(calc(-50% + ${clampedX}px), calc(-50% + ${clampedY}px))`;
-        lookJoystickDelta.x = clampedX / LOOK_MAX_R;
-        lookJoystickDelta.y = clampedY / LOOK_MAX_R;
-      }
-
-      // Fallback swipe-to-look area (portrait mode)
-      if (t.identifier === lookTouchId) {
-        const dx = t.clientX - lastLookPos.x, dy = t.clientY - lastLookPos.y;
-        player.yaw -= dx * 0.005;
-        player.pitch -= dy * 0.005;
-        player.pitch = Math.max(-0.8, Math.min(0.8, player.pitch));
-        lastLookPos = {x: t.clientX, y: t.clientY};
-      }
-    }
-    e.preventDefault();
-  }, {passive: false});
-
-  // ── Unified touchend ───────────────────────────────────────────────────────
-  document.addEventListener('touchend', e => {
-    for (const t of e.changedTouches) {
-      if (t.identifier === moveJoystickTouchId) {
-        moveJoystickTouchId = null;
-        joystickActive = false;
-        joystickDelta = {x: 0, y: 0};
-        jKnob.style.transform = 'translate(-50%,-50%)';
-      }
-      if (t.identifier === lookJoystickTouchId) {
-        lookJoystickTouchId = null;
-        lookJoystickDelta = {x: 0, y: 0};
-        lKnob.style.transform = 'translate(-50%,-50%)';
-      }
-      if (t.identifier === lookTouchId) {
-        lookTouchId = null;
-      }
-    }
-  });
-
-  // ── Integrate look joystick into the game loop ─────────────────────────────
-  // Hook into the existing gameLoop by patching the per-frame camera update.
-  // We store the delta on a globally accessible object so gameLoop can use it.
-  window._lookJoystickDelta = lookJoystickDelta;
-  window._LOOK_SENSITIVITY   = LOOK_SENSITIVITY;
-}
 
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth/window.innerHeight;
@@ -3877,26 +3610,12 @@ function startGame() {
   batteryCurrent = 100;
   flashlightActive = true;
   isSprinting = false;
-  mobileSprintActive = false;
   speedBoostTimeLeft = 0;
   inventory = [null, null, null, null, null];
 
   overlayEl.style.background = 'rgba(0,0,0,0)';
   warningEl.style.display = 'none';
   document.getElementById('timer-bar-wrap').style.display = 'none';
-
-  const mobileFlashBtn = document.getElementById('mobile-flash-btn');
-  if (mobileFlashBtn) {
-    mobileFlashBtn.textContent = '💡 LIGHT ON';
-    mobileFlashBtn.style.background = 'rgba(0,255,200,0.2)';
-    mobileFlashBtn.style.borderColor = '#00ffcc';
-  }
-  const sprBtn = document.getElementById('mobile-sprint-btn');
-  if (sprBtn) {
-    sprBtn.textContent = '🏃 SPRINT OFF';
-    sprBtn.style.background = 'rgba(0,200,0,0.2)';
-    sprBtn.style.borderColor = '#555';
-  }
 
   if (weegeeVoiceAudio && weegeeVoicePlaying) {
     weegeeVoiceAudio.pause();
@@ -3922,9 +3641,6 @@ function startGame() {
 
   document.getElementById('stamina-wrap').style.display = 'flex';
   document.getElementById('hotbar-wrap').style.display = 'flex';
-  if (isMobile) {
-    document.getElementById('mobile-pause-btn').style.display = 'block';
-  }
 
   // Add the warm ambient PointLight only once — it stays in the scene
   // permanently and doesn't need to be re-added on subsequent plays.
@@ -3937,11 +3653,9 @@ function startGame() {
 
   updateInventoryUI();
 
-  if (!isMobile) {
-    const lockPromise = document.getElementById('gameCanvas').requestPointerLock();
-    if (lockPromise && typeof lockPromise.catch === 'function') {
-      lockPromise.catch(() => {});
-    }
+  const lockPromise = document.getElementById('gameCanvas').requestPointerLock();
+  if (lockPromise && typeof lockPromise.catch === 'function') {
+    lockPromise.catch(() => {});
   }
 }
 
@@ -3968,9 +3682,7 @@ document.getElementById('start-btn').addEventListener('click', (e) => {
 window.climbStairs = climbStairs;
 window.restartGame = restartGame;
 window.toggleFlashlight = toggleFlashlight;
-window.toggleMobileSprint = toggleMobileSprint;
 window.useItemSlot = useItemSlot;
-window.mobilePickupInteraction = mobilePickupInteraction;
 window.togglePause = togglePause;
 window.quitToMainMenu = quitToMainMenu;
 
@@ -4387,11 +4099,10 @@ function switchTab(tab) {
 // ── DualShock 4 / Standard Gamepad Support ───────────────────────────────────
 // Runs entirely on its own requestAnimationFrame loop so it works whether the
 // game is on the start screen, paused, dead, or actively playing. It never
-// writes into `keys`, and it never touches any of the mobile touch-control
-// code paths — it only ever ADDS onto `gamepadState`, which the movement /
-// look / item code above reads from alongside (never instead of) keyboard
-// and mouse input. Unplugging a controller, or never plugging one in,
-// changes nothing about keyboard/mouse play.
+// writes into `keys`, and it only ever ADDS onto `gamepadState`, which the
+// movement / look / item code above reads from alongside (never instead of)
+// keyboard and mouse input. Unplugging a controller, or never plugging one
+// in, changes nothing about keyboard/mouse play.
 // ═══════════════════════════════════════════════════════════════════════════
 (function () {
   const DEADZONE = 0.18;
@@ -4417,7 +4128,7 @@ function switchTab(tab) {
   // ── On-screen DualShock control tooltip ────────────────────────────────────
   // Shown only while a controller is *actively* being used (a stick moved or
   // a button pressed) during real gameplay — never on menus, never while
-  // paused/dead, never on mobile touch controls. The instant the player
+  // paused/dead. The instant the player
   // touches a key or moves the mouse, it's hidden again, even mid-game.
   // Purely additive: only ever toggles display on #gp-tooltip-panel, so it
   // can't affect any existing gameplay, movement, or menu-navigation code.
@@ -4427,7 +4138,7 @@ function switchTab(tab) {
   function updateGpTooltipVisibility() {
     if (!gpTooltipPanel) return;
     const menuScreen = getActiveMenuScreen();
-    const show = usingGamepad && !isMobile && gameStarted && !isDead && !isPaused && !menuScreen;
+    const show = usingGamepad && gameStarted && !isDead && !isPaused && !menuScreen;
     gpTooltipPanel.style.display = show ? 'flex' : 'none';
   }
 
