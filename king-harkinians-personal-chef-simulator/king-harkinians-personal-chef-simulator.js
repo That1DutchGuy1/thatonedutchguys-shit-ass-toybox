@@ -48,7 +48,21 @@ function setMorshuSpeech(text) {
    If any of these end up cooked into the meal
    (i.e. added to the vessel), the King dies.
 ───────────────────────────────────────────── */
-const DEADLY_INGREDIENT_IDS = ["toxin", "poison", "venom", "nuclear", "motoroil", "lipstick", "soap", "bomb", "scorpion", "unicorn, human, pufferfish"];
+const DEADLY_INGREDIENT_IDS = [
+  "toxin", 
+  "poison", 
+  "venom", 
+  "nuclear", 
+  "motoroil", 
+  "lipstick", 
+  "soap", 
+  "bomb", 
+  "scorpion", 
+  "unicorn", 
+  "human", 
+  "pufferfish"
+];
+
 
 function containsDeadlyIngredient() {
     return state.addedIngredients.some(id => DEADLY_INGREDIENT_IDS.includes(id));
