@@ -95,6 +95,13 @@
 
 ---
 
+<p><strong><font size="4">🎮️ CONTROLLER SUPPORT UPDATE!</font></strong></p>
+
+> Added controller support for navigating the Shit Ass Toybox! 🎮️ <br>
+> Added controller support for Meme Claw Machine! 🎮️ <br>
+
+---
+
 <p><strong><font size="3">⏮️ THE PREVIOUS UPDATE!</font></strong></p>
 
 > King Harkinian's Personal Chef Simulator <br>

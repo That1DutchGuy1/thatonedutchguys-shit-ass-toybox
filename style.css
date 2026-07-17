@@ -807,3 +807,53 @@ body.about-active .game-container {
   max-width: 100%;
   border-radius: 10px;
 }
+/* =========================================
+   GAMEPAD / CONTROLLER NAVIGATION
+   Visual "focus ring" for whichever button/toy/card is currently
+   selected via a connected gamepad (D-Pad to move, X/Cross to pick).
+   Uses outline instead of box-shadow so it never fights with the
+   drop-shadows / box-shadows other elements already use.
+   ========================================= */
+.gamepad-selected {
+  /* box-shadow instead of outline so it isn't clipped by overflow:hidden
+     on .game-card. The first shadow is the solid ring; the second adds
+     the animated glow on top. */
+  box-shadow:
+    0 0 0 4px #00d4ff,
+    0 0 0 4px #00d4ff;
+  /* IMPORTANT: list ALL animations — CSS animation is not additive.
+     Specifying only gamepad-pulse would wipe out the spin-text-rainbow
+     on .play-button / h3 / etc. Both must be present so both run. */
+  animation: spin-text-rainbow 2s linear infinite, gamepad-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes gamepad-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px #00d4ff, 0 0 10px 4px rgba(0, 212, 255, 0.45); }
+  50%      { box-shadow: 0 0 0 6px #7fe9ff, 0 0 20px 6px rgba(127, 233, 255, 0.65); }
+}
+
+.gamepad-toast {
+  position: fixed;
+  top: 90px;
+  left: 50%;
+  z-index: 1500;
+  transform: translateX(-50%) translateY(-12px);
+  background: rgba(0, 0, 0, 0.85);
+  color: #00e5ff;
+  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-weight: bold;
+  font-size: 1rem;
+  padding: 12px 22px;
+  border: 3px solid #00d4ff;
+  border-radius: 14px;
+  text-align: center;
+  max-width: 90vw;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.gamepad-toast-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

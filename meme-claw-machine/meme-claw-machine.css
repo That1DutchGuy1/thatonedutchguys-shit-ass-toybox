@@ -156,3 +156,32 @@ body {
     margin-bottom: 20px;
     -webkit-text-stroke: 3px #000;
 }
+
+#meme-counter-container {
+    font-size: 2rem !important;
+    margin-top: 35px !important;
+    text-transform: uppercase;
+    background: conic-gradient(
+        from var(--spin-angle), 
+        #ff0000, #ff7f00, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000
+    );
+    color: transparent !important;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-stroke: 1.5px #000;
+    animation: spin-text-rainbow 1.5s linear infinite; /* Blazing fast spins! */
+}
+/* =========================================
+   GAMEPAD MENU SELECTION HIGHLIGHT
+   ========================================= */
+.gamepad-selected {
+  box-shadow:
+    0 0 0 4px #00d4ff,
+    0 0 10px 4px rgba(0, 212, 255, 0.45);
+  animation: spin-text-rainbow 2s linear infinite, gamepad-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes gamepad-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px #00d4ff, 0 0 10px 4px rgba(0, 212, 255, 0.45); }
+  50%       { box-shadow: 0 0 0 6px #7fe9ff, 0 0 20px 6px rgba(127, 233, 255, 0.65); }
+}

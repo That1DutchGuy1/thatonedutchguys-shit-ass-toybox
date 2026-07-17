@@ -41,8 +41,11 @@ const memes = [
   'Shoop-Da-Whoop.png', 'HotelMarioMario.png', 'HotelMarioLuigi.png', 'King-Harkinian-CD-i.png', 'Hampter.png', 'phil-swift.png', 'Illuminati-Logo.png',
   'Rickroll.png', 'Mama-Luigi.png', 'bup.png', 'Mayor-Cravendish.png', 'Caveman-SpongeBob.png', 'Doge.png', 'Dramatic-Chipmunk.png', 'Michael-Rosen.png',
   'MTNDew.png', 'NyanCat.png', 'Spaghetti-Monster.png', 'Malleo.png', 'Dildosaurus.png', 'E.png', 'fish-shoes.png', 'Lugi.png', 'Obamaprism.png', 'Shrek.png',
-  'Sanic.png', 'Deez-Nuts.png', 'Dat-Boi.png', 'Ugandan-Knuckles.png'
+  'Sanic.png', 'Deez-Nuts.png', 'Dat-Boi.png', 'Ugandan-Knuckles.png', 'Rage-Guy-FFFUUU.png', 'Stonks.png', 'Philosoraptor.png'
 ];
+
+// --- STATE INITIALIZATION & DOM REFLECTION ---
+document.getElementById('menu-meme-count').innerText = memes.length;
 
 // --- SETUP THREE.JS ---
 // FIX 1: powerPreference hint tells the browser/OS to assign the high-performance GPU
@@ -333,6 +336,146 @@ window.addEventListener('keydown', (e) => {
     }
 });
 window.addEventListener('keyup', (e) => { if (e.key.toLowerCase() in keys) keys[e.key.toLowerCase()] = false; });
+
+// --- GAMEPAD SUPPORT ---
+// Left stick  → move claw (same as WASD)
+// Cross (✕)   → drop claw (same as SPACEBAR)
+// D-pad       → menu navigation (highlight + activate menu buttons)
+// Filters out non-gamepad HID devices (e.g. ASRock RGB controllers) by requiring
+// at least 10 buttons and 4 axes — same logic as the hub page.
+(function initGamepad() {
+    const STICK_DEADZONE  = 0.2;
+    const DPAD_REPEAT_DELAY = 380; // ms before d-pad auto-repeats
+    const DPAD_REPEAT_RATE  = 130; // ms between repeats
+
+    let padIndex = null;
+    let rafId    = null;
+    let dropUnlockedAt = 0; // performance.now() timestamp after which Cross can drop
+
+    // Per-input edge-detection state keyed by string ID
+    const btnState = {};
+
+    function isRealGamepad(gp) {
+        return gp && gp.buttons.length >= 10 && gp.axes.length >= 4;
+    }
+
+    // ---- Menu navigation state ----
+    // Tracks which menu button is currently highlighted by the d-pad.
+    const menuButtons   = () => [...document.querySelectorAll('.menu-btn')];
+    let menuSelectedIdx = 0;
+
+    function getVisibleMenuBtns() {
+        return menuButtons().filter(b => {
+            const el = b.closest('#main-menu, #game-over-screen');
+            return el && el.style.display !== 'none';
+        });
+    }
+
+    function highlightMenuBtn(idx) {
+        const btns = getVisibleMenuBtns();
+        if (!btns.length) return;
+        btns.forEach((b, i) => b.classList.toggle('gamepad-selected', i === idx));
+        menuSelectedIdx = idx;
+    }
+
+    function moveMenuFocus(dir) {
+        const btns = getVisibleMenuBtns();
+        if (!btns.length) return;
+        menuSelectedIdx = (menuSelectedIdx + dir + btns.length) % btns.length;
+        highlightMenuBtn(menuSelectedIdx);
+    }
+
+    function activateMenuBtn() {
+        const btns = getVisibleMenuBtns();
+        if (btns[menuSelectedIdx]) btns[menuSelectedIdx].click();
+    }
+
+    // ---- Edge detection with optional auto-repeat ----
+    function handleInput(id, pressed, onPress, repeat = false) {
+        const now   = performance.now();
+        const state = btnState[id] || (btnState[id] = { down: false, downSince: 0, lastRepeat: 0 });
+        if (pressed && !state.down) {
+            state.down = true; state.downSince = now; state.lastRepeat = now;
+            onPress();
+        } else if (pressed && state.down && repeat) {
+            if (now - state.downSince > DPAD_REPEAT_DELAY && now - state.lastRepeat > DPAD_REPEAT_RATE) {
+                state.lastRepeat = now;
+                onPress();
+            }
+        } else if (!pressed && state.down) {
+            state.down = false;
+        }
+    }
+
+    // ---- Main poll loop ----
+    function poll() {
+        rafId = requestAnimationFrame(poll);
+        const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+
+        // Auto-discover — skip fake HID devices
+        if (padIndex === null) {
+            for (const gp of pads) {
+                if (isRealGamepad(gp)) { padIndex = gp.index; break; }
+            }
+            if (padIndex === null) return;
+        }
+
+        const gp = pads[padIndex];
+        if (!gp) { padIndex = null; return; }
+
+        const inMenu = getVisibleMenuBtns().length > 0;
+
+        if (inMenu) {
+            // --- Menu mode: d-pad navigates, Cross activates ---
+            const dUp    = gp.buttons[12]?.pressed;
+            const dDown  = gp.buttons[13]?.pressed;
+            const dLeft  = gp.buttons[14]?.pressed;
+            const dRight = gp.buttons[15]?.pressed;
+            const cross  = gp.buttons[0]?.pressed;
+
+            handleInput('menu-up',    dUp    || dLeft,  () => moveMenuFocus(-1), true);
+            handleInput('menu-down',  dDown  || dRight, () => moveMenuFocus(1),  true);
+            handleInput('menu-cross', cross, () => {
+                // Set the lockout BEFORE activating — activateMenuBtn() calls .click()
+                // which fires startGame() synchronously, so anything after it is too late.
+                dropUnlockedAt = performance.now() + 300;
+                activateMenuBtn();
+            }, false);
+
+            // Keep first button highlighted when entering a menu
+            highlightMenuBtn(menuSelectedIdx);
+
+        } else {
+            // --- In-game mode: left stick moves claw, Cross drops ---
+            const axisX = gp.axes[0] ?? 0;
+            const axisY = gp.axes[1] ?? 0;
+
+            keys.a = axisX < -STICK_DEADZONE;
+            keys.d = axisX >  STICK_DEADZONE;
+            keys.w = axisY < -STICK_DEADZONE;
+            keys.s = axisY >  STICK_DEADZONE;
+
+            const cross = gp.buttons[0]?.pressed;
+            const dropAllowed = performance.now() >= dropUnlockedAt;
+            handleInput('drop', cross && dropAllowed, () => {
+                if (clawState === 'IDLE') clawState = 'DROPPING';
+            }, false);
+
+            // Release all stick directions when stick is in deadzone
+            if (Math.abs(axisX) <= STICK_DEADZONE) { keys.a = false; keys.d = false; }
+            if (Math.abs(axisY) <= STICK_DEADZONE) { keys.w = false; keys.s = false; }
+        }
+    }
+
+    window.addEventListener('gamepaddisconnected', e => {
+        if (e.gamepad.index !== padIndex) return;
+        padIndex = null;
+        // Release all keys so the claw doesn't keep drifting
+        keys.w = keys.a = keys.s = keys.d = false;
+    });
+
+    rafId = requestAnimationFrame(poll);
+})();
 
 // FIX 10: Clean up WebGL resources before reload so the GPU context is released
 // rather than leaked — this is the primary cause of "context was blocked" errors
