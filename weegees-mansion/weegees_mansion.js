@@ -122,10 +122,9 @@ let weegeePlane, weegeeTextures = {};
 let wallTex, floorTex, ceilingTex, windowWallTex;
 let skyboxTex;
 let deathTimer = 0, deathScreen;
-let lookAwayActive = false, lookAwayTimer = 0;
 let stairPositions = [];
 let walls3D = [];
-let warningEl, overlayEl, timerBarWrap, timerFill;
+let overlayEl;
 let armsCanvas, armsCtx;
 let flashTimer = 0;
 let weegeeActive = false;
@@ -1185,10 +1184,8 @@ function buildFloorScene(floorNum) {
   const stairBtn = document.getElementById('stair-btn');
   if (stairBtn) stairBtn.style.display = 'none';
 
-  lookAwayActive = false;
   weegeeActive = false;
-  document.getElementById('timer-bar-wrap').style.display = 'none';
-  
+
   updateInventoryUI();
 }
 
@@ -1407,7 +1404,6 @@ function quitToMainMenu() {
   document.getElementById('start-screen').style.display = 'flex';
   document.getElementById('stamina-wrap').style.display = 'none';
   document.getElementById('hotbar-wrap').style.display = 'none';
-  document.getElementById('timer-bar-wrap').style.display = 'none';
   if (document.getElementById('stair-btn')) document.getElementById('stair-btn').style.display = 'none';
   
   bgMusic.pause();
@@ -1437,7 +1433,6 @@ function quitToMainMenu() {
   if (weegeePlane) weegeePlane.visible = false;
   weegeeActive = false;
   overlayEl.style.background = 'rgba(0,0,0,0)';
-  warningEl.style.display = 'none';
   const vs2 = document.getElementById('victory-screen');
   if (vs2) { vs2.style.display = 'none'; vs2.style.pointerEvents = 'none'; vs2.classList.remove('victory-reveal'); }
   const _vsFadeQuit = document.getElementById('victory-fade-overlay');
@@ -1614,7 +1609,6 @@ function restartGame() {
   isDead = false;
   isPaused = false;
   currentFloor = 0;
-  lookAwayActive = false;
   weegeeActive = false;
   
   stakeFloor = Math.floor(Math.random() * FLOOR_COUNT);
@@ -1681,8 +1675,6 @@ function restartGame() {
   vs.style.pointerEvents = 'none';
   vs.classList.remove('victory-reveal');
   overlayEl.style.background = 'rgba(0,0,0,0)';
-  warningEl.style.display = 'none';
-  document.getElementById('timer-bar-wrap').style.display = 'none';
   buildFloorScene(0);
 }
 
@@ -2628,8 +2620,6 @@ function updateWeegee(dt) {
   if (weegeePlane.visible) updateWeegeeSprite();
 }
 
-function updateLookAway(dt) {}
-
 function imgDims(img, baseW) {
   if (img && img.complete && img.naturalWidth) {
     return {w: baseW, h: baseW * img.naturalHeight / img.naturalWidth};
@@ -3323,7 +3313,6 @@ function gameLoop() {
 
   updateWeegee(dt);
   updateWeegeeVoice(dt);
-  updateLookAway(dt);
   updateBananaPeelEntities(dt);
   updatePlungerEntities(dt);
   updatePlayerSlip(dt);
@@ -3584,7 +3573,6 @@ function startGame() {
   isDead = false;
   isPaused = false;
   currentFloor = 0;
-  lookAwayActive = false;
   weegeeActive = false;
 
   stakeFloor = Math.floor(Math.random() * FLOOR_COUNT);
@@ -3614,8 +3602,6 @@ function startGame() {
   inventory = [null, null, null, null, null];
 
   overlayEl.style.background = 'rgba(0,0,0,0)';
-  warningEl.style.display = 'none';
-  document.getElementById('timer-bar-wrap').style.display = 'none';
 
   if (weegeeVoiceAudio && weegeeVoicePlaying) {
     weegeeVoiceAudio.pause();
@@ -3686,10 +3672,7 @@ window.useItemSlot = useItemSlot;
 window.togglePause = togglePause;
 window.quitToMainMenu = quitToMainMenu;
 
-warningEl = document.getElementById('warning');
 overlayEl = document.getElementById('overlay');
-timerBarWrap = document.getElementById('timer-bar-wrap');
-timerFill = document.getElementById('timer-fill');
 armsCanvas = document.getElementById('arms-overlay');
 armsCtx = armsCanvas.getContext('2d');
 armsCanvas.width = window.innerWidth;
