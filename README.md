@@ -71,19 +71,16 @@
 
 ---
 
-<p><strong><font size="4">🚨 WEEGEE'S MANSION 3D UPDATE!</font></strong></p>
+<p><strong><font size="4">🚨 ANOTHER BIG WEEGEE'S MANSION 3D UPDATE!</font></strong></p>
 
-> I think this is 1.5 (I lost track lol but I'm gonna call it that anyway! 😂)
+> I think this is 1.6 (I lost track lol but I'm gonna call it that anyway! 😂)
 > Here are several new things added to the game and bug fixes:
 
-* Added the Mario Plush as a new item! 🧸
-* Added the Shroom as a new item! 🍄
-* Added muddy ass water puddle decals that generate on the dirty ass floors randomly! 💧
-* Added blood decals that generate onto the walls randomly! 🩸
-* Several new Weegee voice lines!
-* HUGE organization with the JavaScript! Split the single file monolith into five fucking JS files for my own sanity's sake! 🥳
-* Now comes with three.min.js! Declared independence! No more externally hosted links for this piece of shit! 😎
-* Reorganized the Items tab on the main menu! 🧽
+* Weegee can now HEAR you! 👂🏻
+* Every sound you make now matters! 😈
+* Sneaking has been added to reduce footstep noise! 🥷🏻
+* If Weegee hears you, he WILL come to investigate! 😱
+* Fixed a few fucking annoying bugs! 🙄
 * AND SO MUCH MORE! GO CHECK IT OUT, OR ELSE... 🔫
 
 ---
