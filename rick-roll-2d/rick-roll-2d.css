@@ -1,0 +1,112 @@
+@font-face {
+  font-family: 'Comic Sans MS';
+  src: url('../Comic-Sans-MS.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Comic Sans MS', sans-serif, bold;
+    background-image: url('rickrollfilminglocation.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+}
+
+#game-ui {
+    text-align: center;
+    text-shadow: 2px 2px 4px #000;
+    padding-top: 20px;
+}
+
+#game-container {
+    position: relative;
+    margin-top: 10px;
+    /* 800x400 canvas + 4px border on each side = 808x408 */
+    width: 808px;
+    height: 408px;
+    overflow: visible;
+}
+
+#main-menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 808px;
+    height: 408px;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    border: 4px solid #ffcc00;
+}
+
+#start-btn {
+    padding: 15px 30px;
+    font-size: 24px;
+    cursor: pointer;
+    background: #ffcc00;
+    border: 3px solid black;
+    border-radius: 8px;
+    font-family: inherit;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+#start-btn:hover {
+    transform: scale(1.1);
+}
+
+canvas {
+    display: block;
+    border: 4px solid #fff;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* YouTube & Hub Links */
+a {
+    text-align: right;
+    text-decoration: none;
+    font-family: 'Comic Sans MS', sans-serif, bold;
+    font-size: 21px;
+    font-weight: bold;
+    color: white;
+    position: absolute;
+    bottom: 10px;
+    -webkit-text-stroke: 1px black;
+}
+
+#hub-btn {
+    background-color: rgb(255, 255, 255);
+    top: 20px;
+    left: 20px;
+    position: absolute;
+    bottom: auto;
+    right: auto;
+    padding: 16px 32px;
+    font-family: 'Comic Sans MS', sans-serif, bold;
+    font-size: 24px;
+    border: 3px solid black;
+    border-radius: 4px;
+    color: black;
+    cursor: pointer;
+    z-index: 10;
+    display: inline-block;
+    -webkit-text-stroke-width: 0px;
+    transition: 0.1s;
+}
+
+#hub-btn:hover {
+  transform: scale(1.1);
+}

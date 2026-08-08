@@ -1,0 +1,270 @@
+@font-face {
+  font-family: 'Comic Sans MS';
+  src: url('../Comic-Sans-MS.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+body {
+    background: repeating-conic-gradient(#f1c40f 0% 25%, #8CC63F 0% 50%) 50% / 40px 40px;
+    min-height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 80px 20px;
+    font-family: 'Comic Sans MS', sans-serif;
+    font-weight: bold;
+}
+
+h1 {
+    color: #ff9dcd;
+    text-shadow: 2px 2px #00AEEF;
+    font-size: 48px;
+    font-weight: bold;
+}
+
+#hub-btn {
+    background-color: #5856D6;
+    top: 20px;
+    left: 20px;
+    position: absolute;
+    padding: 16px 32px;
+    font-size: 24px;
+    border: 3px solid #92278F;
+    border-radius: 4px;
+    color: #4CD964;
+    cursor: pointer;
+    z-index: 10;
+    text-decoration: none;
+    transition: transform 0.1s;
+}
+
+#hub-btn:hover {
+  transform: scale(1.1);
+}
+
+#soundboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 40px;
+}
+
+.character-group {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 20px;
+    border-radius: 15px;
+    border: 2px dashed #ff0000;
+}
+
+.character-group h2 {
+    color: #fff;
+    text-shadow: 2px 2px #000;
+    margin-top: 0;
+    border-bottom: 2px solid white;
+}
+
+.button-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+    justify-content: flex-start;
+}
+
+.sound-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 160px;
+}
+
+.sound-btn {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #444;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.1s, background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: none; /* Removed the old static border */
+    padding: 0;
+}
+
+.sound-btn:hover {
+    transform: scale(1.1);
+    background-color: #666;
+}
+
+/* ─── The Animated Rainbow Ring ─── */
+/* We use ::after so it layers OVER the image child */
+.sound-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    padding: 6px; /* This defines the thickness of the ring */
+    background: conic-gradient(
+        from 0deg, 
+        red, orange, yellow, green, cyan, blue, magenta, red
+    );
+    
+    /* The mask creates the "ring" by hiding the center area */
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    
+    pointer-events: none; /* Clicks go through the ring to the button */
+    animation: rotate-rainbow 4s linear infinite;
+    z-index: 10; /* Keeps it above the character image */
+}
+
+@keyframes rotate-rainbow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Base style for all character images */
+.sound-btn img {
+    position: absolute;
+    object-fit: cover;
+    z-index: 1; /* Sits behind the rainbow ring */
+}
+
+/* ─── Per-character image classes ─────────────────────────────────────────── */
+
+.img-mario {
+    width: 100%;
+    height: 108%;
+    object-position: center 10%;
+}
+
+.img-luigi {
+    width: 100%;
+    height: 120%;
+    object-position: center 12%;
+}
+
+.img-bowser {
+    width: 110%;
+    height: 110%;
+    object-position: center 40%;
+}
+
+.img-ganon {
+    width: 200%;
+    height: 200%;
+    object-position: 37% 30%;
+}
+
+.img-gwonam {
+    width: 140%;
+    height: 100%;
+    object-position: center 15%;
+}
+
+.img-king-harkinian {
+    width: 130%;
+    height: 110%;
+    object-position: center 20%;
+}
+
+.img-duke-onkled {
+    width: 140%;
+    height: 100%;
+    object-position: center 25%;
+}
+
+.img-link {
+    width: 140%;
+    height: 105%;
+    object-position: center 20%;
+}
+
+.img-morshu {
+    width: 120%;
+    height: 110%;
+    object-position: center 15%;
+}
+
+.sound-label {
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+    font-weight: bold;
+    color: #000;
+    background: #fff;
+    padding: 2px 5px;
+    border-radius: 4px;
+    width: 100%;
+    word-wrap: break-word;
+}
+
+#master-volume-control {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: #ff9dcd; /* Pink background */
+    padding: 15px;
+    border: 4px solid #00AEEF; /* Blue border */
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 100;
+    box-shadow: 5px 5px 0px #5856D6;
+}
+
+#master-volume-control label {
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px #000;
+}
+
+#volumeValue {
+    background: white;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+#volumeSlider {
+    cursor: pointer;
+    accent-color: #4CD964; /* Vibrant green thumb */
+    width: 150px;
+}
+
+#random-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #4CD964; /* Vibrant green */
+    padding: 15px 25px;
+    border: 4px solid #92278F; /* Purple border */
+    border-radius: 15px;
+    font-family: 'Comic Sans MS', sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px #000;
+    cursor: pointer;
+    z-index: 100;
+    box-shadow: 5px 5px 0px #5856D6;
+    transition: transform 0.1s;
+}
+
+#random-btn:hover {
+    transform: scale(1.1) rotate(-3deg);
+}

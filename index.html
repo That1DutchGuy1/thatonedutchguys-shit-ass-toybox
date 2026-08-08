@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>That One Dutch Guy's Shit Ass Toybox</title>
+    <link rel="icon" type="image/x-icon" href="./index.ico">
+    <link rel="preload" href="That-One-Dutch-Guy-Channel-Logo-Circle.png" as="image">
+    <link rel="preload" href="That-One-Dutch-Guy-Logo-Text.png" as="image">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="mobile-block" role="alert" aria-live="assertive">
+        <div class="mobile-block-content">
+            <p class="mobile-block-line line-1">YOU COMMITTED <br> A SIN!</p>
+            <p class="mobile-block-line line-2" id="device-message-line">PUT THAT DAMN <span id="device-word">PHONE</span> AWAY!</p>
+            <p class="mobile-block-line line-2">DESKTOP & LAPTOP ONLY!</p>
+            <p class="mobile-block-line line-2">GET YOUR ASS OUTTA HERE!</p>
+            <img src="splash-img.png" alt="" class="mobile-block-img" id="mobile-block-img">
+        </div>
+    </div>
+
+    <button id="about-toggle" class="play-button about-toggle-btn" type="button" aria-pressed="false">📖 ABOUT</button>
+
+    <div id="warning-splash" role="dialog" aria-modal="true" aria-labelledby="splash-title">
+        <div class="splash-content">
+            <h2 class="splash-title" id="splash-title">⚠️ HOLD UP, WAIT A MINUTE!</h2>
+            <p class="splash-text">Welcome to That One Dutch Guy's SHIT ASS TOYBOX!</p>
+            <p class="splash-text">Before entering, you should know this website contains:</p>
+            <ul class="splash-list">
+                <li>🌈 Bright colors and animated rainbow effects!</li>
+                <li>🌀 Lots of spinning, moving and shifting UI elements!</li>
+                <li>⚡ Some pages contain flashing visuals that may affect people with photosensitive epilepsy!</li>
+                <li>👻 A few games contain horror elements, including jump scares!</li>
+                <li>🔊 Some games contain loud music and sound effects. You may want to lower your volume before playing, especially if you're sensitive to loud noises!</li>
+                <li>🧠 Mild to severe braincell loss may occur. I'm not responsible if you suddenly start quoting CD-i Zelda memes!</li>
+                <li>📵 These games are NOT made for mobile devices! Trying to even open this site on a mobile device may result in someone coming with a shotgun!</li>
+            </ul>
+            <p class="splash-text">If you're sensitive to flashing lights, intense motion, or horror content, then get outta here and go don't look back!</p>
+            <p class="splash-text">Otherwise...</p>
+            <p class="splash-text">Have fun, and may King Harkinian have mercy on your soul!</p>
+            <div class="splash-buttons">
+                <button id="splash-leave" class="splash-btn">🚪 Leave</button>
+                <button id="splash-enter" class="splash-btn">🎉 ENTER THE CHAOS</button>
+            </div>
+        </div>
+    </div>
+
+    <main id="page-content">
+    <header class="brand-header">
+    <a href="https://www.youtube.com/@That1DutchGuy" target="_blank" rel="noopener noreferrer">
+        <img src="That-One-Dutch-Guy-Channel-Logo-Circle.png" alt="Logo" class="main-logo">
+    </a>
+    <img src="That-One-Dutch-Guy-Logo-Text.png" alt="That One Dutch Guy" class="text-logo">
+    </header>
+
+    <h1 class="site-title">SHIT ASS TOYBOX</h1>
+    <!-- Toys panel — built dynamically by script.js -->
+    <div id="toys-panel"></div>
+
+    <!-- README / About view — hidden until the ABOUT button is clicked -->
+    <div id="readme-view">
+        <div id="readme-panel">
+            <div id="readme-content">
+                <p class="readme-loading">loading readme.md ...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+    <div class="game-card card-bg-whack-a-meme">
+    <h3>Whack A Meme</h3>
+    <p>Lose braincells in this incredibly stupid whack a mole clone!</p>
+    <a href="whack-a-meme/whack-a-meme.html" tabindex="-1" class="play-button">Play Now</a>
+</div>
+
+    <div class="game-card card-bg-bup-clicker">
+        <h3>Bup The Super Awesome Clicker Game</h3>
+        <p>Bup till you die of old age!</p>
+        <a href="bup-the-super-awesome-clicker-game/bup.html" tabindex="-1" class="play-button">Play Now</a>
+    </div>
+
+    <div class="game-card card-bg-rick-roll-2d">
+    <h3>Rick Roller 2D - Deluxe Edition <br> (Beta / WIP)</h3>
+    <p>This game is never gonna let you down!</p>
+    <a href="rick-roll-2d/rick-roll-2d.html" tabindex="-1" class="play-button">Play Now</a>
+</div>
+
+<div class="game-card card-bg-cdi-soundboard">
+    <h3>Philips CD-i Soundboard</h3>
+    <p>The best voice lines of the CD-i games!</p>
+    <a href="cd-i-meme-soundboard/cd-i-meme-soundboard.html" tabindex="-1" class="play-button">Play Now</a>
+    </div>
+
+<div class="game-card card-bg-weegee-memory-match">
+    <h3>Weegee Memory Match</h3>
+    <p>Play this game, or else you'll turn into a Luigi Doll!</p>
+    <a href="weegee-memory-match/WeegeeMemory.html" tabindex="-1" class="play-button">Play Now</a>
+</div>
+
+<div class="game-card card-bg-weegees-mansion">
+    <h3>Weegee's Mansion 3D</h3>
+    <p>In this game, you play as that one red plumber! You must escape Weegee's Mansion!</p>
+    <a href="weegees-mansion/weegees_mansion.html" tabindex="-1" class="play-button">Play Now</a>
+</div>
+
+<div class="game-card card-bg-weegee-town-xp">
+    <h3>Weegee Town XP <br> (Beta / WIP)</h3>
+    <p>An army of Weegees has invaded Bliss Town!</p>
+    <a href="weegee-town-xp/weegee-town-xp.html" tabindex="-1" class="play-button">Play Now</a>
+    </div>
+
+<div class="game-card card-bg-king-harkinian">
+    <h3>King Harkinian's Personal Chef Simulator</h3>
+    <p>Make dinner for King Harkinian and make sure to please him!</p>
+    <a href="king-harkinians-personal-chef-simulator/king-harkinians-personal-chef-simulator.html" tabindex="-1" class="play-button">Play Now</a>
+</div>
+
+<div class="game-card card-bg-cd-i-tinder">
+    <h3>CD-i Tinder <br> (Alpha / WIP)</h3>
+    <p>Connect with your favorite CD-i characters!</p>
+    <a href="cd-i-tinder/cd-i-tinder.html" tabindex="-1" class="play-button">Play Now</a>
+</div>
+
+<div class="game-card card-bg-meme-claw-machine">
+    <h3>Meme Claw Machine</h3>
+    <p>Grab all dem memes, bitch!</p>
+    <a href="meme-claw-machine/meme-claw-machine.html" tabindex="-1" class="play-button">Play Now</a>
+    </div>
+
+<div class="game-card card-bg-the-big-meme-quiz">
+    <h3>The Big Meme Quiz</h3>
+    <p>Don't be a bitch and answer THEM!</p>
+    <a href="big-meme-quiz/big-meme-quiz.html" tabindex="-1" class="play-button">Play Now</a>
+    </div>
+
+    </div>
+    </main>
+
+<button id="music-toggle" class="play-button music-toggle-btn" aria-label="Toggle music">🔊 MUSIC ON</button>
+
+<script src="marked.min.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>

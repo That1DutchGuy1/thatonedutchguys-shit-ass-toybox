@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../device-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <title>The Big Meme Quiz!</title>
+  <link rel="icon" type="image/x-icon" href="./big-meme-quiz.ico">
+  <link rel="stylesheet" href="big-meme-quiz.css">
+</head>
+<body>
+
+  <a href="../index.html" id="hub-btn" class="button">← HUB</a>
+
+  <h1 id="main-title">The Big Meme Quiz!</h1>
+
+  <!-- =========================================================
+       START SCREEN
+       ========================================================= -->
+  <div id="start-screen">
+    <h1 class="menu-title">The Big Meme Quiz!</h1>
+    <p class="menu-sub">BITCH, IT'S MEME QUIZ TIME!</p>
+    <button id="start-btn">Start Quiz</button>
+  </div>
+
+  <!-- =========================================================
+       GAME SCREEN
+       ========================================================= -->
+  <div id="game-screen" class="hidden">
+
+    <div id="hud">
+      <div id="scoreboard">Score: <span id="score">0</span></div>
+      <div id="mistakes">Strikes: <span id="mistake-count">0</span>/2</div>
+      <div id="time-left"><span id="time">--</span>s</div>
+      <div id="timer-bar-track"><div id="timer-bar"></div></div>
+    </div>
+
+    <div id="quiz-container">
+
+      <!-- =========================================================
+           MULTIPLE CHOICE — duplicate any of these 3 blocks for more.
+           data-type="mc" | data-time overrides the 15s default
+           exactly ONE .option needs data-correct="true"
+           ========================================================= -->
+      <div class="question mc-question" data-type="mc" data-time="15">
+        <img class="question-image" src="assets/memes/dramatic-chipmunk.png" alt="meme">
+        <h2 class="question-prompt">What's this iconic freeze-frame-and-drum-hit meme called?</h2>
+        <div class="options-grid">
+          <button class="option" data-correct="true">Dramatic Chipmunk</button>
+          <button class="option" data-correct="false">Dramatic Hamster</button>
+          <button class="option" data-correct="false">Screaming Gopher</button>
+          <button class="option" data-correct="false">Angry Squirrel</button>
+        </div>
+      </div>
+
+      <div class="question mc-question hidden" data-type="mc" data-time="15">
+        <img class="question-image" src="assets/memes/chuck-norris-facts.png" alt="meme">
+        <h2 class="question-prompt">The "facts" meme format from the mid-2000s was built around which action star?</h2>
+        <div class="options-grid">
+          <button class="option" data-correct="false">Steven Seagal</button>
+          <button class="option" data-correct="true">Chuck Norris</button>
+          <button class="option" data-correct="false">Jean-Claude Van Damme</button>
+          <button class="option" data-correct="false">Bruce Willis</button>
+        </div>
+      </div>
+
+      <div class="question mc-question hidden" data-type="mc" data-time="15">
+        <img class="question-image" src="assets/memes/all-your-base.png" alt="meme">
+        <h2 class="question-prompt">"All your base are belong to us" came from a poorly translated cutscene in which game?</h2>
+        <div class="options-grid">
+          <button class="option" data-correct="true">Zero Wing</button>
+          <button class="option" data-correct="false">Contra</button>
+          <button class="option" data-correct="false">Metal Slug</button>
+          <button class="option" data-correct="false">Mega Man</button>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           TYPING — duplicate any of these 3 blocks for more.
+           data-type="typing" | data-answers is comma-separated,
+           matching is case-insensitive & trimmed
+           ========================================================= -->
+      <div class="question typing-question hidden" data-type="typing" data-time="25" data-answers="star wars kid">
+        <img class="question-image" src="assets/memes/star-wars-kid.png" alt="meme">
+        <h2 class="question-prompt">Type the name of this viral lightsaber-twirling meme (two words + kid)</h2>
+        <input type="text" class="typing-input" placeholder="Type your answer..." autocomplete="off">
+        <button class="submit-btn">Submit</button>
+      </div>
+
+      <div class="question typing-question hidden" data-type="typing" data-time="25" data-answers="numa numa guy, numa numa">
+        <img class="question-image" src="assets/memes/numa-numa-guy.png" alt="meme">
+        <h2 class="question-prompt">Type the name of this webcam lip-sync sensation</h2>
+        <input type="text" class="typing-input" placeholder="Type your answer..." autocomplete="off">
+        <button class="submit-btn">Submit</button>
+      </div>
+
+      <div class="question typing-question hidden" data-type="typing" data-time="25" data-answers="leeroy jenkins">
+        <img class="question-image" src="assets/memes/leeroy-jenkins.png" alt="meme">
+        <h2 class="question-prompt">Type the famous World of Warcraft battle cry / meme name</h2>
+        <input type="text" class="typing-input" placeholder="Type your answer..." autocomplete="off">
+        <button class="submit-btn">Submit</button>
+      </div>
+
+      <!-- =========================================================
+           DRAG & DROP — duplicate any of these 3 blocks for more.
+           data-type="drag" | each .drag-item needs a UNIQUE data-drag-id,
+           each .drop-zone needs data-drop-target matching that id
+           ========================================================= -->
+      <div class="question drag-question hidden" data-type="drag" data-time="20">
+        <h2 class="question-prompt">Drag each meme to its correct name!</h2>
+        <div class="drag-area">
+          <div class="drag-items">
+            <img class="drag-item" src="assets/memes/peanut-butter-jelly-time.png" data-drag-id="pbj" draggable="true" alt="meme 1">
+            <img class="drag-item" src="assets/memes/keyboard-cat.png" data-drag-id="kc" draggable="true" alt="meme 2">
+          </div>
+          <div class="drop-zones">
+            <div class="drop-zone" data-drop-target="pbj">Peanut Butter Jelly Time</div>
+            <div class="drop-zone" data-drop-target="kc">Keyboard Cat</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="question drag-question hidden" data-type="drag" data-time="20">
+        <h2 class="question-prompt">Drag each meme to its correct name!</h2>
+        <div class="drag-area">
+          <div class="drag-items">
+            <img class="drag-item" src="assets/memes/o-rly-owl.png" data-drag-id="owl" draggable="true" alt="meme 1">
+            <img class="drag-item" src="assets/memes/trogdor.png" data-drag-id="trogdor" draggable="true" alt="meme 2">
+          </div>
+          <div class="drop-zones">
+            <div class="drop-zone" data-drop-target="owl">O RLY?</div>
+            <div class="drop-zone" data-drop-target="trogdor">Trogdor the Burninator</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="question drag-question hidden" data-type="drag" data-time="20">
+        <h2 class="question-prompt">Drag each meme to its correct name!</h2>
+        <div class="drag-area">
+          <div class="drag-items">
+            <img class="drag-item" src="assets/memes/chocolate-rain.png" data-drag-id="chocorain" draggable="true" alt="meme 1">
+            <img class="drag-item" src="assets/memes/afro-ninja.png" data-drag-id="afroninja" draggable="true" alt="meme 2">
+          </div>
+          <div class="drop-zones">
+            <div class="drop-zone" data-drop-target="chocorain">Chocolate Rain</div>
+            <div class="drop-zone" data-drop-target="afroninja">Afro Ninja</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================================
+           YOUTUBE POOP (YTP) CULTURE SET
+           ========================================================= -->
+
+      <!-- MULTIPLE CHOICE -->
+      <div class="question mc-question hidden" data-type="mc" data-time="15">
+        <img class="question-image" src="assets/memes/n64-cartridge.png" alt="meme">
+        <h2 class="question-prompt">Which N64 game gave YTP culture its endlessly-reused "Do a Barrel Roll!" catchphrase?</h2>
+        <div class="options-grid">
+          <button class="option" data-correct="true">Star Fox 64</button>
+          <button class="option" data-correct="false">F-Zero X</button>
+          <button class="option" data-correct="false">Star Wars: Rogue Squadron</button>
+          <button class="option" data-correct="false">Ace Combat 04</button>
+        </div>
+      </div>
+
+      <div class="question mc-question hidden" data-type="mc" data-time="15">
+        <img class="question-image" src="assets/memes/spaghetti-dinner.png" alt="meme">
+        <h2 class="question-prompt">What slang term do YTP fans use for cliché, overused source material — a mashup of Luigi's "spaghetti" and King Harkinian's "dinner"?</h2>
+        <div class="options-grid">
+          <button class="option" data-correct="true">Spadinner</button>
+          <button class="option" data-correct="false">Copypasta</button>
+          <button class="option" data-correct="false">Sealioning</button>
+          <button class="option" data-correct="false">Ratio</button>
+        </div>
+      </div>
+
+      <div class="question mc-question hidden" data-type="mc" data-time="15">
+        <img class="question-image" src="assets/memes/super-mario-bros-3-cartoon.png" alt="meme">
+        <h2 class="question-prompt">The very first YouTube Poop, uploaded by SuperYoshi in 2004, remixed footage from which cartoon?</h2>
+        <div class="options-grid">
+          <button class="option" data-correct="true">The Adventures of Super Mario Bros. 3</button>
+          <button class="option" data-correct="false">Adventures of Sonic the Hedgehog</button>
+          <button class="option" data-correct="false">Super Mario World</button>
+          <button class="option" data-correct="false">The Legend of Zelda (CD-i)</button>
+        </div>
+      </div>
+
+      <!-- TYPING -->
+      <div class="question typing-question hidden" data-type="typing" data-time="25" data-answers="pingas">
+        <img class="question-image" src="assets/memes/pingas.png" alt="meme">
+        <h2 class="question-prompt">Type the nonsense word the Sonic cartoon villain seems to shout — it became a standalone piece of internet slang on its own</h2>
+        <input type="text" class="typing-input" placeholder="Type your answer..." autocomplete="off">
+        <button class="submit-btn">Submit</button>
+      </div>
+
+      <div class="question typing-question hidden" data-type="typing" data-time="25" data-answers="robotnik, dr robotnik, doctor robotnik">
+        <img class="question-image" src="assets/memes/dr-robotnik.png" alt="meme">
+        <h2 class="question-prompt">Type the surname of the over-the-top 90s Sonic cartoon villain constantly sampled in YTP ("Snooping as usual, I see!")</h2>
+        <input type="text" class="typing-input" placeholder="Type your answer..." autocomplete="off">
+        <button class="submit-btn">Submit</button>
+      </div>
+
+      <div class="question typing-question hidden" data-type="typing" data-time="25" data-answers="angry german kid">
+        <img class="question-image" src="assets/memes/angry-german-kid.png" alt="meme">
+        <h2 class="question-prompt">Type the name of the screaming kid from the viral rage video sampled in countless YTP compilations (two words + kid)</h2>
+        <input type="text" class="typing-input" placeholder="Type your answer..." autocomplete="off">
+        <button class="submit-btn">Submit</button>
+      </div>
+
+      <!-- DRAG & DROP -->
+      <div class="question drag-question hidden" data-type="drag" data-time="20">
+        <h2 class="question-prompt">Drag each classic "spadinner" YTP source to its correct name!</h2>
+        <div class="drag-area">
+          <div class="drag-items">
+            <img class="drag-item" src="assets/memes/mama-luigi.png" data-drag-id="mamaluigi" draggable="true" alt="meme 1">
+            <img class="drag-item" src="assets/memes/hotel-mario.png" data-drag-id="hotelmario" draggable="true" alt="meme 2">
+          </div>
+          <div class="drop-zones">
+            <div class="drop-zone" data-drop-target="mamaluigi">Mama Luigi</div>
+            <div class="drop-zone" data-drop-target="hotelmario">Hotel Mario</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="question drag-question hidden" data-type="drag" data-time="20">
+        <h2 class="question-prompt">Drag each Zelda CD-i character to its correct name!</h2>
+        <div class="drag-area">
+          <div class="drag-items">
+            <img class="drag-item" src="assets/memes/king-harkinian.png" data-drag-id="harkinian" draggable="true" alt="meme 1">
+            <img class="drag-item" src="assets/memes/morshu.png" data-drag-id="morshu" draggable="true" alt="meme 2">
+          </div>
+          <div class="drop-zones">
+            <div class="drop-zone" data-drop-target="harkinian">King Harkinian</div>
+            <div class="drop-zone" data-drop-target="morshu">Morshu</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="question drag-question hidden" data-type="drag" data-time="20">
+        <h2 class="question-prompt">Drag each real-life YTP-favorite personality to their correct name!</h2>
+        <div class="drag-area">
+          <div class="drag-items">
+            <img class="drag-item" src="assets/memes/michael-rosen.png" data-drag-id="rosen" draggable="true" alt="meme 1">
+            <img class="drag-item" src="assets/memes/angry-video-game-nerd.png" data-drag-id="avgn" draggable="true" alt="meme 2">
+          </div>
+          <div class="drop-zones">
+            <div class="drop-zone" data-drop-target="rosen">Michael Rosen</div>
+            <div class="drop-zone" data-drop-target="avgn">Angry Video Game Nerd</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================
+       END SCREEN
+       ========================================================= -->
+  <div id="end-screen" class="hidden">
+    <h2>Quiz Complete!</h2>
+    <p>Final Score: <span id="final-score">0</span></p>
+    <button id="restart-btn">Play Again</button>
+    <button id="back-to-menu-btn">Back to Menu</button>
+  </div>
+
+  <audio id="quiz-theme" src="./assets/sound/quiz-theme.wav" loop></audio> <!-- Quiz background music, plays on start, stops on end -->
+  <audio id="victory-fanfare" src="./assets/sound/victory-fanfare.mp3"></audio>
+
+  <script src="big-meme-quiz.js"></script>
+
+  <a href="https://youtube.com/@that1dutchguy?si=64hwISFn48ZFbh9l" id="creator-link" target="_blank">
+  Made by YouTuber That One Dutch Guy
+</a>
+</body>
+</html>
