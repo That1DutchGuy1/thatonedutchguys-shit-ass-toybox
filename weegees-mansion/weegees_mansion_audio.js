@@ -35,6 +35,7 @@ function initBananaAudio() {
 function playPlayerWoahSound() {
   initBananaAudio();
   try { playerWoahAudio.currentTime = 0; playerWoahAudio.play().catch(()=>{}); } catch(e) {}
+  if (typeof alertWeegeeToSound === 'function') alertWeegeeToSound();
 }
 
 function playPlayerShiverSound() {
@@ -77,6 +78,7 @@ function playBanishScreamGlobal() {
 function playPlayerMamafckerSound() {
   initBananaAudio();
   try { playerMamafckerAudio.currentTime = 0; playerMamafckerAudio.play().catch(()=>{}); } catch(e) {}
+  if (typeof alertWeegeeToSound === 'function') alertWeegeeToSound();
 }
 
 // ── Plunger System ────────────────────────────────────────────────────────────
@@ -168,6 +170,7 @@ function initHahaAudio() {
 function playHahaSound() {
   initHahaAudio();
   try { hahaAudio.currentTime = 0; hahaAudio.play().catch(()=>{}); } catch(e) {}
+  if (typeof alertWeegeeToSound === 'function') alertWeegeeToSound();
 }
 function updateHahaPending(dt) {
   if (hahaPendingTimer < 0) return;

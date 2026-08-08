@@ -103,8 +103,8 @@ function gameLoop() {
 
   if (handMesh && handMesh.material.visible) {
     const moving = keys['w']||keys['s']||keys['a']||keys['d']||keys['arrowup']||keys['arrowdown']||keys['arrowleft']||keys['arrowright'] || (Math.abs(gamepadState.moveX) > 0.05 || Math.abs(gamepadState.moveY) > 0.05);
-    const bSpeed = isSprinting ? 12 : (moving ? 7 : 2);
-    const bAmt = isSprinting ? 0.03 : (moving ? 0.015 : 0.003);
+    const bSpeed = isSprinting ? 12 : (isSneaking && moving ? 3.5 : (moving ? 7 : 2));
+    const bAmt = isSprinting ? 0.03 : (isSneaking && moving ? 0.008 : (moving ? 0.015 : 0.003));
     handMesh.position.y = -0.22 + Math.sin(elapsed * bSpeed) * bAmt;
     handMesh.position.x = 0.28 + Math.cos(elapsed * bSpeed * 0.5) * (bAmt * 0.6);
   }
@@ -183,12 +183,16 @@ function gameLoop() {
 
   if (flashlightActive && batteryCurrent > 0) {
     flashlight.visible = true;
-    flashlight.position.set(player.x, 1.55, player.z);
+    // Match the camera's smooth sneak drop so the beam stays at eye level
+    // whether standing or crouching. player._sneakCamY is the same interpolated
+    // value the camera uses, so the two always stay perfectly in sync.
+    const flashlightY = 1.55 - (player._sneakCamY || 0);
+    flashlight.position.set(player.x, flashlightY, player.z);
     
     const lookX = -Math.sin(player.yaw) * Math.cos(player.pitch);
     const lookY = Math.sin(player.pitch);
     const lookZ = -Math.cos(player.yaw) * Math.cos(player.pitch);
-    flashlight.target.position.set(player.x + lookX, 1.55 + lookY, player.z + lookZ);
+    flashlight.target.position.set(player.x + lookX, flashlightY + lookY, player.z + lookZ);
 
     if (batteryCurrent < 15) {
       flashlight.intensity = 4.5 * (batteryCurrent / 15);
@@ -206,6 +210,16 @@ function gameLoop() {
   const onPuddle = isPlayerOverPuddleDecal();
   const usePuddleSounds = currentlyWalking && onPuddle;
 
+  // While sneaking on a dry floor the player is silent — no normal footsteps.
+  // Puddle footsteps always play even while sneaking (wet floors give you away).
+  const dryFootstepsAudible = currentlyWalking && !usePuddleSounds && !isSneaking;
+
+  // Sprint footsteps are louder so Weegee can hear them further away.
+  // Volume 1.0 = normal, 1.3 = sprint boost (clamped by the Audio API to 1.0
+  // on most browsers, but the intent is read by the hearing-radius logic in
+  // moveWeegee, not just the audible volume — the volume nudge is a nice extra).
+  const sprintVolBoost = isSprinting ? 1.3 : 1.0;
+
   if (currentlyWalking) {
     if (!isWalking) {
       isWalking = true;
@@ -214,16 +228,24 @@ function gameLoop() {
     }
 
     if (usePuddleSounds) {
+      // Puddle sounds: always play, even while sneaking. Sprint = louder + faster.
       if (puddleFootstepsAudio.paused) {
         puddleFootstepsAudio.play().catch(err => console.warn(err));
       }
-      puddleFootstepsAudio.playbackRate = isSprinting ? 1.7 : 1.1;
+      puddleFootstepsAudio.playbackRate = isSprinting ? 1.7 : (isSneaking ? 0.8 : 1.1);
+      puddleFootstepsAudio.volume = Math.min(1, isSprinting ? 1.3 : 1.0);
       if (!footstepsAudio.paused) footstepsAudio.pause();
-    } else {
+    } else if (dryFootstepsAudible) {
+      // Dry floor, not sneaking: normal footsteps. Sprint = louder + faster.
       if (footstepsAudio.paused) {
         footstepsAudio.play().catch(err => console.warn(err));
       }
       footstepsAudio.playbackRate = isSprinting ? 1.5 : 1.0;
+      footstepsAudio.volume = Math.min(1, sprintVolBoost);
+      if (!puddleFootstepsAudio.paused) puddleFootstepsAudio.pause();
+    } else {
+      // Sneaking on dry floor: completely silent footsteps.
+      if (!footstepsAudio.paused) footstepsAudio.pause();
       if (!puddleFootstepsAudio.paused) puddleFootstepsAudio.pause();
     }
   } else {
@@ -243,16 +265,26 @@ function gameLoop() {
     return;
   }
 
-  camera.position.set(player.x, 1.55 + computeViewBob(elapsed, currentlyWalking && !playerSlipState.active) - playerSlipState.heightDrop, player.z);
+  // Camera drops while sneaking (crouch effect). Sneak height transitions
+  // smoothly by tracking a sneak target — no jarring pop when pressing Ctrl.
+  if (typeof player._sneakCamY === 'undefined') player._sneakCamY = 0;
+  const sneakTargetDrop = (isSneaking && !playerSlipState.active) ? SNEAK_CAMERA_DROP : 0;
+  player._sneakCamY += (sneakTargetDrop - player._sneakCamY) * Math.min(1, dt * 12);
+  camera.position.set(
+    player.x,
+    1.55 - player._sneakCamY + computeViewBob(elapsed, currentlyWalking && !playerSlipState.active && !isSneaking) - playerSlipState.heightDrop,
+    player.z
+  );
   camera.rotation.order = 'YXZ';
   camera.rotation.y = player.yaw;
   // Apply Shroom yaw sway (makes horizontal look oscillate while tripping)
   if (shroomSwayY) camera.rotation.y += shroomSwayY;
   // During slip: pitch is set by updatePlayerSlip, not clamped here
   camera.rotation.x = player.pitch + shroomSwayX;
+  // Sneaking gets a gentler tilt — no sprint-sway while crouched
   camera.rotation.z = (playerSlipState.active
     ? playerSlipState.roll
-    : (currentlyWalking ? Math.sin(elapsed * (isSprinting ? 14 : 8)) * (isSprinting ? 0.022 : 0.01) : 0)) + shroomSwayZ;
+    : (currentlyWalking && !isSneaking ? Math.sin(elapsed * (isSprinting ? 14 : 8)) * (isSprinting ? 0.022 : 0.01) : 0)) + shroomSwayZ;
 
   // Keep the skybox centred on the player so it always fills the horizon.
   // Also spin it slowly — one full revolution every ~120 s for drifting clouds.
@@ -271,13 +303,48 @@ function gameLoop() {
   renderer.render(scene, camera);
 }
 
-document.addEventListener('keydown', e => { 
-  keys[e.key.toLowerCase()] = true; 
-  if (e.key === ' ' && isDead) {
-    restartGame();
+// ── e.code → keys[] alias map ─────────────────────────────────────────────
+// Using e.code (physical key, modifier-blind) for all tracked keys ensures
+// the set/clear paths in keydown/keyup are always symmetric — a key can only
+// be cleared in keyup if it was set in keydown via the exact same code path.
+// Space is sneak (toggle on keydown); restart on death screen is also Space
+// but handled separately before the sneak toggle so isDead always wins.
+const CODE_TO_KEY = {
+  'KeyW': 'w', 'KeyA': 'a', 'KeyS': 's', 'KeyD': 'd',
+  'ArrowUp': 'arrowup', 'ArrowDown': 'arrowdown',
+  'ArrowLeft': 'arrowleft', 'ArrowRight': 'arrowright',
+  'ShiftLeft': 'shift', 'ShiftRight': 'shift',
+  'KeyF': 'f', 'KeyQ': 'q', 'KeyP': 'p',
+  'Digit1': '1', 'Digit2': '2', 'Digit3': '3', 'Digit4': '4', 'Digit5': '5',
+};
+
+document.addEventListener('keydown', e => {
+  // ── Key state: use e.code (physical key, modifier-blind) for ALL tracked
+  // keys so the set/clear paths in keydown/keyup are always symmetric.
+  const codeKey = CODE_TO_KEY[e.code];
+  if (codeKey) {
+    keys[codeKey] = true;
+  } else {
+    // Non-movement keys (digits, etc.) still use e.key as a fallback,
+    // only for keys not in CODE_TO_KEY so there's no double-write.
+    keys[e.key.toLowerCase()] = true;
   }
-  
-  if (e.key.toLowerCase() === 'f') {
+
+  // Space on the death screen restarts — checked first so isDead always wins
+  // over the sneak toggle below.
+  if (e.code === 'Space' && isDead) {
+    restartGame();
+    return;
+  }
+
+  // Space in-game toggles sneak (like D-pad down on gamepad).
+  // Sneak and sprint are mutually exclusive — sneak wins.
+  if (e.code === 'Space' && gameStarted && !isDead && !isPaused) {
+    keys['sneak'] = !keys['sneak'];
+    if (keys['sneak'] && keys['shift']) keys['shift'] = false;
+  }
+
+  if (e.code === 'KeyF') {
     toggleFlashlight();
   }
 
@@ -286,16 +353,15 @@ document.addEventListener('keydown', e => {
     updateInventoryUI();
   }
 
-  if(e.key.toLowerCase() === 'q') {
+  if(e.code === 'KeyQ') {
     tryPickupItem();
   }
 
-  // Keyboard Pause Toggle hook logic
-  if(e.key.toLowerCase() === 'p') {
+  if(e.code === 'KeyP') {
     togglePause();
   }
 
-  if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') && !isDead && gameStarted && !isPaused) {
+  if ((e.code === 'ArrowUp' || e.code === 'KeyW') && !isDead && gameStarted && !isPaused) {
     for (const s of stairPositions) {
       const dx = s.x - player.x, dz = s.z - player.z;
       if (dx*dx + dz*dz < 1.44) {
@@ -305,7 +371,23 @@ document.addEventListener('keydown', e => {
     }
   }
 });
-document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+document.addEventListener('keyup', e => {
+  // Mirror the keydown logic exactly: clear via e.code for tracked keys,
+  // fall back to e.key only for keys not in CODE_TO_KEY.
+  // This guarantees keyup can never clear a key that keydown never set.
+  // Space is a toggle (handled in keydown) so keyup deliberately does nothing for it.
+  if (e.code === 'Space') return;
+  const codeKey = CODE_TO_KEY[e.code];
+  if (codeKey) {
+    keys[codeKey] = false;
+  } else {
+    keys[e.key.toLowerCase()] = false;
+  }
+});
+
+// Clear all held key state on window blur so nothing gets stuck.
+window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
 
 window.addEventListener('wheel', e => {
   if (!gameStarted || isDead || isPaused) return;
@@ -365,6 +447,13 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   const ac = document.getElementById('arms-overlay');
   if (ac) { ac.width = window.innerWidth; ac.height = window.innerHeight; }
+  // When the player is dead or the game is paused the normal gameLoop
+  // early-returns before calling renderer.render(), so the canvas goes black
+  // after a fullscreen toggle. Force one render here so the 3D scene stays
+  // visible behind the death / pause / victory overlay screens.
+  if (scene && camera && renderer && (isDead || isPaused)) {
+    renderer.render(scene, camera);
+  }
 });
 
 // Track whether the warm PointLight has been added so we never add it twice
@@ -383,6 +472,10 @@ function startGame() {
   currentFloor = 0;
   weegeeActive = false;
   shroomEffectTimeLeft = 0;
+  isSneaking = false;
+  if (typeof player._sneakCamY !== 'undefined') player._sneakCamY = 0;
+  weegeeLastHeardCell = null;
+  weegeeHearTimer = 0;
 
   stakeFloor = Math.floor(Math.random() * FLOOR_COUNT);
   selectedSlot = 0;
@@ -842,7 +935,9 @@ gameLoop();
       pauseWeatherAudio();
       if (rainAudio) rainAudio.currentTime = 0;
       _origRestartGame();
-      // Resume rain loop once the game has restarted and gameStarted is true
+      // Reset the master gain node so it isn't stuck at 0 from the death
+      // pause, then resume the rain loop now that gameStarted is true again.
+      if (wxMasterGain) wxMasterGain.gain.value = 0.18;
       if (rainAudio) rainAudio.play().catch(() => {});
     };
   }
@@ -969,6 +1064,7 @@ function switchTab(tab) {
       gamepadState.moveX = 0; gamepadState.moveY = 0;
       gamepadState.lookX = 0; gamepadState.lookY = 0;
       gamepadState.sprintToggle = false;
+      gamepadState.sneakToggle = false;
       setUsingGamepad(false);
     }
   });
@@ -1114,6 +1210,18 @@ function switchTab(tab) {
     }
     if (justPressed(BTN.CIRCLE)) {
       if (inGame) gamepadState.sprintToggle = !gamepadState.sprintToggle; // toggle sprint
+    }
+    // DPAD_DOWN toggles sneak (mirrors how Circle toggles sprint — no need to hold)
+    if (justPressed(BTN.DPAD_DOWN)) {
+      if (inGame) {
+        gamepadState.sneakToggle = !gamepadState.sneakToggle;
+        // Sneak and sprint are mutually exclusive — sneak wins
+        if (gamepadState.sneakToggle && gamepadState.sprintToggle) {
+          gamepadState.sprintToggle = false;
+        }
+      } else {
+        gamepadState.sneakToggle = false;
+      }
     }
     if (justPressed(BTN.SQUARE)) {
       if (inGame) useCurrentItem();                                 // same as left click

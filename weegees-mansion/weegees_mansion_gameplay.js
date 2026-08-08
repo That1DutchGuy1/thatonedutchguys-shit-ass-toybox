@@ -334,29 +334,102 @@ function isWallBetween(x1, z1, x2, z2) {
 function isLookingAtWeegee() {
   if (isWeegeeBanished || weegeeBanishAnim.active || !weegeeActive || !weegeePlane.visible || weegeeSlipState.active || weegeePlungerStuck.active) return false;
   if (weegeeTextures.front && weegeePlane.material.map !== weegeeTextures.front) return false;
-  
+
   const dx = weegee.x - player.x;
   const dz = weegee.z - player.z;
   const dist2D = Math.sqrt(dx*dx + dz*dz);
   if (dist2D > 14 || dist2D < 0.6) return false;
-  
-  const dy = 2.2 - 1.55; 
-  const dist3D = Math.sqrt(dx*dx + dy*dy + dz*dz);
-  
-  const lookX = -Math.sin(player.yaw) * Math.cos(player.pitch);
-  const lookY = Math.sin(player.pitch);
-  const lookZ = -Math.cos(player.yaw) * Math.cos(player.pitch);
-  
-  const targetX = dx / dist3D;
-  const targetY = dy / dist3D;
-  const targetZ = dz / dist3D;
-  
-  const dot3D = lookX * targetX + lookY * targetY + lookZ * targetZ;
-  
-  if (dot3D > 0.996) {
-    return !isWallBetween(player.x, player.z, weegee.x, weegee.z);
-  }
-  return false;
+
+  // ── Ray vs. billboard-plane intersection ────────────────────────────────
+  // Weegee's sprite is PlaneGeometry(1.6, 2.8) centred at (weegee.x, 1.4, weegee.z).
+  // As a billboard it always faces the player, so its normal is the
+  // horizontal unit vector from Weegee toward the player.
+  //
+  // We ray-cast the player's look ray against that infinite plane, then
+  // convert the hit point to sprite-local UV coords and check whether it
+  // falls inside the eye region of the Weegee_Front.png artwork.
+  // This is the only approach that is immune to "looking at his hands/legs
+  // still triggers because the angle to his centre is close enough".
+
+  // Player look ray (same formula used by movement & flashlight code)
+  const rayOx = player.x,   rayOy = 1.55,      rayOz = player.z;
+  const rayDx = -Math.sin(player.yaw) * Math.cos(player.pitch);
+  const rayDy =  Math.sin(player.pitch);
+  const rayDz = -Math.cos(player.yaw) * Math.cos(player.pitch);
+
+  // Billboard plane normal = horizontal direction from Weegee to player
+  const invDist2D = 1 / dist2D;
+  const normX = -dx * invDist2D; // points toward player
+  const normZ = -dz * invDist2D;
+
+  // Plane equation: dot(N, P) = dot(N, planeOrigin)
+  // planeOrigin = Weegee's centre (y component irrelevant for N·P since normY=0)
+  const planeDot = normX * weegee.x + normZ * weegee.z; // N·origin (Y cancels)
+  const rayDotN  = rayDx * normX + rayDz * normZ;       // N·rayDir
+
+  // Ray is parallel to / pointing away from the plane — no hit
+  if (Math.abs(rayDotN) < 0.001) return false;
+
+  // t = (planeDot - N·rayOrigin) / (N·rayDir)
+  const t = (planeDot - (rayOx * normX + rayOz * normZ)) / rayDotN;
+  if (t < 0.1) return false; // intersection is behind the camera
+
+  // World-space hit point
+  const hitX = rayOx + rayDx * t;
+  const hitY = rayOy + rayDy * t;
+  const hitZ = rayOz + rayDz * t;
+
+  // ── Convert hit point to sprite-local coords ─────────────────────────────
+  // The billboard's local right-axis is the world +X rotated to face the
+  // player: right = cross(up, normal) = (-normZ, 0, normX)  (unit length).
+  const rightX = -normZ;
+  const rightZ =  normX;
+
+  // Local horizontal offset from sprite centre
+  const offsetX = hitX - weegee.x;
+  const offsetY = hitY - 1.4;        // 1.4 = sprite centre Y
+  const offsetZ = hitZ - weegee.z;
+
+  const localU = offsetX * rightX + offsetZ * rightZ; // along billboard right
+  const localV = offsetY;                              // world up
+
+  // Sprite half-extents: width=1.6, height=2.8
+  const halfW = 0.8;   // 1.6 / 2
+  const halfH = 1.4;   // 2.8 / 2
+
+  // Must hit within the full sprite bounds first
+  if (localU < -halfW || localU > halfW) return false;
+  if (localV < -halfH || localV > halfH) return false;
+
+  // Convert to 0..1 UV (U: left→right, V: bottom→top)
+  const u = (localU + halfW) / (halfW * 2); // 0=left edge, 1=right edge
+  const v = (localV + halfH) / (halfH * 2); // 0=bottom, 1=top of sprite
+
+  // ── Eye region in Weegee_Front.png ──────────────────────────────────────
+  // Pixel-measured eye box (both eyes, generous but accurate):
+  //   U: 25%..75%  (horizontal centre of face)
+  //   V: 73%..81%  (eye row, bottom-to-top)
+  //
+  // Distance scaling: the UV box is in fixed world-space, so at greater
+  // distance Weegee appears smaller on screen but the box stays the same
+  // angular size — making far-away kills too easy. We shrink the box toward
+  // its centre proportionally with distance so the required precision scales
+  // with how large Weegee actually looks to the player.
+  //   At dist2D ≤ 2  → full box (scale = 1.0)
+  //   At dist2D = 8  → box shrinks to ~25 % of full size
+  //   At dist2D = 14 → box shrinks to ~14 % of full size (very hard to hit)
+  const EYE_U_CTR = 0.50, EYE_V_CTR = 0.77;
+  const EYE_U_HALF_BASE = 0.25, EYE_V_HALF_BASE = 0.04;
+  const distScale = Math.max(0.14, 2.0 / dist2D);
+  const EYE_U_MIN = EYE_U_CTR - EYE_U_HALF_BASE * distScale;
+  const EYE_U_MAX = EYE_U_CTR + EYE_U_HALF_BASE * distScale;
+  const EYE_V_MIN = EYE_V_CTR - EYE_V_HALF_BASE * distScale;
+  const EYE_V_MAX = EYE_V_CTR + EYE_V_HALF_BASE * distScale;
+
+  if (u < EYE_U_MIN || u > EYE_U_MAX) return false;
+  if (v < EYE_V_MIN || v > EYE_V_MAX) return false;
+
+  return !isWallBetween(player.x, player.z, weegee.x, weegee.z);
 }
 
 function isCollidingWithWeegee() {
@@ -423,6 +496,11 @@ function quitToMainMenu() {
   staminaCurrent = 100;
   batteryCurrent = 100;
   flashlightActive = true;
+  isSneaking = false;
+  if (typeof player._sneakCamY !== 'undefined') player._sneakCamY = 0;
+  weegeeLastHeardCell = null;
+  weegeeHearTimer = 0;
+  weegeeInvestigateTimer = 0;
   inventory = [null, null, null, null, null];
   selectedSlot = 0;
   
@@ -674,7 +752,12 @@ function restartGame() {
   batteryCurrent = 100; // Reset battery
   flashlightActive = true; // Turn flashlight back on
   isSprinting = false;
+  isSneaking = false;
+  if (typeof player._sneakCamY !== 'undefined') player._sneakCamY = 0;
   speedBoostTimeLeft = 0;
+  weegeeLastHeardCell = null;
+  weegeeHearTimer = 0;
+  weegeeInvestigateTimer = 0;
   inventory = [null, null, null, null, null];
   updateInventoryUI();
 
@@ -858,9 +941,16 @@ function movePlayer(dt) {
   if (gamepadState.moveX !== 0 || gamepadState.moveY !== 0) {
     movingInput = true;
   }
+
+  // ── Sneak state ───────────────────────────────────────────────────────────
+  // Space (keyboard, toggle) or DPAD_DOWN (gamepad, toggle). Works while standing still.
+  isSneaking = !!(keys['sneak'] || gamepadState.sneakToggle);
+  if (isSneaking && gamepadState.sprintToggle) gamepadState.sprintToggle = false;
+
   // Circle button TOGGLES sprint rather than needing to be held, but it
   // still ORs cleanly with Shift so keyboard sprinting is unaffected.
-  isSprinting = (keys['shift'] || gamepadState.sprintToggle) && movingInput && staminaCurrent > 0;
+  // Sneak overrides sprint: can't do both at once.
+  isSprinting = !isSneaking && (keys['shift'] || gamepadState.sprintToggle) && movingInput && staminaCurrent > 0;
 
   if (isSprinting) {
     staminaCurrent -= STAMINA_DRAIN_RATE * dt;
@@ -880,7 +970,11 @@ function movePlayer(dt) {
   }
   const speedBoostMult = speedBoostTimeLeft > 0 ? DEW_SPEED_BOOST_MULT : 1;
 
-  const currentSpeed = (isSprinting ? baseSpeed * 1.5 : baseSpeed) * speedBoostMult;
+  // Sneak caps at 75% walk speed; speed boost doesn't apply while sneaking
+  // (you don't get a Dew-fuelled sprint crouch).
+  const currentSpeed = isSneaking
+    ? baseSpeed * SNEAK_SPEED_MULT
+    : (isSprinting ? baseSpeed * 1.5 : baseSpeed) * speedBoostMult;
   let dx = 0, dz = 0;
   
   const fx = -Math.sin(player.yaw);
@@ -1127,7 +1221,8 @@ function moveWeegee(dt) {
     weegeeInterceptTimer = 0;
   }
 
-  const AGGRO_RADIUS = 14;
+  // Increased from 14 to 18 to match the larger 11×11 maze (was tuned for 8×8).
+  const AGGRO_RADIUS = 18;
   let targetX, targetZ;
 
   if (weegee.state === 'distracted') {
@@ -1138,7 +1233,7 @@ function moveWeegee(dt) {
         playWeegeeEhSound();
         plushDistraction.active = false;
         plushDistraction.engaged = false;
-        weegee.state = pDist <= AGGRO_RADIUS ? 'aggro' : 'wander';
+        weegee.state = (pDist <= AGGRO_RADIUS || !isWallBetween(weegee.x, weegee.z, player.x, player.z)) ? 'aggro' : 'wander';
       }
     }
 
@@ -1198,7 +1293,69 @@ function moveWeegee(dt) {
     return;
   }
 
-  if (pDist <= AGGRO_RADIUS) {
+  // ── Sound-reactive investigation ─────────────────────────────────────────────
+  // If Weegee heard the player recently (weegeeLastHeardCell is set) and he is
+  // currently wandering or already investigating, navigate toward that cell.
+  // Once he reaches it (or gets close enough for LOS to kick in), the cell is
+  // cleared and he reverts to wander — or escalates straight to aggro if the
+  // player is now in range.
+  // Important: investigating is lower-priority than aggro. If aggro conditions
+  // are met during investigation, aggro takes over immediately.
+  const hasLOS = !isWallBetween(weegee.x, weegee.z, player.x, player.z);
+  const inRange = pDist <= AGGRO_RADIUS;
+  const shouldAggro = inRange || (weegee.state === 'aggro' && hasLOS);
+
+  if (!shouldAggro && !hasLOS && weegeeLastHeardCell && (weegee.state === 'wander' || weegee.state === 'investigating')) {
+    // Reset the timer whenever we freshly enter investigating state
+    if (weegee.state !== 'investigating') weegeeInvestigateTimer = 0;
+    weegee.state = 'investigating';
+
+    weegeeInvestigateTimer += dt;
+
+    const targetX = weegeeLastHeardCell.col * CELL + CELL / 2;
+    const targetZ = weegeeLastHeardCell.row * CELL + CELL / 2;
+    const investigateDx = targetX - weegee.x;
+    const investigateDz = targetZ - weegee.z;
+    const investigateDist = Math.sqrt(investigateDx * investigateDx + investigateDz * investigateDz);
+
+    if (investigateDist < CELL * 0.7 || weegeeInvestigateTimer >= WEEGEE_INVESTIGATE_TIMEOUT) {
+      // Reached the heard cell, or spent too long looking — give up, back to wander
+      weegeeLastHeardCell = null;
+      weegeeInvestigateTimer = 0;
+      weegee.state = 'wander';
+      weegee.targetCellX = null;
+      weegee.targetCellZ = null;
+    } else {
+      // Navigate toward the heard cell using BFS (wall-aware, just like chase)
+      const investigateTarget = bfsNextTarget(weegee.x, weegee.z, targetX, targetZ);
+      const idx = investigateTarget.x - weegee.x;
+      const idz = investigateTarget.z - weegee.z;
+      const idist = Math.sqrt(idx * idx + idz * idz);
+
+      if (idist > 0.05) {
+        weegee.dirX = idx / idist;
+        weegee.dirZ = idz / idist;
+        const WRAD = 0.3;
+        // Investigating speed matches wander (slowest floor speed) — he's
+        // curious, not sprinting. This keeps the behaviour fair.
+        const investigateSpeed = WEEGEE_FLOOR_SPEEDS[0];
+        const stepX = weegee.dirX * investigateSpeed * dt;
+        const stepZ = weegee.dirZ * investigateSpeed * dt;
+        const nx = weegee.x + stepX;
+        const nz = weegee.z + stepZ;
+        const blockedX = collidesWithWalls(nx, weegee.z, WRAD);
+        const blockedZ = collidesWithWalls(weegee.x, nz, WRAD);
+        if (!blockedX && !blockedZ) { weegee.x = nx; weegee.z = nz; }
+        else if (!blockedX) { weegee.x = nx; }
+        else if (!blockedZ) { weegee.z = nz; }
+        weegee.x = Math.max(WRAD, Math.min(MAZE_W * CELL - WRAD, weegee.x));
+        weegee.z = Math.max(WRAD, Math.min(MAZE_H * CELL - WRAD, weegee.z));
+      }
+      return; // skip normal wander/aggro movement this frame
+    }
+  }
+
+  if (shouldAggro) {
     weegee.state = 'aggro';
 
     // Recompute intercept target every ~1.5 s or when we just switched to aggro
@@ -1228,6 +1385,9 @@ function moveWeegee(dt) {
       targetZ = player.z;
     }
   } else {
+    // Dropping out of aggro — clear any stale heard cell so Weegee doesn't
+    // immediately path to an old pre-aggro position instead of genuinely wandering.
+    if (weegee.state === 'aggro') weegeeLastHeardCell = null;
     weegee.state = 'wander';
     weegeeInterceptTarget = null;
     weegeeInterceptTimer = 0;
@@ -1475,6 +1635,10 @@ function spawnWeegeefarAway() {
   weegeeSidestepActive   = false;
   weegeeSidestepDuration = 0;
   weegeeSidestepTimer    = 0;
+  // Reset hearing system
+  weegeeLastHeardCell    = null;
+  weegeeHearTimer        = 0;
+  weegeeInvestigateTimer = 0;
 }
 
 function updateWeegeeBanishAnim(dt) {
@@ -1728,6 +1892,72 @@ function updateWeegeeBanishAnim(dt) {
   }
 }
 
+// ── Weegee hearing check ───────────────────────────────────────────────────────
+// Called on a throttled interval (WEEGEE_HEAR_INTERVAL) so it doesn't run
+// every single frame — cheap cell lookup, not a raytrace.
+//
+// Sound rules:
+//   - Sneaking on dry floor  → completely silent, radius 0
+//   - Normal walking (dry)   → heard within WEEGEE_HEAR_WALK units
+//   - Puddle walking/sprinting, or dry sprint → heard within WEEGEE_HEAR_SPRINT
+//   - Standing still (no movement input) → silent, no hearing update
+//
+// The check only writes weegeeLastHeardCell when the player IS making an
+// audible sound and Weegee is within the relevant radius. It never clears the
+// cell (that happens in moveWeegee when Weegee reaches the spot).
+function updateWeegeeHearing() {
+  // Standing still → no sound, nothing to update this tick
+  const movingInput = keys['w'] || keys['s'] || keys['a'] || keys['d'] ||
+                      keys['arrowup'] || keys['arrowdown'] ||
+                      Math.abs(gamepadState.moveX) > 0.1 || Math.abs(gamepadState.moveY) > 0.1;
+  if (!movingInput) return;
+
+  const onPuddle = isPlayerOverPuddleDecal();
+
+  // Determine which sound category the player is currently producing
+  let hearRadius = 0;
+  if (isSprinting) {
+    // Sprinting on any surface — loudest, heard furthest
+    hearRadius = WEEGEE_HEAR_SPRINT;
+  } else if (onPuddle) {
+    // Puddle footsteps betray you even while sneaking, but only at walk radius
+    hearRadius = WEEGEE_HEAR_WALK;
+  } else if (!isSneaking) {
+    // Normal walking on a dry floor — audible but quieter
+    hearRadius = WEEGEE_HEAR_WALK;
+  }
+  // isSneaking && !onPuddle && !isSprinting → hearRadius stays 0 (silent)
+
+  if (hearRadius <= 0) return; // silent — Weegee hears nothing this tick
+
+  // Radius check: is Weegee close enough to hear?
+  const dx = weegee.x - player.x;
+  const dz = weegee.z - player.z;
+  const distSq = dx * dx + dz * dz;
+  if (distSq > hearRadius * hearRadius) return; // too far
+
+  // Record the player's current cell as the last-heard position
+  weegeeLastHeardCell = {
+    col: Math.max(0, Math.min(MAZE_W - 1, Math.floor(player.x / CELL))),
+    row: Math.max(0, Math.min(MAZE_H - 1, Math.floor(player.z / CELL)))
+  };
+}
+
+// ── One-shot sound alert ───────────────────────────────────────────────────────
+// Called by loud player reaction sounds (mamafcker, woah, haha) that should
+// alert Weegee regardless of movement state or the hearing interval timer.
+// Always uses WEEGEE_HEAR_SPRINT radius — these are loud outbursts.
+function alertWeegeeToSound() {
+  if (!gameStarted || isDead || !weegeeActive) return;
+  const dx = weegee.x - player.x;
+  const dz = weegee.z - player.z;
+  if (dx * dx + dz * dz > WEEGEE_HEAR_SPRINT * WEEGEE_HEAR_SPRINT) return;
+  weegeeLastHeardCell = {
+    col: Math.max(0, Math.min(MAZE_W - 1, Math.floor(player.x / CELL))),
+    row: Math.max(0, Math.min(MAZE_H - 1, Math.floor(player.z / CELL)))
+  };
+}
+
 function updateWeegee(dt) {
   if (weegeeBanishAnim.active) {
     updateWeegeeBanishAnim(dt);
@@ -1758,6 +1988,19 @@ function updateWeegee(dt) {
     }
     return;
   }
+
+  // ── Throttled hearing check ────────────────────────────────────────────────
+  // Only runs a few times per second (WEEGEE_HEAR_INTERVAL) so it's cheap
+  // even when the player is constantly moving. No work done at all if Weegee
+  // is in aggro (he already has the player's position), or banished/stuck.
+  if (weegee.state !== 'aggro') {
+    weegeeHearTimer -= dt;
+    if (weegeeHearTimer <= 0) {
+      weegeeHearTimer = WEEGEE_HEAR_INTERVAL;
+      updateWeegeeHearing();
+    }
+  }
+
   moveWeegee(dt);
   updateWeegeeVisibility();
   if (weegeePlane.visible) updateWeegeeSprite();
@@ -1921,6 +2164,8 @@ function throwPlunger() {
 
   const startY = 1.45;
   mesh.position.set(player.x, startY, player.z);
+  // Face the throw direction from the start — this Y angle is frozen on impact.
+  mesh.rotation.y = player.yaw;
   scene.add(mesh);
 
   // Launched in the direction the player is facing, with a real-gravity
@@ -1979,15 +2224,19 @@ function updatePlungerEntities(dt) {
 
       pl.x = nx; pl.y = ny; pl.z = nz;
       pl.mesh.position.set(pl.x, pl.y, pl.z);
-      // Tumble while airborne for a satisfying hurl
-      pl.mesh.rotation.x += dt * 9;
-    } else {
-      // Stuck — billboard toward the camera like the landed banana peel.
-      pl.mesh.rotation.x = 0;
+      // Always face the player on Y while airborne so the sprite is visible,
+      // and tilt on X to follow the arc (nose up rising, nose down falling).
       pl.mesh.rotation.y = Math.atan2(
-        camera.position.x - pl.mesh.position.x,
-        camera.position.z - pl.mesh.position.z
+        camera.position.x - pl.x,
+        camera.position.z - pl.z
       );
+      const hSpeed = Math.sqrt(pl.velX * pl.velX + pl.velZ * pl.velZ);
+      pl.mesh.rotation.x = Math.atan2(-pl.velY, hSpeed) * 0.6;
+    } else {
+      // Stuck — hold the rotation frozen at the angle captured on impact.
+      pl.mesh.rotation.x = pl.frozenRotX;
+      pl.mesh.rotation.y = pl.frozenRotY;
+      pl.mesh.rotation.z = pl.frozenRotZ;
 
       if (pl.state === 'stuckWeegee') {
         // Lifetime tied directly to Weegee's stuck timer, not a fixed clock.
@@ -2011,6 +2260,47 @@ function stickPlunger(pl, x, y, z, state) {
   pl.state = state;
   pl.stuckAge = 0;
   pl.mesh.position.set(x, y, z);
+
+  if (state === 'stuckFloor') {
+    // Lay flat on the floor, oriented along the throw direction.
+    // Nudge up by half the sprite size so it sits flush on the surface.
+    pl.mesh.position.set(x, y + 0.21, z);
+    pl.frozenRotX = -Math.PI / 2;
+    pl.frozenRotY = Math.atan2(pl.velX, pl.velZ);
+    pl.frozenRotZ = 0;
+  } else if (state === 'stuckCeiling') {
+    // Lay flat against the ceiling, oriented along the throw direction.
+    // Nudge down by half the sprite size so it sits flush on the surface.
+    pl.mesh.position.set(x, y - 0.21, z);
+    pl.frozenRotX = Math.PI / 2;
+    pl.frozenRotY = Math.atan2(pl.velX, pl.velZ);
+    pl.frozenRotZ = 0;
+  } else if (state === 'stuckWall') {
+    // Lie flat against the wall face, pointing in the throw direction.
+    // Nudge the sprite forward by half its size so it sits flush on the surface.
+    // Find the exact wall surface by stepping from the stuck position toward
+    // the wall in small increments, then place the sprite just in front of it.
+    const hLen = Math.sqrt(pl.velX * pl.velX + pl.velZ * pl.velZ) || 1;
+    const throwDirX = pl.velX / hLen;
+    const throwDirZ = pl.velZ / hLen;
+    let sx = x, sz = z;
+    for (let step = 0; step < 20; step++) {
+      const tx = sx + throwDirX * 0.02;
+      const tz = sz + throwDirZ * 0.02;
+      if (collidesWithWalls(tx, tz, 0.01)) break;
+      sx = tx; sz = tz;
+    }
+    pl.mesh.position.set(sx, y, sz);
+    pl.frozenRotX = 0;
+    pl.frozenRotY = Math.atan2(pl.velX, pl.velZ);
+    pl.frozenRotZ = 0;
+  } else {
+    // stuckWeegee — freeze whatever mid-flight angle it had.
+    pl.frozenRotX = pl.mesh.rotation.x;
+    pl.frozenRotY = pl.mesh.rotation.y;
+    pl.frozenRotZ = pl.mesh.rotation.z;
+  }
+
   playPlungerHitSound();
 }
 
@@ -2444,9 +2734,10 @@ function drawArms(canvas, ctx) {
     || (Math.abs(gamepadState.moveX) > 0.05 || Math.abs(gamepadState.moveY) > 0.05);
 
   // Light bob while walking, heavier bob (with extra sway) while sprinting.
-  const bobAmp  = isSprinting ? 20 : (moving ? 9 : 2);
-  const bobSpeed = isSprinting ? 14 : (moving ? 8 : 1.5);
-  const swayAmp = isSprinting ? 16 : (moving ? 7 : 0);
+  // Sneaking gets a slower, shallower bob — deliberate and creepy.
+  const bobAmp  = isSprinting ? 20 : (isSneaking && moving ? 4 : (moving ? 9 : 2));
+  const bobSpeed = isSprinting ? 14 : (isSneaking && moving ? 3.5 : (moving ? 8 : 1.5));
+  const swayAmp = isSprinting ? 16 : (isSneaking && moving ? 3 : (moving ? 7 : 0));
   const phase = t * bobSpeed;
 
   const bobL = Math.sin(phase) * bobAmp;
@@ -2469,4 +2760,3 @@ function drawArms(canvas, ctx) {
     safeDraw(ctx, marioHandRightImg, w - rSize.w + 40 + swayR, h - rSize.h + 40 + bobR, rSize.w, rSize.h);
   }
 }
-

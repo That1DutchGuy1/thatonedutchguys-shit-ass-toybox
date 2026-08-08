@@ -110,7 +110,7 @@ let keys = {};
 // file. Kept separate from `keys` so keyboard & gamepad never clobber
 // each other — movement/look code below simply ADDS whichever of these
 // are non-zero on top of the existing keyboard/mouse contribution.
-let gamepadState = { moveX: 0, moveY: 0, lookX: 0, lookY: 0, sprintToggle: false, connected: false };
+let gamepadState = { moveX: 0, moveY: 0, lookX: 0, lookY: 0, sprintToggle: false, sneakToggle: false, connected: false };
 let isDead = false, gameStarted = false, isPaused = false;
 // True once wall/floor/ceiling/skybox/window-wall textures have all finished
 // loading and the first buildFloorScene(0) has run. Used to make sure the
@@ -154,6 +154,37 @@ let staminaCurrent = 100;
 let isSprinting = false;
 const STAMINA_DRAIN_RATE = 5.0; 
 const STAMINA_REGEN_RATE = 12.0;
+
+// ── Sneak System ──────────────────────────────────────────────────────────────
+// Hold Left Ctrl (keyboard) or DPAD_DOWN (gamepad) to sneak.
+// Sneak lowers the camera, forces 75% walk speed, disables sprinting,
+// and silences normal footsteps (but NOT puddle footsteps — wet floors
+// give you away regardless). Toggled by held key/button each frame.
+let isSneaking = false;
+const SNEAK_SPEED_MULT   = 0.75;  // 75% of base walk speed while sneaking
+const SNEAK_CAMERA_DROP  = 0.35;  // world units the camera drops while crouching
+
+// ── Sound-reactive Weegee hearing ─────────────────────────────────────────────
+// Weegee "hears" the player's footsteps and navigates toward the last-heard
+// cell when wandering. Normal walking: heard within WEEGEE_HEAR_WALK units.
+// Sprinting (any surface): heard within WEEGEE_HEAR_SPRINT units.
+// Sneaking on a dry floor: completely silent — radius 0.
+// Puddle footsteps: always audible at walk radius regardless of sneak.
+const WEEGEE_HEAR_WALK   = 22;   // world units — normal walking radius
+const WEEGEE_HEAR_SPRINT = 30;   // world units — any sprint footstep radius
+
+// Cooldown (seconds) between hearing-update checks. Prevents running the
+// cell-lookup every single frame — only re-evaluates a few times per second.
+const WEEGEE_HEAR_INTERVAL = 1.5;
+let   weegeeHearTimer      = 0;   // counts down; fires a hearing check when ≤ 0
+
+// The cell (col/row) that Weegee last heard the player in.
+// null = no sound memory this floor.
+let weegeeLastHeardCell = null;    // { col, row } | null
+
+// How long (seconds) Weegee will investigate a heard cell before giving up.
+const WEEGEE_INVESTIGATE_TIMEOUT = 5.0;
+let   weegeeInvestigateTimer = 0;  // counts up while state === 'investigating'
 
 // Mountain Dew speed boost: drinking a Dew grants a temporary movement
 // speed multiplier for a set duration after the chug animation finishes.
