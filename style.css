@@ -484,6 +484,9 @@ h1 {
 .card-bg-the-big-meme-quiz {
   background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-big-meme-quiz.png');
 }
+.card-bg-meme-mafia {
+  background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-meme-mafia.png');
+}
 
 /* Card hover effect: slight scale up and rotation, plus border color change */
 

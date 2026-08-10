@@ -65,9 +65,15 @@
 
 <p><strong><font size="4">🚨 NEW GAME ADDED!</font></strong></p>
 
-> The Big Meme Quiz is now a thing in this shithole! 🥳
+> Meme Mafia has been added to the Shit Ass Toybox! Fuck yeah! 🤵🏻‍♂️🎩🚬
 
-* Answer questions about old memes, that's literally it bro! 😂
+<img src="./meme-mafia/assets/memes/OG-meme-family/don-harkinian.png" alt="Don Harkinian" width="150" />
+
+> Don Harkinian is the boss of the OG Meme Crime Family! 🤵🏻‍♂️ <br>
+> He hired you to help him and his henchmemes defeat their rivals: The Gen Alpha Meme Crime Family! 😯 <br>
+> Led by Don Skibidi, they seem unstoppable! Unless one person helps the OGs, and that is YOU! 🫵🏻
+> Assemble hit parties and launch attacks on the Gen Alpha memes! 🔫
+> NOW GO PLAY THE GAME MOTHERFUCKER! 🔫
 
 ---
 
