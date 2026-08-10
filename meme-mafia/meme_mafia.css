@@ -240,6 +240,30 @@ body {
     cursor: pointer;
 }
 
+/* BGM Hint — shown on main menu when music is enabled but autoplay is blocked */
+.bgm-hint {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(0.7rem, 1vw, 1rem);
+    font-family: var(--font-mafia);
+    color: var(--accent-gold);
+    text-shadow: 0 0 8px rgba(212, 175, 55, 0.6), 0 2px 4px #000;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 2;
+    animation: bgm-hint-pulse 2s ease-in-out infinite;
+    transition: opacity 0.6s ease;
+}
+
+@keyframes bgm-hint-pulse {
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1;   }
+}
+
 /* Modal Styling */
 .modal {
     position: absolute;
@@ -310,6 +334,13 @@ body {
     margin: 20px 0;
     overflow-y: auto;
     padding-right: 5px;
+    /* Hide scrollbar across browsers while keeping scroll functionality */
+    scrollbar-width: none;        /* Firefox */
+    -ms-overflow-style: none;     /* IE / Edge */
+}
+
+.roster-grid::-webkit-scrollbar {
+    display: none;                /* Chrome / Safari / Opera */
 }
 
 /* Individual Meme Cards */

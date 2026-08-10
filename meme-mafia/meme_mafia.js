@@ -211,7 +211,7 @@ function runPreloader() {
             bar.style.width = '100%';
             msg.innerText = "ALL ASSETS PRE-LOADED. SYSTEM READY.";
             setTimeout(() => {
-                showScreen('screen-menu');
+                initMenuScreen(false);
             }, 800);
         } else {
             bar.style.width = `${progress}%`;
@@ -313,18 +313,26 @@ function toggleHowToModal() {
 
 function handleMusicToggle() {
     state.audioEnabled = document.getElementById('music-toggle').checked;
+    const hint     = document.getElementById('bgm-hint');
+    const menuVisible = !document.getElementById('screen-menu').classList.contains('hidden');
+
     if (!state.audioEnabled) {
         stopBackgroundMusic();
+        // Always hide hint when music is disabled
+        if (hint) { hint.style.opacity = '0'; hint.style.animation = 'none'; }
+        document.getElementById('screen-menu').removeEventListener('pointerdown', _onMenuClick);
     } else {
         // Re-start the correct track based on which screen is active
-        const battleVisible   = !document.getElementById('screen-battle').classList.contains('hidden');
-        const partyVisible    = !document.getElementById('screen-party').classList.contains('hidden');
-        const preBossVisible  = !document.getElementById('screen-preboss').classList.contains('hidden');
+        const battleVisible  = !document.getElementById('screen-battle').classList.contains('hidden');
+        const partyVisible   = !document.getElementById('screen-party').classList.contains('hidden');
+        const preBossVisible = !document.getElementById('screen-preboss').classList.contains('hidden');
         if (battleVisible) {
             playBackgroundMusic('assets/music/battle.mp3');
         } else if (partyVisible || preBossVisible) {
             playBackgroundMusic('assets/music/party.mp3');
-        } else {
+        } else if (menuVisible) {
+            // Re-enable on menu: try to play directly (toggle itself is a user gesture)
+            if (hint) { hint.style.opacity = '0'; hint.style.animation = 'none'; }
             playBackgroundMusic('assets/music/menu.mp3');
         }
     }
@@ -849,8 +857,49 @@ function triggerFinalCampaignWin() {
 }
 
 function restartToMenu() {
+    initMenuScreen(true);
+}
+
+/**
+ * Central entry point for showing the main menu.
+ * @param {boolean} returning  true  = coming back from gameplay (autoplay already unlocked,
+ *                                     fire music immediately, hide the hint)
+ *                             false = first arrival after preloader (autoplay may be blocked,
+ *                                     show the hint and wait for a click)
+ */
+function initMenuScreen(returning = false) {
     showScreen('screen-menu');
-    playBackgroundMusic('assets/music/menu.mp3');
+
+    const hint      = document.getElementById('bgm-hint');
+    const menuEl    = document.getElementById('screen-menu');
+
+    // Clean up any stale once-listener from a previous visit
+    menuEl.removeEventListener('pointerdown', _onMenuClick);
+
+    if (!state.audioEnabled) {
+        // Music toggle is off — never show the hint regardless
+        if (hint) hint.style.opacity = '0';
+        return;
+    }
+
+    if (returning) {
+        // AudioContext is already unlocked; start music instantly, no hint needed
+        if (hint) { hint.style.opacity = '0'; hint.style.animation = 'none'; }
+        playBackgroundMusic('assets/music/menu.mp3');
+    } else {
+        // First visit — autoplay may be blocked; show hint and wait for any tap/click
+        if (hint) hint.style.opacity = '';
+        menuEl.addEventListener('pointerdown', _onMenuClick, { once: true });
+    }
+}
+
+/** Internal handler — starts menu BGM on first user interaction and hides the hint. */
+function _onMenuClick() {
+    const hint = document.getElementById('bgm-hint');
+    if (hint) { hint.style.opacity = '0'; hint.style.animation = 'none'; }
+    if (state.audioEnabled) {
+        playBackgroundMusic('assets/music/menu.mp3');
+    }
 }
 
 // ==========================================

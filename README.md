@@ -51,6 +51,7 @@
 * CD-i Tinder (Alpha / WIP)
 * Meme Claw Machine (I dunno, stable, logic works, but might add more shit in the future)
 * The Big Meme Quiz (Finished, unless I come up with some big brain additions)
+* Meme Mafia (Finished, unless I come up with some big brain additions)
 
 ---
 
