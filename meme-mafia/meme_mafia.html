@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../device-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meme Mafia!</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="meme_mafia.css">
+</head>
+<body>
+    <div id="game-container">
+        
+        <!-- 1. LOADING SCREEN -->
+        <div id="screen-loading" class="screen">
+            <div class="loading-box">
+                <h1 class="glitch-title">MEME MAFIA</h1>
+                <p class="loading-subtitle">The Streets are Calling...</p>
+                <div class="progress-bar-container">
+                    <div id="loading-progress" class="progress-bar"></div>
+                </div>
+                <div id="loading-message" class="loading-message">Initializing digital crime family...</div>
+            </div>
+        </div>
+
+        <!-- 2. INTRO CUTSCENE SCREEN -->
+        <div id="screen-intro" class="screen hidden">
+            <div class="video-wrapper">
+                <video id="intro-video" preload="auto">
+                    <source src="assets/cutscene-videos/intro.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="skip-prompt">Press [ENTER] or Click to Skip Intro</div>
+            </div>
+        </div>
+
+        <!-- 3. MAIN MENU -->
+        <div id="screen-menu" class="screen hidden">
+            <div class="menu-box">
+                <h1 class="main-title">MEME MAFIA</h1>
+                <p class="tagline">An OG 2000s Meme Family Story</p>
+                
+                <div class="menu-buttons">
+                    <button id="btn-start" class="mafia-btn">START CAMPAIGN</button>
+                    <button id="btn-how-to" class="mafia-btn">HOW TO FIGHT</button>
+                    <div class="audio-controls">
+                        <label for="music-toggle">
+                            <input type="checkbox" id="music-toggle" checked> ENABLE MUSIC
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="how-to-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <h2>RULES OF THE STREETS</h2>
+                        <p>1. Gather exactly three surviving OG memes into your squad before each level.</p>
+                        <p>2. Once a family member dies in battle, they stay dead for the rest of the game.</p>
+                        <p>3. During battles, smash the <strong>[SPACEBAR]</strong> as fast as you can to command your squad to shoot.</p>
+                        <p>4. Deplete the Gen Alpha Meme Family health bar before your henchmemes are wiped out.</p>
+                        <p>5. If you fail, Don Harkinian dies, and your campaign progress is wiped completely.</p>
+                        <button id="btn-close-how-to" class="mafia-btn compact">UNDERSTOOD</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. PARTY SELECTION SCREEN -->
+        <div id="screen-party" class="screen hidden">
+            <div class="party-container">
+                <header class="party-header">
+                    <h2>ASSEMBLE YOUR MAFIA HIT SQUAD</h2>
+                    <p>Select exactly 3 surviving OG memes for Level <span id="party-level-num">1</span></p>
+                </header>
+                
+                <div id="roster-grid" class="roster-grid">
+                    <!-- Dynamic OG Memes go here -->
+                </div>
+
+                <div class="party-footer">
+                    <div id="selected-counter">Selected: 0 / 3</div>
+                    <button id="btn-lock-party" class="mafia-btn disabled" disabled>LAUNCH ATTACK</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. BATTLE SCREEN -->
+        <div id="screen-battle" class="screen hidden">
+            <div id="battle-bg" class="battle-arena">
+                <!-- Top Interface: Level / Health Meters -->
+                <div class="battle-hud">
+                    <div class="hud-side left-hud">
+                        <h3>OG MEME FAMILY</h3>
+                        <div class="team-hp-bar">
+                            <div id="player-team-hp-fill" class="hp-fill"></div>
+                        </div>
+                        <div id="player-hp-text">100%</div>
+                    </div>
+
+                    <div class="hud-center">
+                        <div id="battle-level-banner">LEVEL 1</div>
+                        <div id="mash-prompt" class="mash-flash">SMASH [SPACEBAR]!</div>
+                    </div>
+
+                    <div class="hud-side right-hud">
+                        <h3 id="enemy-team-header">GEN ALPHA MEME FAMILY</h3>
+                        <div class="team-hp-bar">
+                            <div id="enemy-team-hp-fill" class="hp-fill"></div>
+                        </div>
+                        <div id="enemy-hp-text">100%</div>
+                    </div>
+                </div>
+
+                <!-- HUB button sits just below the HUD border, absolutely positioned within the arena -->
+                <a href="../index.html" id="hub-btn-battle" class="hub-btn-battle hidden">← HUB</a>
+
+                <!-- Combatants Visual Grid -->
+                <div class="combat-grid">
+                    <div id="player-combat-line" class="combat-line player-side">
+                        <!-- 3 Selected Memes with dynamic positioning -->
+                    </div>
+
+                    <div class="combat-versus">
+                        <span class="vs-text">VS</span>
+                    </div>
+
+                    <div id="enemy-combat-line" class="combat-line enemy-side">
+                        <!-- 3 Gen Alpha targets -->
+                    </div>
+                </div>
+
+                <!-- Damage indicator zone / Action Feedback -->
+                <div id="combat-log">The standoff begins...</div>
+            </div>
+        </div>
+
+        <!-- 6. MEETING/MID-LEVEL CUTSCENE SCREEN -->
+        <div id="screen-cutscene" class="screen hidden">
+            <div class="video-wrapper">
+                <video id="cutscene-video" preload="auto">
+                    <!-- Source updated dynamically in JS -->
+                    <source src="" type="video/mp4">
+                </video>
+                <div class="skip-prompt">Press [ENTER] to Skip Cutscene</div>
+            </div>
+        </div>
+
+        <!-- 7. PRE-BOSS SCREEN -->
+        <div id="screen-preboss" class="screen hidden">
+            <div class="preboss-container">
+                <div class="preboss-skull">☠</div>
+                <h1 class="preboss-title">BOSS FIGHT</h1>
+                <h2 class="preboss-subtitle">DON SKIBIDI</h2>
+                <p class="preboss-flavour">The Don awaits. Your entire surviving crew enters — no substitutions, no mercy.</p>
+                <div id="preboss-troop-preview" class="preboss-troop-preview"></div>
+                <button id="btn-enter-boss-fight" class="mafia-btn red-btn preboss-btn">⚔ ENTER THE FINAL BATTLE ⚔</button>
+            </div>
+        </div>
+
+        <!-- 8. GAME OVER SCREEN -->
+        <div id="screen-gameover" class="screen hidden">
+            <div class="roast-box">
+                <h1 class="danger-title">FATHER IS DEAD</h1>
+                <div class="wiped-stamp">WIPED</div>
+                <div id="roast-text" class="roast-text">"You absolute clown. Your spacebar-mashing finger lacks discipline."</div>
+                <button id="btn-restart-game" class="mafia-btn red-btn">RETURN TO STREETS</button>
+            </div>
+        </div>
+
+        <!-- 8. WIN SCREEN -->
+        <div id="screen-win" class="screen hidden">
+            <div class="win-box">
+                <h1 class="victory-title">GEN ALPHA EXTERMINATED</h1>
+                <p>The streets belong to the OG Family once more.</p>
+                <div class="win-video-container">
+                    <video id="win-video" preload="auto">
+                        <source src="assets/cutscene-videos/win.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <button id="btn-win-menu" class="mafia-btn gold-btn">MAIN MENU</button>
+            </div>
+        </div>
+
+        <p id="made-by-credit">Meme Mafia <br> Made by YouTuber&nbsp;<a href="https://youtube.com/@that1dutchguy?si=64hwISFn48ZFbh9l" target="_blank" id="made-by-link">That One Dutch Guy</a></p>
+
+        <a href="../index.html" id="hub-btn">← HUB</a>
+
+    </div>
+
+    <script src="meme_mafia.js"></script>
+</body>
+</html>

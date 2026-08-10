@@ -1,0 +1,928 @@
+@font-face {
+    font-family: 'MafiaFont';
+    src: url('./assets/font/mafia-font.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root {
+    --bg-dark: #0a0a0a;
+    --border-light: #ffffff;
+    --accent-red: #c91818;
+    --accent-gold: #d4af37;
+    --panel-bg: rgba(15, 15, 15, 0.95);
+    --font-mafia: 'MafiaFont', 'Courier New', Courier, monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    background-color: #000000;
+    color: #ffffff;
+    font-family: var(--font-mafia);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+}
+
+#game-container {
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--bg-dark);
+    border: none;
+    position: relative;
+    overflow: hidden;
+    box-shadow: none;
+}
+
+.screen {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* --- BUTTONS --- */
+.mafia-btn {
+    font-family: var(--font-mafia);
+    background-color: transparent;
+    color: var(--border-light);
+    border: 2px solid var(--border-light);
+    padding: clamp(12px, 1.5vh, 20px) clamp(24px, 3vw, 48px);
+    font-size: clamp(1.1rem, 1.6vw, 1.8rem);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s ease-in-out;
+    margin: 10px 0;
+    letter-spacing: 3px;
+}
+
+.mafia-btn:hover:not(.disabled) {
+    background-color: var(--border-light);
+    color: var(--bg-dark);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.mafia-btn.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: #555555;
+    color: #555555;
+}
+
+.mafia-btn.compact {
+    padding: 6px 14px;
+    font-size: 0.9rem;
+}
+
+.mafia-btn.red-btn {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+.mafia-btn.red-btn:hover {
+    background-color: var(--accent-red);
+    color: #ffffff;
+    box-shadow: 0 0 15px var(--accent-red);
+}
+
+.mafia-btn.gold-btn {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+}
+.mafia-btn.gold-btn:hover {
+    background-color: var(--accent-gold);
+    color: #000000;
+}
+
+/* --- 1. LOADING SCREEN --- */
+#screen-loading {
+    background: radial-gradient(circle, #1c1c1c 0%, #050505 100%);
+}
+
+.loading-box {
+    text-align: center;
+    width: 60%;
+    max-width: 900px;
+}
+
+.glitch-title {
+    font-size: clamp(4rem, 8vw, 8rem);
+    letter-spacing: 12px;
+    color: #ffffff;
+    text-shadow: 3px 3px 0px #ff0000, -3px -3px 0px #0000ff;
+    margin-bottom: 10px;
+}
+
+.loading-subtitle {
+    font-size: clamp(1rem, 1.8vw, 1.6rem);
+    opacity: 0.7;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+    letter-spacing: 6px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: clamp(8px, 1vh, 14px);
+    background-color: #222;
+    border: 1px solid #444;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: #ffffff;
+    transition: width 0.1s linear;
+}
+
+.loading-message {
+    font-size: clamp(0.85rem, 1.2vw, 1.2rem);
+    color: #888888;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    min-height: 28px;
+}
+
+/* --- VIDEO WRAPPER --- */
+.video-wrapper {
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.video-wrapper video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.skip-prompt {
+    position: absolute;
+    bottom: 20px;
+    right: 30px;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    opacity: 0.5;
+    background-color: rgba(0,0,0,0.8);
+    padding: 6px 12px;
+    border: 1px solid #333;
+    pointer-events: none;
+}
+
+/* --- 3. MAIN MENU --- */
+#screen-menu {
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('assets/backgrounds/hq.png') no-repeat center center;
+    background-size: cover;
+}
+
+.menu-box {
+    background-color: var(--panel-bg);
+    border: 3px double var(--border-light);
+    padding: clamp(30px, 4vh, 60px) clamp(40px, 6vw, 100px);
+    text-align: center;
+}
+
+.main-title {
+    font-size: clamp(4rem, 8vw, 9rem);
+    letter-spacing: 8px;
+    color: #ffffff;
+    text-shadow: 4px 4px 0 #1c1c1c;
+}
+
+.tagline {
+    font-size: clamp(1rem, 1.8vw, 1.8rem);
+    color: var(--accent-red);
+    letter-spacing: 5px;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+}
+
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.audio-controls {
+    margin-top: 20px;
+    font-size: clamp(0.85rem, 1.1vw, 1.3rem);
+    letter-spacing: 1px;
+}
+
+.audio-controls input {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+/* Modal Styling */
+.modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+.modal-content {
+    background-color: var(--bg-dark);
+    border: 2px solid var(--border-light);
+    padding: clamp(20px, 3vw, 50px);
+    max-width: clamp(500px, 55vw, 900px);
+    text-align: left;
+}
+
+.modal-content h2 {
+    color: var(--accent-red);
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+    font-size: clamp(1.2rem, 2vw, 2.2rem);
+}
+
+.modal-content p {
+    font-size: clamp(0.9rem, 1.2vw, 1.4rem);
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+/* --- 4. PARTY SELECTION --- */
+.party-container {
+    width: 90%;
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.party-header {
+    text-align: center;
+    border-bottom: 1px solid #333;
+    padding-bottom: 15px;
+}
+
+.party-header h2 {
+    font-size: clamp(1.8rem, 3vw, 3.5rem);
+    letter-spacing: 3px;
+}
+
+.party-header p {
+    color: var(--accent-red);
+    font-size: clamp(0.9rem, 1.3vw, 1.4rem);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-top: 5px;
+}
+
+.roster-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: clamp(10px, 1.5vw, 25px);
+    margin: 20px 0;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Individual Meme Cards */
+.meme-card {
+    background-color: #111;
+    border: 2px solid #333;
+    border-radius: 4px;
+    padding: clamp(8px, 1.2vw, 16px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.2s, transform 0.1s;
+    height: clamp(170px, 22vh, 260px);
+}
+
+.meme-card:hover:not(.dead) {
+    border-color: #888;
+    transform: translateY(-2px);
+}
+
+.meme-card.selected {
+    border-color: var(--accent-red);
+    background-color: rgba(201, 24, 24, 0.05);
+}
+
+.meme-card.dead {
+    border-color: #222;
+    background-color: #050505;
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.meme-card.dead::after {
+    content: "KIA";
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    color: var(--accent-red);
+    border: 2px solid var(--accent-red);
+    font-size: clamp(1.2rem, 1.8vw, 2rem);
+    padding: 2px 8px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.meme-card-img {
+    width: clamp(70px, 8vw, 120px);
+    height: clamp(70px, 8vw, 120px);
+    object-fit: cover;
+    border: 1px solid #222;
+    background-color: #000;
+}
+
+.meme-card-name {
+    font-size: clamp(0.7rem, 0.9vw, 1.1rem);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 8px;
+}
+
+.meme-card-stats {
+    font-size: clamp(0.65rem, 0.8vw, 0.95rem);
+    color: #666;
+    margin-top: 4px;
+}
+
+.party-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #333;
+    padding-top: 15px;
+}
+
+#selected-counter {
+    font-size: clamp(1rem, 1.5vw, 1.6rem);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* --- 5. BATTLE AREA --- */
+.battle-arena {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: clamp(12px, 2vw, 30px);
+    position: relative;
+    transition: background-image 0.5s ease-in-out;
+    box-sizing: border-box;
+}
+
+/* HUD elements */
+.battle-hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(0,0,0,0.85);
+    border: 2px solid var(--border-light);
+    padding: clamp(12px, 2vh, 25px) clamp(20px, 3vw, 50px);
+}
+
+.hud-side {
+    width: 30%;
+}
+
+.hud-side h3 {
+    font-size: clamp(0.9rem, 1.3vw, 1.5rem);
+    letter-spacing: 3px;
+    margin-bottom: 5px;
+}
+
+.team-hp-bar {
+    width: 100%;
+    height: clamp(12px, 1.5vh, 22px);
+    background-color: #222;
+    border: 1px solid #444;
+}
+
+.hp-fill {
+    height: 100%;
+    background-color: var(--accent-red);
+    width: 100%;
+    transition: width 0.1s linear;
+}
+
+#player-hp-text, #enemy-hp-text {
+    font-size: clamp(0.75rem, 1vw, 1.2rem);
+    text-align: right;
+    margin-top: 4px;
+    letter-spacing: 1px;
+}
+
+.hud-center {
+    width: 35%;
+    text-align: center;
+}
+
+#battle-level-banner {
+    font-size: clamp(1.3rem, 2.2vw, 2.5rem);
+    letter-spacing: 3px;
+    color: var(--accent-gold);
+    margin-bottom: 5px;
+}
+
+.mash-flash {
+    font-size: clamp(0.9rem, 1.5vw, 1.8rem);
+    color: #fff;
+    animation: pulseRed 0.6s infinite alternate;
+    letter-spacing: 4px;
+    font-weight: bold;
+}
+
+@keyframes pulseRed {
+    0% { transform: scale(0.95); opacity: 0.6; color: #ff9999; }
+    100% { transform: scale(1.05); opacity: 1; color: var(--accent-red); }
+}
+
+/* Combat Line Placement */
+.combat-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-grow: 1;
+    margin: clamp(15px, 3vh, 40px) 0;
+    padding: 0 clamp(20px, 4vw, 70px);
+}
+
+.combat-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(8px, 1.5vw, 22px);
+    width: 40%;
+    justify-content: center;
+    align-content: center;
+}
+
+/* Boss fight: 5-per-row grid, stacking into rows of 5 vertically — scales to 15 memes */
+.combat-line.many-fighters {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: clamp(4px, 0.8vw, 12px);
+    width: 48%;
+    justify-items: center;
+    align-content: start;
+}
+
+.combat-line.many-fighters .fighter-sprite-wrapper {
+    width: clamp(55px, 6vw, 95px);
+    height: clamp(80px, 11vh, 140px);
+}
+
+.combat-line.many-fighters .fighter-avatar {
+    width: clamp(50px, 5.5vw, 85px);
+    height: clamp(50px, 5.5vw, 85px);
+}
+
+.combat-line.many-fighters .fighter-name {
+    font-size: clamp(0.45rem, 0.6vw, 0.75rem);
+}
+
+.combat-versus {
+    font-size: clamp(2.5rem, 4vw, 5rem);
+    letter-spacing: 4px;
+    color: #444;
+    text-shadow: 0 0 10px #000;
+}
+
+/* Battle Fighter Card Representation */
+.fighter-sprite-wrapper {
+    position: relative;
+    width: clamp(90px, 10vw, 160px);
+    height: clamp(120px, 15vh, 200px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.fighter-avatar {
+    width: clamp(80px, 9vw, 140px);
+    height: clamp(80px, 9vw, 140px);
+    object-fit: cover;
+    border: 2px solid #fff;
+    background-color: #000;
+    border-radius: 4px;
+    z-index: 2;
+    transition: transform 0.05s, border-color 0.1s;
+}
+
+/* Dynamic Recoil Shakes during shooting action */
+.recoil-active {
+    transform: translate(-10px, -2px) rotate(-5deg);
+    border-color: var(--accent-red) !important;
+}
+
+.enemy-recoil-active {
+    transform: translate(10px, 2px) rotate(5deg);
+    border-color: var(--accent-red) !important;
+}
+
+/* Overlay Weapons over PNG Sprites */
+.gun-overlay {
+    position: absolute;
+    bottom: clamp(25px, 3.5vh, 45px);
+    right: clamp(-15px, -1.5vw, -10px);
+    width: clamp(55px, 6vw, 90px);
+    height: auto;
+    z-index: 3;
+    pointer-events: none;
+    filter: drop-shadow(2px 2px 2px #000);
+}
+
+.enemy-side .gun-overlay {
+    right: auto;
+    left: clamp(-15px, -1.5vw, -10px);
+    transform: scaleX(-1);
+}
+
+.fighter-name {
+    font-size: clamp(0.65rem, 0.85vw, 1rem);
+    text-transform: uppercase;
+    text-align: center;
+    background-color: rgba(0,0,0,0.85);
+    padding: 3px 6px;
+    margin-top: 6px;
+    letter-spacing: 1px;
+    width: 100%;
+    border: 1px solid #444;
+}
+
+/* Combat HUD feedback system */
+#combat-log {
+    background-color: rgba(0,0,0,0.9);
+    border: 2px solid var(--border-light);
+    padding: clamp(10px, 1.5vh, 20px);
+    font-size: clamp(0.85rem, 1.2vw, 1.4rem);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-height: clamp(40px, 6vh, 65px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: clamp(28px, 4vh, 48px);
+}
+
+/* Combat visual indicators */
+.damage-bubble {
+    position: absolute;
+    color: var(--accent-red);
+    font-size: clamp(1.2rem, 2vw, 2.2rem);
+    font-weight: bold;
+    animation: floatUp 0.6s ease-out forwards;
+    z-index: 10;
+    pointer-events: none;
+    text-shadow: 2px 2px 0px #000;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-40px) scale(1.3); opacity: 0; }
+}
+
+/* --- 7. PRE-BOSS SCREEN --- */
+#screen-preboss {
+    background: radial-gradient(circle at center, #1a0000 0%, #000000 100%);
+    background-image:
+        radial-gradient(circle at center, #1a0000 0%, #000000 100%);
+}
+
+.preboss-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 80%;
+    max-width: 1100px;
+    gap: clamp(10px, 1.5vh, 22px);
+    padding: clamp(20px, 3vh, 50px);
+    border: 2px solid var(--accent-red);
+    background-color: rgba(10, 0, 0, 0.92);
+    box-shadow: 0 0 60px rgba(201, 24, 24, 0.35), inset 0 0 40px rgba(0,0,0,0.8);
+}
+
+.preboss-skull {
+    font-size: clamp(3rem, 6vw, 7rem);
+    animation: pulseRed 0.8s infinite alternate;
+    line-height: 1;
+}
+
+.preboss-title {
+    font-size: clamp(3rem, 6.5vw, 8rem);
+    color: var(--accent-red);
+    letter-spacing: 8px;
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(201,24,24,0.6);
+}
+
+.preboss-subtitle {
+    font-size: clamp(1.8rem, 3.5vw, 4.5rem);
+    color: var(--accent-gold);
+    letter-spacing: 6px;
+    text-shadow: 0 0 15px rgba(212,175,55,0.5);
+}
+
+.preboss-flavour {
+    font-size: clamp(0.85rem, 1.2vw, 1.4rem);
+    color: #aaaaaa;
+    letter-spacing: 2px;
+    max-width: 600px;
+    line-height: 1.6;
+    text-transform: uppercase;
+}
+
+.preboss-troop-preview {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(8px, 1.2vw, 18px);
+    margin: clamp(6px, 1vh, 16px) 0;
+    max-width: 900px;
+}
+
+.preboss-troop-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: clamp(70px, 8vw, 110px);
+}
+
+.preboss-troop-img {
+    width: clamp(55px, 6vw, 85px);
+    height: clamp(55px, 6vw, 85px);
+    object-fit: cover;
+    border: 2px solid var(--accent-red);
+    background-color: #000;
+    border-radius: 3px;
+}
+
+.preboss-troop-name {
+    font-size: clamp(0.55rem, 0.7vw, 0.8rem);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ccc;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.preboss-troop-hp {
+    font-size: clamp(0.6rem, 0.75vw, 0.85rem);
+    color: var(--accent-gold);
+    letter-spacing: 1px;
+}
+
+.preboss-troop-hp-bar-outer {
+    width: 100%;
+    height: 4px;
+    background-color: #222;
+    border: 1px solid #333;
+}
+
+.preboss-troop-hp-bar-inner {
+    height: 100%;
+    background-color: var(--accent-red);
+    transition: width 0.3s;
+}
+
+.preboss-btn {
+    font-size: clamp(1rem, 1.6vw, 1.8rem);
+    padding: clamp(14px, 2vh, 24px) clamp(30px, 5vw, 70px);
+    letter-spacing: 4px;
+    margin-top: clamp(4px, 0.8vh, 12px);
+    animation: preBossPulse 1.2s infinite alternate;
+}
+
+@keyframes preBossPulse {
+    0%  { box-shadow: 0 0 10px rgba(201,24,24,0.4); }
+    100%{ box-shadow: 0 0 30px rgba(201,24,24,0.9), 0 0 60px rgba(201,24,24,0.3); }
+}
+
+/* Fighter HP bar shown during boss battle */
+.fighter-hp-bar-outer {
+    width: 90%;
+    height: clamp(5px, 0.7vh, 8px);
+    background-color: #222;
+    border: 1px solid #333;
+    margin-top: 3px;
+}
+
+.fighter-hp-bar-inner {
+    height: 100%;
+    background-color: var(--accent-red);
+    transition: width 0.15s linear;
+}
+
+/* --- 8. GAME OVER --- */
+#screen-gameover {
+    background: radial-gradient(circle, #240404 0%, #000000 100%);
+}
+
+.roast-box {
+    text-align: center;
+    width: 65%;
+    max-width: 1000px;
+    border: 2px solid var(--accent-red);
+    background-color: var(--panel-bg);
+    padding: clamp(30px, 5vh, 70px) clamp(30px, 5vw, 70px);
+    box-shadow: 0 0 40px rgba(199, 24, 24, 0.2);
+}
+
+.danger-title {
+    font-size: clamp(3rem, 6vw, 7rem);
+    color: var(--accent-red);
+    letter-spacing: 5px;
+    margin-bottom: 10px;
+}
+
+.wiped-stamp {
+    font-size: clamp(4rem, 7vw, 9rem);
+    font-weight: 900;
+    color: rgba(199, 24, 24, 0.15);
+    border: 6px solid rgba(199, 24, 24, 0.15);
+    display: inline-block;
+    padding: 5px 30px;
+    transform: rotate(-12deg);
+    margin: 20px 0;
+    letter-spacing: 12px;
+}
+
+.roast-text {
+    font-size: clamp(1rem, 1.5vw, 1.6rem);
+    line-height: 1.6;
+    margin: 20px 0 40px 0;
+    color: #dddddd;
+    font-style: italic;
+    letter-spacing: 1px;
+}
+
+/* --- 8. WIN SCREEN --- */
+#screen-win {
+    background: radial-gradient(circle, #2b230f 0%, #000000 100%);
+}
+
+.win-box {
+    width: 70%;
+    max-width: 1100px;
+    text-align: center;
+    border: 2px solid var(--accent-gold);
+    background-color: var(--panel-bg);
+    padding: clamp(30px, 4vh, 60px);
+}
+
+.victory-title {
+    font-size: clamp(2.5rem, 5vw, 6rem);
+    color: var(--accent-gold);
+    letter-spacing: 3px;
+    margin-bottom: 15px;
+}
+
+.win-video-container {
+    width: 100%;
+    height: clamp(200px, 35vh, 400px);
+    background-color: #000;
+    border: 1px solid var(--accent-gold);
+    margin: 25px 0;
+}
+
+.win-video-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* --- MADE BY CREDIT --- */
+#made-by-credit {
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mafia);
+    font-size: clamp(0.65rem, 0.9vw, 1rem);
+    color: #ffffff;
+    text-align: center;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1.5;
+    z-index: 9999;
+    pointer-events: auto;
+    white-space: nowrap;
+}
+
+#made-by-link {
+    color: var(--accent-red);
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+#made-by-link:hover {
+    opacity: 0.75;
+    text-decoration: underline;
+}
+
+/* Hidden state for credit (toggled via JS during cutscenes) */
+#made-by-credit.hidden {
+    display: none !important;
+}
+/* --- HUB BUTTON --- */
+#hub-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    font-family: var(--font-mafia);
+    font-size: clamp(0.85rem, 1.1vw, 1.2rem);
+    color: var(--border-light);
+    background-color: transparent;
+    border: 2px solid var(--border-light);
+    padding: clamp(8px, 1vh, 14px) clamp(16px, 2vw, 28px);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    z-index: 9999;
+    transition: all 0.2s ease-in-out;
+    pointer-events: auto;
+}
+
+#hub-btn:hover {
+    background-color: var(--border-light);
+    color: var(--bg-dark);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+/* Hide hub button during cutscenes */
+#hub-btn.hidden {
+    display: none !important;
+}
+
+/* Hub button sits just below the HUD white border, inside the battle arena */
+.hub-btn-battle {
+    position: absolute;
+    /* top and left are set precisely by JS after the HUD renders */
+    top: 0;
+    left: 20px;
+    font-family: var(--font-mafia);
+    font-size: clamp(0.85rem, 1.1vw, 1.2rem);
+    color: var(--border-light);
+    background-color: transparent;
+    border: 2px solid var(--border-light);
+    padding: clamp(8px, 1vh, 14px) clamp(16px, 2vw, 28px);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    z-index: 10;
+}
+
+.hub-btn-battle.hidden {
+    display: none !important;
+}
+
+.hub-btn-battle:hover {
+    background-color: var(--border-light);
+    color: var(--bg-dark);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
