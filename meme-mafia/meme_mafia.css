@@ -246,8 +246,8 @@ body {
     margin-top: 16px;
     font-size: clamp(0.85rem, 1.2vw, 1.2rem);
     font-family: var(--font-mafia);
-    color: var(--accent-gold);
-    text-shadow: 0 0 8px rgba(212, 175, 55, 0.6), 0 2px 4px #000;
+    color: var(--accent-red);
+    text-shadow: 0 0 8px #c91818, 0 2px 4px #000;
     letter-spacing: 3px;
     text-transform: uppercase;
     pointer-events: none;
