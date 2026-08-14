@@ -61,11 +61,19 @@
 
     <!-- README / About view — hidden until the ABOUT button is clicked -->
     <div id="readme-view">
+        <button id="doc-arrow-left" class="doc-nav-arrow doc-arrow-left" aria-label="Go to README" title="README.md">◀</button>
         <div id="readme-panel">
+            <div id="doc-title-bar">
+                <span id="doc-title-label">📖 README.md</span>
+            </div>
             <div id="readme-content">
                 <p class="readme-loading">loading readme.md ...</p>
             </div>
+            <div id="wiki-content" style="display:none;">
+                <p class="readme-loading">loading wiki.md ...</p>
+            </div>
         </div>
+        <button id="doc-arrow-right" class="doc-nav-arrow doc-arrow-right" aria-label="Go to Wiki" title="Wiki.md">▶</button>
     </div>
 
     <div class="game-container">

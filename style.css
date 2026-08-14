@@ -668,6 +668,7 @@ h1, .game-card h3 {
   padding: 110px 20px 60px;
   box-sizing: border-box;
   overflow-y: auto;
+  gap: 24px;
   /* Hide the scrollbar, same trick used on html/body above */
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -680,6 +681,196 @@ h1, .game-card h3 {
 /* Toggled on <body> by script.js when ABOUT is active */
 body.about-active #readme-view {
   display: flex;
+}
+
+/* =========================================
+   DOC NAV ARROWS (left = README, right = Wiki)
+   Big Comic Sans arrows with spinning conic gradient fill,
+   matching the Shit Ass Toybox header vibes ✨
+   ========================================= */
+.doc-nav-arrow {
+  position: sticky;
+  top: 50%;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: calc(50vh - 110px - 70px); /* center vertically within the padded view */
+  width: 100px;
+  height: 140px;
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 5rem;
+  line-height: 1;
+  border: 5px solid #333;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Spinning conic rainbow background — same as the header */
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  color: #000;
+  -webkit-text-stroke: 2px #000;
+  text-shadow: 3px 3px 0px rgba(0,0,0,0.4);
+  animation: spin-text-rainbow 2s linear infinite;
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  /* Keep arrows on screen even during scroll */
+  z-index: 910;
+}
+
+.doc-nav-arrow:hover {
+  transform: scale(1.12);
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.45);
+}
+
+.doc-nav-arrow:active {
+  transform: scale(0.95);
+}
+
+/* Dim the left arrow when README is active (already there) */
+.doc-arrow-left.arrow-inactive {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Dim the right arrow when Wiki is active (already there) */
+.doc-arrow-right.arrow-inactive {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* =========================================
+   DOC TITLE BAR
+   Shows which doc you're looking at
+   ========================================= */
+#doc-title-bar {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+#doc-title-label {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 1.4rem;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 1.5px #000;
+  animation: spin-text-rainbow 2s linear infinite;
+  display: inline-block;
+}
+
+/* =========================================
+   WIKI CONTENT
+   Mirrors all the readme-content styles
+   ========================================= */
+#wiki-content h1,
+#wiki-content h2,
+#wiki-content h3 {
+  background: none;
+  color: #d6009a;
+  -webkit-text-stroke: 0px;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  text-transform: none;
+  text-shadow: none;
+  animation: none;
+}
+
+#wiki-content h1 {
+  font-size: 2.3rem;
+  text-align: center;
+  margin-top: 0;
+}
+
+#wiki-content h2 {
+  font-size: 1.6rem;
+  color: #ff6f00;
+  border-bottom: 3px dashed #ff6f00;
+  padding-bottom: 6px;
+}
+
+#wiki-content h3 {
+  font-size: 1.25rem;
+  color: #0088aa;
+}
+
+#wiki-content p,
+#wiki-content li {
+  font-size: 1.05rem;
+  font-weight: normal;
+  line-height: 1.6;
+  color: #1a1a1a;
+  -webkit-text-stroke: 0px;
+}
+
+#wiki-content a {
+  color: #d6009a;
+  font-weight: bold;
+}
+#wiki-content a:hover {
+  color: #ff6f00;
+}
+
+#wiki-content code {
+  background: #111;
+  color: #7CFC00;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  -webkit-text-stroke: 0px;
+}
+
+#wiki-content pre {
+  background: #111;
+  color: #7CFC00;
+  padding: 15px;
+  border-radius: 10px;
+  overflow-x: auto;
+  -webkit-text-stroke: 0px;
+}
+#wiki-content pre code {
+  background: none;
+  padding: 0;
+}
+
+#wiki-content blockquote {
+  border-left: 5px solid #ff00ff;
+  margin: 15px 0;
+  padding: 6px 18px;
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.4);
+  color: #1a1a1a;
+}
+
+#wiki-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+}
+#wiki-content th,
+#wiki-content td {
+  border: 2px solid #333;
+  padding: 6px 10px;
+  color: #1a1a1a;
+}
+#wiki-content th {
+  background: #333;
+  color: #fff;
+}
+
+#wiki-content img {
+  max-width: 100%;
+  border-radius: 10px;
 }
 
 body.about-active .brand-header,

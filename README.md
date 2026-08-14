@@ -14,29 +14,39 @@
 
 ---
 
-<p><strong><font size="6">⚠️ BREAKING NEWS!</font></strong></p>
+<p><strong><font size="6">WELCOME TO MY SHIT ASS TOYBOX!</font></strong></p>
 
-**The site has relocated to a brand new repository!** <br>
-**I wanted to start clean again because I need a new url for the new rebranded site and the old one had too many commits!** <br>
+<p><strong><font size="4">☢️ FEATURES</font></strong></p>
 
----
+<p><strong><font size="4">GUI 🎨</font></strong></p>
 
-<p><strong><font size="5">⚠️ HUGE NEW HUB UPDATE!</font></strong></p>
-
-* Rebranded from That One Dutch Guy's Mini-Game Hub to That One Dutch Guy's Shit Ass Toybox! ✨
-* Added the Mini Toybox with various hilarious meme toyz! 🤣
-* Added fabulous little background images to all of the game cards! 🦄
-* Added a warning splash screen that is really, really fucking informative, man! 😅
-* Changed the layout of the whole main site while still staying eye-bleedingly fabulous! 😎
-* Added an actual background music track, replacing that old ass web-synthesized tune! 🎵
-* Added a music toggle button, but you wouldn't dare actually use it... right?! 🥺
-* Added an ABOUT button so you can read the fabulous README.md on the page! 📖
-* Added a banning system for mobile phones, tablets, iPad, and even fucking Smart Fridges! 🚫
-* And so much more! Go visit and find out! 👇🏻
+* Spinning rainbow conic gradients! 🌀
+* Constantly shifting rainbow gradient background! 🌈
+* ALMOST EVERYTHING IS FUCKING ANIMATED WITH CSS! 🤯
+* Comic Sans TTF bundled and forced via @font-face! 🔤
+* Spinning rainbow conic gradients inside the Comic Sans letters! 😵‍💫
+* A ban screen featuring our favorite red plumber threating you with a shotgun! 🔫
+* A warning splash screen for PC, indicating that braincell loss is guaranteed! 🧠
+* GIANT game cards for each individual game, each with a unique background image inside the card! 🖼️
+* On-site README.md and Wiki.md rendering in the ABOUT tab, using a bundled copy of marked.min.js! ℹ️
+* Interactive Mini Toyz memes that move around like fucking maniacs constantly and make noise when clicked! 💥
+* A spinning rainbow conic gradient music toggle button that you wouldn't dare turn off, right? 🥺
 
 ---
 
-<p><strong><font size="4">🕹️ List of currently available toys and games</font></strong></p>
+<p><strong><font size="4">LOGIC 🧠</font></strong></p>
+
+* A banning system for phones, tablets, and even smart kitchen appliances! HA! SUCKERS! 🤣
+* A device-guard.js file that kicks the touchscreen fuckers out of the games if they try to enter via entering the URL! 📵
+* Request desktop site spoofing detection that kicks the fuckers out too! 🕵🏻‍♂️
+* Aggresive dynamic ban messages depending on the type of banned device! 💀
+* Eh, if they do figure a way around device-guard, then ENJOY THE BROKEN CSS! HA! 🤣
+* Native DualShock 4 page navigation support for absolutely no reason! 🎮️
+* And much more smart shit! Go check it out! NOW! 😁
+
+---
+
+<p><strong><font size="4">🕹️ LIST OF CURRENTLY AVAILABLE MINI-TOYZ AND GAMES</font></strong></p>
 
 **GAMES:**
 
@@ -58,8 +68,8 @@
 **TOYS:**
 
 * MLG Airhorn Toy
-* Pingas Toy
-* Dinner Toy
+* Robotnik Pingas Toy
+* King Harkinian Dinner Toy
 * Mama Luigi Toy
 
 ---
@@ -140,13 +150,13 @@
 > **A:** Honestly? I don't know. Maybe when I run out of inspiration, but that ain't gonna happen anytime soon! 👍🏻
 
 > **Q: Is the code AI generated?**  <br>
-> **A:** Partially. I frequently use AI tools to help me debug and brainstorm when I get stuck. However, I make sure not to overuse it, and I meticulously verify every snippet of code the AI provides before merging it. Don't judge me. 🤷🏻‍♂️
+> **A:** Partially, yep. So fucking what? I came up with all the ideas myself. Debugging and making small fixes is faster with AI than doing it manually and eventually shitting yourself cuz the code won't cooperate lol! 😎
 
 > **Q: Will you ever return to making YouTube videos?**  <br>
 > **A:** Highly unlikely! However, I might consider creating new content if I ever find myself with an abundance of free time down the road. If I do make a return, the content will likely focus on web development topics! 🌐
 
 > **Q: How do you come up with this beautiful shit?** <br>
-> **A:** Having both autism and ADHD, and having hyperfocuses on both stupid old memes and webdevelopment! 🤣
+> **A:** Having both autism and ADHD, and having hyperfocuses on both stupid old memes and webdevelopment! Trust me, it's a superpower for shit like this! Not a limitation! 😜
 
 > **Q: Will you really come after me with a shotgun if I try to play one of your games on mobile?** <br>
 > **A:** Yes I will. Without a doubt. 🙃
@@ -166,7 +176,13 @@
 > **Q: Do you have an OnlyFans account?** <br>
 > **A:** Oh, you wish I had for sure! But OnlyFans thinks I'm too fabulous for their platform! 🦄
 
-> **Q: If you had a theme song, what would it be?** <br>
-> **A:** Startin' Up a Posse - Anthrax! Why? Because it doesn't hold back and is against censorship, just like me! 🤪🖕🏻
+> **Q: How did you get into 2000s / early 2010s internet culture despite being only 18 now?** <br>
+> **A:** Well, part of the reason is my hyperfocus on it, but the main reason is that old memes and YTP always made me laugh more than modern memes and YTP do! I have always been into absurd, chaotic, and crude humor! 😂
+
+> **Q: Who is King Harkinian?** <br>
+> **A:** Are you for real right now?! Go do your research! 💀🖕🏻
+
+> **Q: What is your goal with this site?** <br>
+> **A:** Good question! My goal is to help out a hand keep the internet from becoming a soulless corporate minimalist wasteland, and keep the soul of 2000s and early 2010s internet culture alive by making fucking hilarious uncensored non-profit interactive shit completely for free! I do this as a hobby for my own amusement mainly, but I like sharing my cursed shit too to other enjoyers! 😎
 
 ---

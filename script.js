@@ -354,12 +354,20 @@ function playToy(toy) {
 if (!isPhone) buildToysPanel();
 
 // =========================================
-// ABOUT / README VIEW
+// ABOUT / README + WIKI VIEW
 // =========================================
-const aboutToggleBtn = document.getElementById('about-toggle');
-const readmeContentEl = document.getElementById('readme-content');
-let aboutIsOpen = false;
-let readmeHasLoaded = false;
+const aboutToggleBtn   = document.getElementById('about-toggle');
+const readmeContentEl  = document.getElementById('readme-content');
+const wikiContentEl    = document.getElementById('wiki-content');
+const docTitleLabel    = document.getElementById('doc-title-label');
+const arrowLeft        = document.getElementById('doc-arrow-left');
+const arrowRight       = document.getElementById('doc-arrow-right');
+
+let aboutIsOpen      = false;
+let readmeHasLoaded  = false;
+let wikiHasLoaded    = false;
+// 'readme' | 'wiki'
+let currentDoc       = 'readme';
 
 function setAboutOpen(open) {
     aboutIsOpen = open;
@@ -370,8 +378,29 @@ function setAboutOpen(open) {
         aboutToggleBtn.setAttribute('aria-pressed', open ? 'true' : 'false');
     }
 
-    if (open && !readmeHasLoaded) {
-        loadReadme();
+    if (open) {
+        // Always land on README when opening About
+        showDoc('readme');
+        if (!readmeHasLoaded) loadReadme();
+    }
+}
+
+function showDoc(doc) {
+    currentDoc = doc;
+
+    if (doc === 'readme') {
+        readmeContentEl.style.display = '';
+        wikiContentEl.style.display   = 'none';
+        if (docTitleLabel) docTitleLabel.textContent = '📖 README.md';
+        if (arrowLeft)  arrowLeft.classList.add('arrow-inactive');
+        if (arrowRight) arrowRight.classList.remove('arrow-inactive');
+    } else {
+        readmeContentEl.style.display = 'none';
+        wikiContentEl.style.display   = '';
+        if (docTitleLabel) docTitleLabel.textContent = '📚 Wiki.md';
+        if (arrowLeft)  arrowLeft.classList.remove('arrow-inactive');
+        if (arrowRight) arrowRight.classList.add('arrow-inactive');
+        if (!wikiHasLoaded) loadWiki();
     }
 }
 
@@ -382,8 +411,6 @@ function loadReadme() {
             return res.text();
         })
         .then(markdown => {
-            // marked.parse() converts the markdown to HTML and leaves any
-            // raw HTML tags already in README.md completely untouched.
             readmeContentEl.innerHTML = marked.parse(markdown);
             readmeHasLoaded = true;
         })
@@ -396,8 +423,40 @@ function loadReadme() {
         });
 }
 
+function loadWiki() {
+    wikiContentEl.innerHTML = '<p class="readme-loading">loading wiki.md ...</p>';
+    fetch('Wiki.md')
+        .then(res => {
+            if (!res.ok) throw new Error('status ' + res.status);
+            return res.text();
+        })
+        .then(markdown => {
+            wikiContentEl.innerHTML = marked.parse(markdown);
+            wikiHasLoaded = true;
+        })
+        .catch(err => {
+            wikiContentEl.innerHTML =
+                '<p>Could not load Wiki.md (' + err.message + '). ' +
+                'Make sure Wiki.md sits in the same folder as index.html, ' +
+                'and that you\'re viewing this over a local/real server rather ' +
+                'than opening the file directly.</p>';
+        });
+}
+
 if (aboutToggleBtn && !isPhone) {
     aboutToggleBtn.addEventListener('click', () => setAboutOpen(!aboutIsOpen));
+}
+
+if (arrowRight && !isPhone) {
+    arrowRight.addEventListener('click', () => {
+        if (currentDoc !== 'wiki') showDoc('wiki');
+    });
+}
+
+if (arrowLeft && !isPhone) {
+    arrowLeft.addEventListener('click', () => {
+        if (currentDoc !== 'readme') showDoc('readme');
+    });
 }
 
 // --- LOGO SMOOTH SPIN ANIMATION ---
@@ -646,6 +705,26 @@ function initGamepadNav() {
         }
     }
 
+    // L1 in About context = switch to README (left arrow)
+    function docNavLeft() {
+        enterGamepadMode();
+        if (getContext() !== 'about') return;
+        if (typeof showDoc === 'function' && currentDoc !== 'readme') {
+            showDoc('readme');
+            showToast('📖 README.md');
+        }
+    }
+
+    // R1 in About context = switch to Wiki (right arrow)
+    function docNavRight() {
+        enterGamepadMode();
+        if (getContext() !== 'about') return;
+        if (typeof showDoc === 'function' && currentDoc !== 'wiki') {
+            showDoc('wiki');
+            showToast('📚 Wiki.md');
+        }
+    }
+
     // ---- Non-standard mapping detection & remapping ----
     //
     // On Linux (including Linux Mint), Chrome/Chromium frequently exposes the
@@ -676,6 +755,9 @@ function initGamepadNav() {
             return {
                 confirm:  () => isButtonPressed(gp, 0),
                 back:     () => isButtonPressed(gp, 1),
+                // L1 = buttons[4], R1 = buttons[5] in the standard mapping
+                l1:       () => isButtonPressed(gp, 4),
+                r1:       () => isButtonPressed(gp, 5),
                 dUp:      () => isButtonPressed(gp, 12),
                 dDown:    () => isButtonPressed(gp, 13),
                 dLeft:    () => isButtonPressed(gp, 14),
@@ -691,9 +773,12 @@ function initGamepadNav() {
         // D-pad comes in as axes[6] (left/right: -1/0/+1) and axes[7] (up/down: -1/0/+1).
         // We expose the d-pad as virtual "button" slots 100-103 so handleButton can
         // treat them identically — the isDpad check covers these virtual indices.
+        // Raw DS4: L1 = buttons[4], R1 = buttons[5] -- same indices as standard, nice!
         return {
             confirm:  () => isButtonPressed(gp, 1),   // Cross
             back:     () => isButtonPressed(gp, 2),   // Circle
+            l1:       () => isButtonPressed(gp, 4),   // L1
+            r1:       () => isButtonPressed(gp, 5),   // R1
             dUp:      () => (gp.axes[7] ?? 0) < -0.5,
             dDown:    () => (gp.axes[7] ?? 0) >  0.5,
             dLeft:    () => (gp.axes[6] ?? 0) < -0.5,
@@ -751,7 +836,7 @@ function initGamepadNav() {
             for (const gp of pads) {
                 if (gp && gp.buttons.length >= 10 && gp.axes.length >= 4) {
                     activeGamepadIndex = gp.index;
-                    showToast('🎮 Controller connected — D-Pad to move, ✕ to select');
+                    showToast('🎮 Controller connected — D-Pad to move, ✕ to select, L1/R1 to flip docs');
                     enterGamepadMode();
                     break;
                 }
@@ -771,6 +856,10 @@ function initGamepadNav() {
         // Face buttons
         handleVirtualButton('confirm', map.confirm(), activateSelection, false);
         handleVirtualButton('back',    map.back(),    goBack,            false);
+
+        // Shoulder buttons — L1/R1 flip between README and Wiki in the About view
+        handleVirtualButton('l1', map.l1(), docNavLeft,  false);
+        handleVirtualButton('r1', map.r1(), docNavRight, false);
 
         // D-pad (auto-repeat enabled)
         handleVirtualButton('dUp',    map.dUp(),    () => moveSelection('up'),    true);
