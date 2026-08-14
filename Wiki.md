@@ -81,7 +81,7 @@ That One Dutch Guy also has a <a href="https://www.gta5-mods.com/users/That1Dutc
 ---
 
 Source: WikiTubia <br>
-Originally made in 2023 by BigSmoke3452 on WikiTubia
+Originally made in 2023 by BigSmoke3452 on WikiTubia. <br>
 New edit for Wiki.md made by yours oh so fabulous truly, That One Dutch Guy 😉
 
 ---
