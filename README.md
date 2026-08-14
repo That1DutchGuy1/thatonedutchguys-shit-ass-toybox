@@ -185,6 +185,9 @@
 > **Q: What is your goal with this site?** <br>
 > **A:** Good question! My goal is to help out a hand keep the internet from becoming a soulless corporate minimalist wasteland, and keep the soul of 2000s and early 2010s internet culture alive by making fucking hilarious uncensored non-profit interactive shit completely for free! I do this as a hobby for my own amusement mainly, but I like sharing my cursed shit too to other enjoyers! 😎
 
+> **Q: What the hell is your profile picture logo?** <br>
+> **A:** It's a low quality sloppy AI generated image of Trevor from GTA 5 wearing a dirty tuxedo and top hat that I made back somewhere around 2022 or 2023 maybe! I think it looks hilariously sloppy and I'll never change it! 😂
+
 ---
 
 <p><strong><font size="3">ℹ️ RANDOM FACTS AND HISTORY ABOUT THE SHIT ASS TOYBOX</font></strong></p>
@@ -195,6 +198,6 @@
 * The old Mini-Game Hub used to have JavaScript synthesized background music instead of the current remixed Hotel Mario main theme WAV file!
 * The Mini-Game Hub was a lot more static than the Shit Ass Toybox is now! The oldie used to only have a shifting background and gamecard hover animations! 😯
 * Most of the games were developed insanely fucking fast by my ADHD fueled brain! I made Meme Claw Machine in only two days, yet it uses Three.js and Cannon.js! 😯
-* The circular avatar logo from my channel spins when you hover over it! 😯
+* The circular profile pic logo from my channel spins when you hover over it! 😯
 
 ---
