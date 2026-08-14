@@ -186,3 +186,15 @@
 > **A:** Good question! My goal is to help out a hand keep the internet from becoming a soulless corporate minimalist wasteland, and keep the soul of 2000s and early 2010s internet culture alive by making fucking hilarious uncensored non-profit interactive shit completely for free! I do this as a hobby for my own amusement mainly, but I like sharing my cursed shit too to other enjoyers! 😎
 
 ---
+
+<p><strong><font size="3">ℹ️ RANDOM FACTS AND HISTORY ABOUT THE SHIT ASS TOYBOX</font></strong></p>
+
+* Did you know that the Shit Ass Toybox used to be called That One Dutch Guy's Mini-Game Hub in the earlier days? 😯
+* The gamecards used to be completely white and displayed in horizontal rows on the old Mini-Game Hub! They now all have unique images and are displayed vertically on the right side of the screen, with two cards horizontally per row!
+* I made the early Beta of Bup The Super Awesome Clicker Game way before even the old Mini-Game Hub existed on a school computer! It was the first web-game I ever made! 😯
+* The old Mini-Game Hub used to have JavaScript synthesized background music instead of the current remixed Hotel Mario main theme WAV file!
+* The Mini-Game Hub was a lot more static than the Shit Ass Toybox is now! The oldie used to only have a shifting background and gamecard hover animations! 😯
+* Most of the games were developed insanely fucking fast by my ADHD fueled brain! I made Meme Claw Machine in only two days, yet it uses Three.js and Cannon.js! 😯
+* The circular avatar logo from my channel spins when you hover over it! 😯
+
+---
