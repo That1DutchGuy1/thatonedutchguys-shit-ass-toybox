@@ -629,13 +629,13 @@ function removeTyping() {
 
 // Fallback canned lines per character in case the real AI call fails (e.g. offline)
 const fallback = {
-  harkinian: ["Mah boi!", "I wonder what's for dinner...", "OAAHAHAHAHAHA!", "Enough! My ship sails in the morning!"],
-  link: ["Gee, that's swell!", "Well excuuuuse me, Princess!", "I can't wait to bomb some Dodongos!"],
-  zelda: ["You've got to be kidding.", "Father!", "Ten thousand years would give you such a crick in the neck."],
+  harkinian: ["Mah boi!", "I wonder what's for dinner...", "OAAHAHAHAHAHA!", "Enough! My ship sails in the morning!", "After you've scrubbed all the floors in Hyrule, then we can talk about mercy!"],
+  link: ["Gee, it sure is boring around here!", "I just wonder what Ganon is up to", "Well excuuuuse me, Princess!", "I can't wait to bomb some Dodongos!"],
+  zelda: ["You've got to be kidding.", "Father!", "Good.", "A whole month gone, and still no word!"],
   morshu: ["Lamp oil, rope, bombs? You want it?", "Sorry, I can't give credit!", "It's yours, my friend!"],
-  gwonam: ["Squadalah! We are off!", "It is written...", "Look and see!"],
-  onkled: ["Please! Have mercy!", "Ganon's going to kill me!", "I'm under attack by the evil forces of Ganon!"],
-  ganon: ["YOU DARE MESSAGE ME?!", "Join me, or you will DIE!", "Your face will be the greatest in Koridai!"]
+  gwonam: ["Squadalah! We are off!", "It is written...", "Look and see!", "You must conquer each"],
+  onkled: ["Please! Your omnipotence! Have mercy!", "D-Don't hurt me! I'll tell you the secret way into Reesong Palace", "I'm under attack by the evil forces of Ganon!"],
+  ganon: ["YOU DARE MESSAGE ME?!", "Join me, or else you will DIE!", "Your face will be the greatest in Koridai!", "No! Not into the pit! IT BURNS!", "YOU MUST DIE!"]
 };
 
 async function callCharacterAI(userText) {
