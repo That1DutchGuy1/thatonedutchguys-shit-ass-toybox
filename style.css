@@ -397,6 +397,10 @@ h1 {
   animation: mama-luigi-shake 0.8s ease-in-out infinite;
 }
 
+.toy-btn.toy-mario-toast img {
+  animation: toast-wave 0.8s ease-in-out infinite;
+}
+
 @keyframes airhorn-bob {
   0%, 100% { transform: translateY(0) rotate(-8deg); }
   50% { transform: translateY(-8px) rotate(8deg); }
@@ -420,6 +424,25 @@ h1 {
   75%  { transform: translateX(-5px)  translateY(0)    rotate(-3deg); }
   100% { transform: translateX(0)     translateY(0)    rotate(0deg);  }
 }
+
+@keyframes toast-wave {
+  0%, 100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  20% {
+    transform: translateY(-8px) scale(1.08) rotate(-4deg);
+  }
+  40% {
+    transform: translateY(-2px) scale(1.12) rotate(4deg);
+  }
+  60% {
+    transform: translateY(-8px) scale(1.08) rotate(-3deg);
+  }
+  80% {
+    transform: translateY(-2px) scale(1.04) rotate(2deg);
+  }
+}
+
 
 /* =========================================
    GAME CARDS

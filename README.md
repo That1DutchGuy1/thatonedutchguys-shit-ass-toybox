@@ -25,7 +25,7 @@
 * ALMOST EVERYTHING IS FUCKING ANIMATED WITH CSS! 🤯
 * Comic Sans TTF bundled and forced via @font-face! 🔤
 * Spinning rainbow conic gradients inside the Comic Sans letters! 😵‍💫
-* A ban screen featuring our favorite red plumber threating you with a shotgun! 🔫
+* A ban screen featuring Mario threating you with a shotgun! 🔫
 * A warning splash screen for PC, indicating that braincell loss is guaranteed! 🧠
 * GIANT game cards for each individual game, each with a unique background image inside the card! 🖼️
 * On-site README.md and Wiki.md rendering in the ABOUT tab, using a bundled copy of marked.min.js! ℹ️
@@ -71,6 +71,7 @@
 * Robotnik Pingas Toy
 * King Harkinian Dinner Toy
 * Mama Luigi Toy
+* Mario Toast Toy
 
 ---
 

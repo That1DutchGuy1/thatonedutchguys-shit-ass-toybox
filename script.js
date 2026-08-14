@@ -293,7 +293,7 @@ const TOYS = [
         id:       'harkinian',
         label:    'KING HARKINIAN',
         img:      'KingHarkinian.png',
-        sounds:   ['dinner.mp3'],
+        sounds:   ['Mah-Boi.mp3'],
         overlap:  true,
         cssClass: 'toy-cd-i-king-harkinian',
     },
@@ -304,6 +304,14 @@ const TOYS = [
         sounds:   ['Mama-luigi.mp3'],
         overlap:  true,
         cssClass: 'toy-mama-luigi',
+    },
+    {
+        id:       'mario-toast',
+        label:    'MARIO TOAST',
+        img:      'Mario-Toast.png',
+        sounds:   ['toast.mp3'],
+        overlap:  true,
+        cssClass: 'toy-mario-toast',
     }
     // 👇 Add future toys here — no other changes needed!
 ];
