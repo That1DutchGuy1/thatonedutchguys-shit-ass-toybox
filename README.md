@@ -165,7 +165,7 @@
 > **A:** I'm not your kid's daycare supervisor or whatever, sir / ma'am. If you actually READ this README, then you know! 🙄
 
 > **Q: What do you do in your free time mostly nowadays?** <br>
-> **A:** Coding, duh, jerk off to Pornhub videos, blast Megadeth, Slayer and Anthrax, watch YTP, make memes, and so much more bullshit! 😎
+> **A:** Coding, duh, jerk off to Pornhub videos, blast Megadeth, Slayer and Anthrax, watch YTP, make memes, burn custom DVD-R discs with old YTP videos on them for preservation sake, and so much more bullshit! 😎
 
 > **Q: Which operating system do you work on?** <br>
 > **A:** A system I delightfully call "The Cinnamon XP Meme Machine"! It's a very dedicated mod collection to make Linux Mint 22 Cinnamon Edition look and sound like Windows XP! 😁
