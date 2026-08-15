@@ -18,6 +18,127 @@ function stopMusic() {
     bgMusic.currentTime = 0;
 }
 
+// --- MEME SCORE JINGLE (Web Audio API — no extra files needed!) ---
+const _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playScoreJingle() {
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    const noteDuration = 0.10;
+    const noteGap      = 0.02;
+    notes.forEach((freq, i) => {
+        const startTime = _audioCtx.currentTime + i * (noteDuration + noteGap);
+        const osc = _audioCtx.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, startTime);
+        osc.frequency.linearRampToValueAtTime(freq * 1.04, startTime + noteDuration);
+        const gain = _audioCtx.createGain();
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.18, startTime + 0.01);
+        gain.gain.linearRampToValueAtTime(0.0,  startTime + noteDuration);
+        const hpf = _audioCtx.createBiquadFilter();
+        hpf.type = 'highpass';
+        hpf.frequency.value = 200;
+        osc.connect(hpf); hpf.connect(gain); gain.connect(_audioCtx.destination);
+        osc.start(startTime); osc.stop(startTime + noteDuration + 0.01);
+    });
+    const shimmerStart = _audioCtx.currentTime + notes.length * (noteDuration + noteGap);
+    const shimmer = _audioCtx.createOscillator();
+    shimmer.type = 'triangle';
+    shimmer.frequency.setValueAtTime(2093, shimmerStart);
+    const shimmerGain = _audioCtx.createGain();
+    shimmerGain.gain.setValueAtTime(0.12, shimmerStart);
+    shimmerGain.gain.exponentialRampToValueAtTime(0.001, shimmerStart + 0.25);
+    shimmer.connect(shimmerGain); shimmerGain.connect(_audioCtx.destination);
+    shimmer.start(shimmerStart); shimmer.stop(shimmerStart + 0.26);
+}
+
+// --- VICTORY FANFARE (Web Audio API) ---
+function playVictoryFanfare() {
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+    const t = _audioCtx.currentTime + 0.05;
+
+    function note(type, freq, start, dur, vol, pitchBend = 1) {
+        const osc = _audioCtx.createOscillator();
+        const gain = _audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, start);
+        if (pitchBend !== 1) osc.frequency.linearRampToValueAtTime(freq * pitchBend, start + dur);
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(vol, start + 0.015);
+        gain.gain.linearRampToValueAtTime(vol * 0.6, start + dur * 0.5);
+        gain.gain.linearRampToValueAtTime(0, start + dur);
+        osc.connect(gain); gain.connect(_audioCtx.destination);
+        osc.start(start); osc.stop(start + dur + 0.02);
+    }
+
+    function noise(start, dur, vol, hpfFreq = 2000) {
+        const bufSize = _audioCtx.sampleRate * dur;
+        const buf = _audioCtx.createBuffer(1, bufSize, _audioCtx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+        const src = _audioCtx.createBufferSource();
+        src.buffer = buf;
+        const hpf = _audioCtx.createBiquadFilter();
+        hpf.type = 'highpass'; hpf.frequency.value = hpfFreq;
+        const gain = _audioCtx.createGain();
+        gain.gain.setValueAtTime(vol, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+        src.connect(hpf); hpf.connect(gain); gain.connect(_audioCtx.destination);
+        src.start(start); src.stop(start + dur);
+    }
+
+    function kick(start, vol = 0.4) {
+        const osc = _audioCtx.createOscillator();
+        const gain = _audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(160, start);
+        osc.frequency.exponentialRampToValueAtTime(40, start + 0.12);
+        gain.gain.setValueAtTime(vol, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.18);
+        osc.connect(gain); gain.connect(_audioCtx.destination);
+        osc.start(start); osc.stop(start + 0.2);
+    }
+
+    // Act 1: Snare drum roll
+    [0, 0.18, 0.32, 0.42, 0.50, 0.56, 0.60].forEach(dt => noise(t + dt, 0.08, 0.25, 1800));
+
+    // Act 2: Heroic brass arp
+    [392, 493.88, 587.33, 783.99].forEach((f, i) => {
+        const s = t + 0.65 + i * 0.13;
+        note('square', f, s, 0.20, 0.20);
+        kick(s, 0.22);
+    });
+
+    // Act 3: Main melodic phrase
+    [[523.25,1.25,0.12,0.18],[523.25,1.38,0.12,0.18],[523.25,1.51,0.12,0.18],
+     [659.25,1.65,0.38,0.22],[587.33,2.05,0.12,0.17],[659.25,2.18,0.12,0.17],
+     [783.99,2.32,0.50,0.24]].forEach(([f,s,d,v]) => note('square', f, t+s, d, v, 1.01));
+    [[261.63,1.25,0.12,0.09],[261.63,1.38,0.12,0.09],[261.63,1.51,0.12,0.09],
+     [329.63,1.65,0.38,0.11],[293.66,2.05,0.12,0.08],[329.63,2.18,0.12,0.08],
+     [392.00,2.32,0.50,0.12]].forEach(([f,s,d,v]) => note('triangle', f, t+s, d, v));
+    [1.25, 1.65, 2.05, 2.32].forEach(dt => noise(t + dt, 0.06, 0.12, 2200));
+
+    // Act 4: Big chord + shimmer cascade
+    const cs = t + 2.9;
+    [[130.81,'sine'],[261.63,'triangle'],[392.00,'triangle'],
+     [523.25,'square'],[783.99,'square'],[1046.50,'sawtooth']]
+        .forEach(([f, type]) => note(type, f, cs, 1.8, 0.10, 1.005));
+    kick(cs, 0.45);
+    noise(cs, 0.12, 0.20, 1500);
+    [1046.50, 1318.51, 1567.98, 2093.00, 2637.02].forEach((f, i) => {
+        const s = cs + 0.05 + i * 0.10;
+        const osc = _audioCtx.createOscillator();
+        const gain = _audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = f;
+        gain.gain.setValueAtTime(0.13 - i * 0.018, s);
+        gain.gain.exponentialRampToValueAtTime(0.001, s + 0.55 - i * 0.05);
+        osc.connect(gain); gain.connect(_audioCtx.destination);
+        osc.start(s); osc.stop(s + 0.6);
+    });
+}
+
 // --- END GAME FUNCTION ---
 function showGameOver(title, score, count) {
     isPlaying = false;
@@ -710,10 +831,12 @@ function animate() {
                     memesCollected++;
                     document.getElementById('score').innerText = score;
                     document.getElementById('memes-collected').innerText = memesCollected;
+                    playScoreJingle();
 
                     if (memesCollected >= memes.length) {
                         clearInterval(timerInterval);
                         stopMusic();
+                        playVictoryFanfare();
                         showGameOver("VICTORY!", score, memesCollected);
                     }
                 }
