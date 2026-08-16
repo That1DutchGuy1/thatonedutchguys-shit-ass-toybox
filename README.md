@@ -89,6 +89,18 @@
 
 ---
 
+<p><strong><font size="4">🚨 RICK ROLLER 2D DELUXE EDITION FULL RELEASE!</font></strong></p>
+
+<p><strong><font size="2">Rick Roller 2D has finally come out of Beta after so long!</font></strong></p>  <br>
+
+* Added 10 whole new levels! 🤯
+* Fixed the framerate dependent game simulation to use something better instead! 😎
+* Added proper win and lose screens! 👌🏻
+* Added Trollface enemies that walk around on the platforms! 🤪
+* And so much more! GO CHECK IT OUT! 🔫
+
+---
+
 <p><strong><font size="4">🚨 ANOTHER BIG WEEGEE'S MANSION 3D UPDATE!</font></strong></p>
 
 > I think this is 1.6 (I lost track lol but I'm gonna call it that anyway! 😂)

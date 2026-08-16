@@ -393,7 +393,6 @@ const levels = [
             sPlat(50,  200, 110, 20),   // [5] top left pocket
             sPlat(220, 140, 110, 20),   // [6] second left shelf
             hPlat(370, 100,  90, 20, 350, 560, 2.2), // 🟡 high slider
-            vPlat(170, 240,  80, 20, 120, 310, 2.5), // 🟡 mid bouncer
         ],
         goal: { x: 720, y: 68, width: 30, height: 50 },
         disc: { x: 240, y: 90, width: 30, height: 30, collected: false },
@@ -514,18 +513,18 @@ function initTrolls() {
     });
 }
 
-function tickTrolls() {
+function tickTrolls(dt) {
     const lvl = levels[currentLevel];
     if (!lvl.trolls) return;
     lvl.trolls.forEach(t => {
         if (t.dead) {
-            if (t.dyingTimer > 0) t.dyingTimer--;
+            if (t.dyingTimer > 0) t.dyingTimer -= dt;
             return;
         }
         const plat = lvl.platforms[t.platIndex];
         if (!plat || plat.moving) return;
 
-        t.x += t.speed * t.dir;
+        t.x += t.speed * t.dir * dt;
 
         // Edge detection: if the troll walks off either edge, reverse
         const leftEdge  = plat.x;
@@ -541,7 +540,7 @@ function tickTrolls() {
 // ============================================================
 //  Moving platform tick — updates position, bounces at limits
 // ============================================================
-function tickMovingPlatforms() {
+function tickMovingPlatforms(dt) {
     const lvl = levels[currentLevel];
     for (let plat of lvl.platforms) {
         if (!plat.moving) continue;
@@ -549,16 +548,16 @@ function tickMovingPlatforms() {
         const prevY = plat.y;
 
         if (plat.moveType === 'h') {
-            plat.x += plat.speed;
+            plat.x += plat.speed * dt;
             if (plat.x + plat.width > plat.max || plat.x < plat.min) {
                 plat.speed *= -1;
-                plat.x += plat.speed; // nudge back so it doesn't stick
+                plat.x += plat.speed * dt; // nudge back so it doesn't stick
             }
         } else {
-            plat.y += plat.speed;
+            plat.y += plat.speed * dt;
             if (plat.y + plat.height > plat.max || plat.y < plat.min) {
                 plat.speed *= -1;
-                plat.y += plat.speed;
+                plat.y += plat.speed * dt;
             }
         }
 
@@ -632,8 +631,9 @@ function startGame() {
     resetAllLevels();
     updateUI();
     resetPlayer();
+    lastTime = null;
     bgMusic.play();
-    update();
+    requestAnimationFrame(update);
 }
 
 function resetAllLevels() {
@@ -660,6 +660,11 @@ function resetAllLevels() {
     });
 }
 
+// Populate menu high score on load
+const menuHighscore = document.getElementById('menu-highscore');
+const menuHs = getHighScore();
+menuHighscore.textContent = menuHs > 0 ? `🏆 Best: ${menuHs}` : '🏆 No high score yet!';
+
 startBtn.addEventListener('click', () => {
     if (!scanningComplete) return;
     startGame();
@@ -678,8 +683,9 @@ retryBtn.addEventListener('click', () => {
     resetAllLevels();
     updateUI();
     resetPlayer();
+    lastTime = null;
     bgMusic.play().catch(() => {});
-    update();
+    requestAnimationFrame(update);
 });
 
 playAgainBtn.addEventListener('click', () => {
@@ -695,9 +701,10 @@ playAgainBtn.addEventListener('click', () => {
     resetAllLevels();
     updateUI();
     resetPlayer();
+    lastTime = null;
     bgMusic.currentTime = 0;
     bgMusic.play().catch(() => {});
-    update();
+    requestAnimationFrame(update);
 });
 
 function updateUI() {
@@ -757,7 +764,8 @@ function die() {
             resetPlayer();
             bgMusic.play().catch(() => {});
             gameActive = true;
-            update();
+            lastTime = null;
+            requestAnimationFrame(update);
         };
         deathScream.addEventListener('ended', onScreamEnd);
         setTimeout(() => {
@@ -789,8 +797,14 @@ function nextLevel() {
 // ============================================================
 //  Main game loop
 // ============================================================
-function update() {
+let lastTime = null;
+function update(timestamp) {
     if (!gameActive) return;
+
+    // dt = 1.0 at 60 fps, <1 at higher fps, >1 at lower fps.
+    // Capped at 2.5 so a tab-out / stutter doesn't send physics into orbit.
+    const dt = lastTime !== null ? Math.min((timestamp - lastTime) / (1000 / 165), 2.5) : 1;
+    lastTime = timestamp;
 
     // Proactively reclaim keyboard focus every frame if the document doesn't
     // have it. This is the only reliable fix for Chrome Lens on Linux (and
@@ -800,7 +814,7 @@ function update() {
 
     // Animate Rick (frozen if side-killed)
     if (!rickFrozen) {
-        frameCounter++;
+        frameCounter += dt;
         if (frameCounter >= frameSpeed) {
             currentFrame = (currentFrame + 1) % totalFrames;
             frameCounter = 0;
@@ -808,11 +822,11 @@ function update() {
     }
 
     // Tick enemies
-    tickTrolls();
+    tickTrolls(dt);
 
     // Tick moving platforms BEFORE applying player physics
     // so Rick gets carried first, then his own input is applied on top
-    tickMovingPlatforms();
+    tickMovingPlatforms(dt);
 
     // Player input
     if (keys.ArrowRight) { player.dx = player.speed;  player.facing = 'right'; }
@@ -826,9 +840,9 @@ function update() {
         playJumpSound();
     }
 
-    player.dy += gravity;
-    player.y += player.dy;
-    player.x += player.dx;
+    player.dy += gravity * dt;
+    player.y += player.dy * dt;
+    player.x += player.dx * dt;
 
     // Canvas edge clamping
     if (player.x < 0) player.x = 0;
@@ -950,8 +964,8 @@ function update() {
     // Tick score popups
     for (let i = scorePopups.length - 1; i >= 0; i--) {
         const p = scorePopups[i];
-        p.y += p.vy;
-        p.alpha -= 0.022;
+        p.y += p.vy * dt;
+        p.alpha -= 0.022 * dt;
         if (p.alpha <= 0) scorePopups.splice(i, 1);
     }
 
