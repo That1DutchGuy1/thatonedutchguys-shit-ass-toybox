@@ -52,7 +52,7 @@
 
 * Bup The Super Awesome Clicker Game (Finished, unless I come up with some big brain additions)
 * Philips CD-i Meme Soundboard (Finished, unless I come up with some big brain additions)
-* Rick Roller 2D (Beta / WIP)
+* Rick Roller 2D (Finished, unless I come up with some big brain additions)
 * Weegee Memory Match (Finished, unless I come up with some big brain additions)
 * Weegee Town XP (Beta / WIP)
 * Weegee's Mansion 3D (Finished, unless I come up with some big brain additions)

@@ -15,22 +15,44 @@ body {
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    padding-bottom: 60px;
+    box-sizing: border-box;
     color: white;
 }
 
 #game-ui {
     text-align: center;
     text-shadow: 2px 2px 4px #000;
-    padding-top: 20px;
+    margin: 0;
+    padding: 0;
 }
+
+#game-ui h1 {
+    margin: 0 0 6px 0;
+    padding: 0;
+    background: linear-gradient(to bottom, #ffe066, #ffd700, #c8860a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 16px #ffaa00);
+    text-shadow: none;
+}
+
+#game-ui #stats-bar {
+    margin: 0 0 6px 0;
+}
+
+#lives-display  { color: #44ff44; }
+#level-display  { color: #ff8800; }
+#score-display  { color: #cc99ff; }
 
 #game-container {
     position: relative;
-    margin-top: 10px;
     /* 800x400 canvas + 4px border on each side = 808x408 */
     width: 808px;
     height: 408px;
@@ -70,11 +92,190 @@ body {
 
 canvas {
     display: block;
-    border: 4px solid #fff;
+    border: 4px solid #ffd700;
     background-color: rgba(0, 0, 0, 0.4);
+    outline: none;
 }
 
-/* YouTube & Hub Links */
+/* Game Over Screen */
+#game-over-screen {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 808px;
+    height: 408px;
+    background: #000;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+    border: 4px solid #cc0000;
+    animation: flicker 0.08s infinite alternate;
+}
+
+#game-over-screen.visible {
+    display: flex;
+}
+
+@keyframes flicker {
+    from { border-color: #cc0000; box-shadow: 0 0 18px #ff0000, inset 0 0 30px rgba(180,0,0,0.15); }
+    to   { border-color: #ff3333; box-shadow: 0 0 32px #ff0000, inset 0 0 60px rgba(200,0,0,0.25); }
+}
+
+#game-over-title {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 72px;
+    color: #ff0000;
+    text-shadow: 3px 3px 0 #660000, 0 0 40px #ff0000, 0 0 80px #cc0000;
+    margin: 0 0 10px 0;
+    letter-spacing: 4px;
+    animation: shake 0.18s infinite alternate;
+}
+
+@keyframes shake {
+    from { transform: translate(-2px, 0px) rotate(-0.8deg); }
+    to   { transform: translate(2px, 1px) rotate(0.8deg); }
+}
+
+#game-over-highscore {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 20px;
+    color: #ffcc00;
+    text-shadow: 1px 1px 0 #664400, 0 0 12px #ffaa00;
+    margin: 0 0 6px 0;
+    letter-spacing: 1px;
+}
+
+#game-over-sub {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 22px;
+    color: #cc0000;
+    text-shadow: 1px 1px 0 #330000;
+    margin: 0 0 32px 0;
+}
+
+#retry-btn {
+    padding: 14px 36px;
+    font-size: 26px;
+    cursor: pointer;
+    background: #000;
+    border: 3px solid #ff0000;
+    border-radius: 6px;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-weight: bold;
+    color: #ff0000;
+    text-shadow: 0 0 10px #ff0000;
+    box-shadow: 0 0 14px #ff0000;
+    transition: transform 0.15s, background 0.15s;
+}
+
+#retry-btn:hover {
+    transform: scale(1.12);
+    background: #1a0000;
+    box-shadow: 0 0 28px #ff0000;
+}
+
+/* Win Screen */
+#win-screen {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 808px;
+    height: 408px;
+    background: #000;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+    border: 4px solid #00cc00;
+    animation: win-flicker 0.1s infinite alternate;
+    overflow: hidden;
+}
+
+#win-screen.visible {
+    display: flex;
+}
+
+@keyframes win-flicker {
+    from { border-color: #00aa00; box-shadow: 0 0 18px #00ff00, inset 0 0 30px rgba(0,180,0,0.12); }
+    to   { border-color: #00ff44; box-shadow: 0 0 40px #00ff00, inset 0 0 70px rgba(0,220,0,0.22); }
+}
+
+/* Confetti stars bouncing around */
+#win-screen::before,
+#win-screen::after {
+    content: '⭐🎊⭐🎉⭐🎊⭐🎉⭐🎊⭐';
+    position: absolute;
+    font-size: 28px;
+    letter-spacing: 6px;
+    white-space: nowrap;
+    animation: scroll-stars 4s linear infinite;
+    opacity: 0.35;
+}
+#win-screen::before { top: 12px; }
+#win-screen::after  { bottom: 12px; animation-direction: reverse; }
+
+@keyframes scroll-stars {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(-100%); }
+}
+
+#win-title {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 76px;
+    color: #00ff44;
+    text-shadow: 3px 3px 0 #005500, 0 0 40px #00ff00, 0 0 80px #00cc00;
+    margin: 0 0 10px 0;
+    letter-spacing: 4px;
+    animation: win-bounce 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes win-bounce {
+    from { transform: translateY(-4px) scale(1.00); }
+    to   { transform: translateY(4px)  scale(1.04); }
+}
+
+#win-highscore {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 20px;
+    color: #ffcc00;
+    text-shadow: 1px 1px 0 #664400, 0 0 12px #ffaa00;
+    margin: 0 0 6px 0;
+    letter-spacing: 1px;
+}
+
+#win-sub {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 19px;
+    color: #00cc44;
+    text-shadow: 1px 1px 0 #003300;
+    margin: 0 0 32px 0;
+    text-align: center;
+    max-width: 600px;
+}
+
+#play-again-btn {
+    padding: 14px 36px;
+    font-size: 26px;
+    cursor: pointer;
+    background: #000;
+    border: 3px solid #00ff44;
+    border-radius: 6px;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-weight: bold;
+    color: #00ff44;
+    text-shadow: 0 0 10px #00ff00;
+    box-shadow: 0 0 14px #00ff00;
+    transition: transform 0.15s, background 0.15s;
+}
+
+#play-again-btn:hover {
+    transform: scale(1.12);
+    background: #001a00;
+    box-shadow: 0 0 28px #00ff00;
+}
 a {
     text-align: right;
     text-decoration: none;

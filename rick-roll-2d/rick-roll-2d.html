@@ -15,20 +15,38 @@
         <h1>Rick Roller 2D - Deluxe Edition</h1>
         <div id="stats-bar" style="display: none;">
             <span id="lives-display">Lives: 3</span> | 
-            <span id="level-display">Level: 1</span>
+            <span id="level-display">Level: 1</span> | 
+            <span id="score-display">Score: 0</span>
         </div>
     </div>
     
     <div id="game-container">
-        <canvas id="gameCanvas"></canvas>
+        <canvas id="gameCanvas" tabindex="0"></canvas>
         <div id="main-menu">
             <h2 style="color: #ffcc00;">DELUXE EDITION</h2>
             <p>Collect the CDs for extra lives!</p>
             <button id="start-btn">START GAME</button>
         </div>
+
+        <div id="game-over-screen">
+            <h1 id="game-over-title">GAVE YOU UP</h1>
+            <p id="game-over-highscore"></p>
+            <p id="game-over-sub">You gave him up...</p>
+            <button id="retry-btn">TRY AGAIN</button>
+        </div>
+
+        <div id="win-screen">
+            <h1 id="win-title">YOU WON!!! 🎉</h1>
+            <p id="win-highscore"></p>
+            <p id="win-sub">WOAH! YOU DID IT!</p>
+            <button id="play-again-btn">PLAY AGAIN</button>
+        </div>
     </div>
 
     <audio id="bgMusic" src="8-bit-never-gonna-give-you-up.mp3" loop></audio>
+    <audio id="deathScream" src="rick-astley-screaming-meme.mp3"></audio>
+    <audio id="victoryMusic" src="victory.mp3"></audio>
+    <audio id="loseMusic" src="lose.mp3"></audio>
 
     <img id="rickSpriteSheet" src="Rick Astley HD transparent sprite sheet.png" crossorigin="anonymous" style="display:none;">
 
