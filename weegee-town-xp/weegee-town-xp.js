@@ -6,6 +6,7 @@ const missedVal = document.getElementById('missed-val');
 const errorDialog = document.getElementById('error-dialog');
 const restartBtn = document.getElementById('restart-btn');
 const menuBtn = document.getElementById('menu-btn');
+const townScaler = document.getElementById('town-scaler');
 
 // --- CUSTOM AUDIO THEME CONFIGURATION ---
 const bgMusic = new Audio('Weegee-Town-XP-Theme.wav');
@@ -16,7 +17,7 @@ const errorSound = new Audio('XP-Error.wav');
 
 let score = 0;
 let missed = 0;
-let baseDuration = 2200; 
+let baseDuration = 2200;
 let currentDuration = baseDuration;
 let gameActive = false;
 let retreatTimer = null;
@@ -25,6 +26,33 @@ let currentHideout = null;
 
 // Dynamically registers every single structural port location
 const hideouts = Array.from(document.querySelectorAll('.hideout'));
+
+// -----------------------------------------------------------------------
+// FIXED-PIXEL CANVAS SCALING
+//
+// The inner .town-environment is a fixed 1920×1035 px canvas.
+// The outer #town-scaler fills the viewport area below the HUD and is
+// the ONLY element that gets a transform.  Its transform-origin is
+// bottom center, so scale() always anchors to the bottom of the screen.
+//
+// Separating centering (margin-left: -960px on .town-environment)
+// from scaling (#town-scaler transform) means that toggling fullscreen
+// only changes the scale number — the layout never drifts.
+// -----------------------------------------------------------------------
+const REF_WIDTH  = 1920;
+const REF_HEIGHT = 1035; // 1080 minus 45px HUD
+
+function scaleTown() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight - 45;
+    const scale = Math.min(vw / REF_WIDTH, vh / REF_HEIGHT);
+    townScaler.style.setProperty('--town-scale', scale);
+}
+
+scaleTown();
+window.addEventListener('resize', scaleTown);
+
+// -----------------------------------------------------------------------
 
 playButton.addEventListener('click', () => {
     startMenu.style.display = 'none';
@@ -36,37 +64,33 @@ function startGame() {
     missed = 0;
     currentDuration = baseDuration;
     gameActive = true;
-    
+
     scoreVal.textContent = score;
     missedVal.textContent = missed;
     errorDialog.style.display = 'none';
-    
-    // --- START AUDIO ---
-    bgMusic.currentTime = 0; // Rewinds track to the beginning for fresh starts/reboots
+
+    bgMusic.currentTime = 0;
     bgMusic.play().catch(err => console.log("Audio playback delayed or blocked:", err));
-    
+
     queueNextSpawn();
 }
 
 function queueNextSpawn() {
     if (!gameActive) return;
-    const spawnDelay = Math.random() * 900 + 500; 
+    const spawnDelay = Math.random() * 900 + 500;
     spawnTimer = setTimeout(spawnWeegee, spawnDelay);
 }
 
 function spawnWeegee() {
     if (!gameActive) return;
 
-    // Pick a completely random building spot out of the expanded pool
     currentHideout = hideouts[Math.floor(Math.random() * hideouts.length)];
-    
+
     const directionalSprite = currentHideout.getAttribute('data-sprite');
     weegee.src = directionalSprite;
 
-    // Inject element safely inside target window/door frame
     currentHideout.appendChild(weegee);
-    
-    // Trigger transition animation step
+
     setTimeout(() => {
         if (gameActive) weegee.classList.add('visible');
     }, 10);
@@ -86,17 +110,17 @@ function spawnWeegee() {
 
 weegee.addEventListener('mousedown', (e) => {
     e.stopPropagation();
-    
+
     if (!gameActive || !weegee.classList.contains('visible')) return;
 
     clearTimeout(retreatTimer);
     weegee.classList.remove('visible');
-    
+
     score++;
     scoreVal.textContent = score;
 
     if (score % 5 === 0) {
-        currentDuration = Math.max(500, currentDuration - 250); 
+        currentDuration = Math.max(500, currentDuration - 250);
     }
 
     queueNextSpawn();
@@ -107,20 +131,17 @@ function triggerGameOver() {
     weegee.classList.remove('visible');
     clearTimeout(retreatTimer);
     clearTimeout(spawnTimer);
-    
-    // --- STOP AUDIO ---
+
     bgMusic.pause();
-    bgMusic.currentTime = 0; 
-    
-    // --- PLAY GAME OVER SOUND ---
+    bgMusic.currentTime = 0;
+
     errorSound.play().catch(err => console.log("Error sound playback delayed or blocked:", err));
-    
+
     setTimeout(() => {
         errorDialog.style.display = 'block';
     }, 250);
 }
 
-// Dialog operation actions routing
 restartBtn.addEventListener('click', startGame);
 
 menuBtn.addEventListener('click', () => {

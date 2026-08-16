@@ -54,7 +54,7 @@
 * Philips CD-i Meme Soundboard (Finished, unless I come up with some big brain additions)
 * Rick Roller 2D (Finished, unless I come up with some big brain additions)
 * Weegee Memory Match (Finished, unless I come up with some big brain additions)
-* Weegee Town XP (Beta / WIP)
+* Weegee Town XP (Finished, no unless, no buts, I'm done)
 * Weegee's Mansion 3D (Finished, unless I come up with some big brain additions)
 * Whack A Meme (Finished, unless I come up with some big brain additions)
 * King Harkinian's Personal Chef Simulator (Finished, unless I come up with some big brain additions)
@@ -98,6 +98,16 @@
 * Added proper win and lose screens! 👌🏻
 * Added Trollface enemies that walk around on the platforms! 🤪
 * And so much more! GO CHECK IT OUT! 🔫
+
+---
+
+<p><strong><font size="4">🚨 WEEGEE TOWN XP FULL RELEASE!</font></strong></p>
+
+<p><strong><font size="2">Weegee Town XP has finally come out of Beta after so long!</font></strong></p>  <br>
+
+* I never actually liked this game, lol, development was so fucking tedious and frustrating! 😤
+* I don't even know what it looks like on smaller screens than my 1440p monitor. If shit is overlapping, I don't care anymore! 😡
+* Game is still fun to play maybe a few times, but I'm not touching the code ever again! 🖕🏻
 
 ---
 

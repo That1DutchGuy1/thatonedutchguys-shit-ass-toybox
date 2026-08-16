@@ -16,10 +16,8 @@ body, html {
 /* --- WINDOWS XP START SCREEN MENU --- */
 #start-menu {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
     z-index: 999;
     background: linear-gradient(to bottom, #5a7edc 0%, #00309c 100%);
     display: flex;
@@ -28,8 +26,7 @@ body, html {
 }
 
 .welcome-container {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     display: grid;
     grid-template-columns: 1fr 1.2fr;
     grid-template-rows: 1fr 80px;
@@ -47,23 +44,9 @@ body, html {
     gap: 15px;
 }
 
-.xp-start-logo {
-    width: 85px;
-    height: auto;
-    object-fit: contain;
-}
-
-.sidebar-logo {
-    color: white;
-    font-size: 44px;
-    font-weight: bold;
-    font-style: italic;
-}
-.sidebar-logo span {
-    color: #ff6600;
-    font-size: 22px;
-    vertical-align: super;
-}
+.xp-start-logo { width: 85px; height: auto; object-fit: contain; }
+.sidebar-logo { color: white; font-size: 44px; font-weight: bold; font-style: italic; }
+.sidebar-logo span { color: #ff6600; font-size: 22px; vertical-align: super; }
 
 .welcome-main {
     background: linear-gradient(to bottom, #7a9ee0 0%, #5a7edc 100%);
@@ -74,16 +57,8 @@ body, html {
     color: white;
 }
 
-.welcome-header h1 {
-    font-size: 36px;
-    margin-bottom: 10px;
-    font-weight: normal;
-}
-.welcome-header p {
-    font-size: 14px;
-    color: #d6e2ff;
-    margin-bottom: 40px;
-}
+.welcome-header h1 { font-size: 36px; margin-bottom: 10px; font-weight: normal; }
+.welcome-header p { font-size: 14px; color: #d6e2ff; margin-bottom: 40px; }
 
 .user-account {
     display: flex;
@@ -102,28 +77,15 @@ body, html {
 }
 
 .avatar-frame {
-    width: 50px;
-    height: 50px;
-    border: 2px solid #ffffff;
+    width: 50px; height: 50px;
+    border: 2px solid #fff;
     border-radius: 4px;
     overflow: hidden;
 }
-.avatar-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
+.avatar-image { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.account-details .username {
-    display: block;
-    font-size: 18px;
-    font-weight: bold;
-}
-.account-details .status {
-    font-size: 12px;
-    color: #b0c8ff;
-}
+.account-details .username { display: block; font-size: 18px; font-weight: bold; }
+.account-details .status { font-size: 12px; color: #b0c8ff; }
 
 .welcome-footer {
     grid-column: span 2;
@@ -138,29 +100,14 @@ body, html {
     font-size: 12px;
 }
 
-/* --- LOG OFF COMPONENT (START MENU) --- */
-.logoff-start-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.logoff-start-container img {
-    width: 32px;
-    height: 32px;
-    display: block;
-    cursor: pointer;
-    transition: filter 0.1s ease;
-}
-.logoff-start-container img:hover {
-    filter: brightness(1.2);
-}
-.logoff-start-container .logoff-text {
-    font-family: 'Tahoma', sans-serif;
-    font-size: 11px;
-    color: #ffffff;
-}
+.logoff-start-container { display: flex; align-items: center; gap: 8px; }
+.logoff-start-container img { width: 32px; height: 32px; display: block; cursor: pointer; transition: filter 0.1s ease; }
+.logoff-start-container img:hover { filter: brightness(1.2); }
+.logoff-start-container .logoff-text { font-size: 11px; color: #fff; }
 
-/* --- VISUAL CANVAS ENVIRONMENT --- */
+/* ===================================================================
+   GAME CANVAS
+   =================================================================== */
 #game-canvas {
     position: relative;
     width: 100vw;
@@ -168,14 +115,13 @@ body, html {
     background-image: url('Bliss.png');
     background-size: cover;
     background-position: center bottom;
-    image-rendering: pixelated;
     overflow: hidden;
     cursor: crosshair;
 }
 
 /* Classic XP HUD Top Strip */
 .xp-hud {
-    position: relative; /* Context for absolute centering */
+    position: relative;
     width: 100%;
     height: 45px;
     background: linear-gradient(to bottom, #245ddb 0%, #0e46ce 12%, #245ddb 100%);
@@ -184,32 +130,13 @@ body, html {
     align-items: center;
     padding: 0 20px;
     color: white;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     z-index: 500;
 }
 
-/* --- LOG OFF COMPONENT (IN-GAME HUD) --- */
-.logoff-hud-container {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-right: 20px; /* Space between Logoff and next element */
-}
-.logoff-hud-container img {
-    width: 22px;
-    height: 22px;
-    display: block;
-    cursor: pointer;
-    transition: filter 0.1s ease;
-}
-.logoff-hud-container img:hover {
-    filter: brightness(1.2);
-}
-.logoff-hud-container .logoff-text {
-    font-family: 'Tahoma', sans-serif;
-    font-size: 11px;
-    color: #ffffff;
-}
+.logoff-hud-container { display: flex; align-items: center; gap: 6px; margin-right: 20px; }
+.logoff-hud-container img { width: 22px; height: 22px; display: block; cursor: pointer; transition: filter 0.1s ease; }
+.logoff-hud-container img:hover { filter: brightness(1.2); }
+.logoff-hud-container .logoff-text { font-size: 11px; color: #fff; }
 
 .hud-center-title {
     position: absolute;
@@ -230,183 +157,408 @@ body, html {
     border-radius: 3px;
     border: 1px solid #1a3675;
 }
-
-/* Force the last section to the right */
-.xp-hud .hud-section:last-of-type {
-    margin-left: auto;
-}
-
-.hud-value {
-    color: #ffcc00;
-    font-size: 18px;
-    margin-left: 5px;
-}
+.xp-hud .hud-section:last-of-type { margin-left: auto; }
+.hud-value { color: #ffcc00; font-size: 18px; margin-left: 5px; }
 .text-danger { color: #ff8888; }
 .hud-max { font-size: 12px; color: #ccc; }
 
-/* --- THE COZY TIERED HILLSIDE TOWN --- */
-.town-environment {
+/* ===================================================================
+   TOWN ENVIRONMENT — FIXED PIXEL CANVAS
+
+   Strategy:
+   - A fixed 1920×1035 px canvas is authored (1080 minus 45px HUD).
+   - An outer centering shell (#town-scaler) sits at position:absolute,
+     bottom:0, left:0, width:100%, height:100% — it never moves.
+   - The inner .town-environment is 1920×1035, centered horizontally
+     inside the shell using margin:auto, with NO transform on itself.
+   - The JS sets a CSS custom property --town-scale on #town-scaler,
+     which uses transform: scale() with transform-origin: bottom center.
+   - This way the scale and the centering are on SEPARATE elements,
+     so toggling fullscreen only changes the scale value — the
+     centering is always margin:auto, zero drift.
+
+   The background uses background-position: center bottom, which means
+   the Bliss hill is always anchored to the bottom-center of the
+   game-canvas. Our canvas is also bottom-anchored, so hill pixel
+   heights are stable regardless of viewport width.
+
+   Bliss hill surface heights (pixel-measured from 1920x1035 canvas bottom):
+     x=0px    → ~404px  (left edge)
+     x=60px   → ~442px
+     x=180px  → ~460px
+     x=360px  → ~472px  (hill crest on left side)
+     x=540px  → ~453px
+     x=660px  → ~450px
+     x=780px  → ~421px
+     x=960px  → ~369px
+     x=1080px → ~334px
+     x=1260px → ~303px
+     x=1440px → ~264px
+     x=1560px → ~249px
+     x=1680px → ~231px
+     x=1800px → ~215px
+     x=1860px → ~208px  (right edge, hill descends)
+   =================================================================== */
+
+/* Outer shell: fills the area below the HUD, never moves */
+#town-scaler {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 80%;
+    height: calc(100% - 45px);
+    transform-origin: bottom center;
+    /* --town-scale set by JS */
+    transform: scale(var(--town-scale, 1));
+}
+
+/* Inner fixed canvas: centred horizontally, anchored to bottom */
+/* Background is on #game-canvas (cover), NOT here — buildings anchor to this canvas */
+.town-environment {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    margin-left: -960px;
+    width: 1920px;
+    height: 1035px;
     z-index: 10;
 }
 
+/* All buildings: absolute, flex-column so roof stacks above body */
 .building {
     position: absolute;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
 }
+
 .building-body {
-    border: 3px solid #28211f;
     position: relative;
-    box-shadow: inset -8px 0px rgba(0,0,0,0.15);
+    border: 3px solid #1a1208;
+    box-shadow:
+        inset -8px 0 rgba(0,0,0,0.18),
+        2px 0 0 #1a1208,
+        -2px 0 0 #1a1208;
 }
 
-/* --- TIER 3: CREST RIDGE (Populating the highest ridge profiles) --- */
-.crest-tier { bottom: 53%; transform: scale(0.72); transform-origin: bottom center; }
+/* ===================================================================
+   Z-INDEX LAYERING
+   front-tier (30+) > mid-tier (20+) > crest-tier (10+)
+   =================================================================== */
+.front-tier  { z-index: 30; }
+.mid-tier    { z-index: 20; }
+.crest-tier  { z-index: 10; }
 
-.clock-tower { left: 4%; width: 85px; }
-.clock-tower .building-body { height: 220px; background: #d1ccc0; }
-.clock-tower .roof.peak {
-    width: 0; height: 0; border-left: 42px solid transparent; border-right: 42px solid transparent; border-bottom: 50px solid #57606f; align-self: center;
+.shed              { z-index: 36; }
+.bakery            { z-index: 35; }
+.town-hall         { z-index: 34; }
+.library           { z-index: 33; }
+.brick-office      { z-index: 32; }
+
+.cottage           { z-index: 26; }
+.barn              { z-index: 25; }
+.yellow-house      { z-index: 24; }
+.log-cabin         { z-index: 23; }
+.suburban-lavender { z-index: 22; }
+.green-inn         { z-index: 21; }
+
+.clock-tower       { z-index: 16; }
+.windmill          { z-index: 15; }
+.wizard-shack      { z-index: 14; }
+.observatory       { z-index: 13; }
+.lookout-tower     { z-index: 12; }
+
+
+/* ===================================================================
+   TIER 1 — FOREGROUND (bottom: 0 — sits on the flat grass base)
+   =================================================================== */
+.front-tier { bottom: 0; }
+
+/* --- SHED ---------------------------------------------------------- */
+.shed { left: 18px; width: 88px; }
+.shed .building-body { height: 90px; background: #7f8c8d; }
+.shed .roof.shed-roof {
+    height: 16px;
+    background: #34495e;
+    clip-path: polygon(0 0, 100% 70%, 100% 100%, 0 100%);
+    border: 2px solid #1a1208;
+    border-bottom: none;
 }
-.clock-tower .clock-face { top: 20px; left: 18px; width: 44px; height: 44px; border-radius: 50%; }
-.clock-tower .tower-base-door { bottom: 0; left: 22px; width: 34px; height: 60px; }
+.shed .shed-door { bottom: 0; left: 24px; width: 40px; height: 60px; }
 
-.windmill { left: 24%; bottom: 56%; width: 75px; }
-.windmill .building-body { height: 140px; background: #eaedd0; border-radius: 40% 40% 0 0; }
-.windmill .roof.cap {
-    width: 80px; height: 35px; background: #a04040; border-radius: 50% 50% 0 0; align-self: center; border: 3px solid #28211f;
+/* --- BAKERY -------------------------------------------------------- */
+.bakery { left: 175px; width: 145px; }
+.bakery .building-body { height: 145px; background: #f7d070; }
+.bakery .roof.awning {
+    height: 26px;
+    background: #d9534f;
+    border: 3px solid #1a1208;
+    border-bottom: none;
 }
-.windmill .gears-win { top: 35px; left: 21px; width: 28px; height: 32px; }
+.bakery .bake-win  { top: 20px; left: 15px;  width: 42px; height: 42px; }
+.bakery .bake-door { bottom: 0;  right: 22px; width: 38px; height: 78px; }
 
-.wizard-shack { left: 46%; bottom: 57%; width: 80px; }
-.wizard-shack .building-body { height: 80px; background: #6c5ce7; }
-.wizard-shack .roof.steep-cone {
-    width: 0; height: 0; border-left: 40px solid transparent; border-right: 40px solid transparent; border-bottom: 70px solid #2d3436; align-self: center;
-}
-.wizard-shack .attic { top: 15px; left: 22px; width: 30px; height: 30px; }
-
-.observatory { right: 28%; bottom: 49%; width: 90px; }
-.observatory .building-body { height: 85px; background: #bdc3c7; border-radius: 10px 10px 0 0; }
-.observatory .roof.dome {
-    width: 70px; height: 35px; background: #7f8c8d; border-radius: 35px 35px 0 0; align-self: center; border: 3px solid #28211f; border-bottom: none;
-}
-.observatory .lens-win { top: 20px; left: 27px; width: 30px; height: 35px; }
-
-.lookout-tower { right: 8%; bottom: 38% !important; width: 85px; }
-.lookout-tower .building-body { height: 230px; background: #878076; }
-.lookout-tower .roof.steep {
-    width: 0; height: 0; border-left: 42px solid transparent; border-right: 42px solid transparent; border-bottom: 65px solid #3d3b40; align-self: center;
-}
-.lookout-tower .tower-top { top: 20px; left: 20px; width: 40px; height: 40px; }
-.lookout-tower .tower-mid { top: 85px; left: 20px; width: 40px; height: 40px; }
-
-
-/* --- TIER 2: MID-HILLSIDE DISTRICT (Staggered midway along slopes) --- */
-.mid-tier { bottom: 25%; transform: scale(0.85); transform-origin: bottom center; }
-
-.cottage { left: 2%; width: 110px; }
-.cottage .building-body { height: 105px; background: #c26d52; }
-.cottage .roof.triangle {
-    width: 0; height: 0; border-left: 55px solid transparent; border-right: 55px solid transparent; border-bottom: 40px solid #733c3c; align-self: center;
-}
-.cottage .cottage-win { top: 15px; left: 12px; width: 34px; height: 34px; }
-.cottage .cottage-door { bottom: 0; right: 15px; width: 34px; height: 60px; }
-
-.barn { left: 18%; bottom: 28%; width: 135px; }
-.barn .building-body { height: 125px; background: #a53737; }
-.barn .roof.gambrel {
-    height: 40px; background: #5c1d1d; clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); border: 3px solid #28211f;
-}
-.barn .loft-window { top: 15px; left: 47px; width: 36px; height: 36px; }
-.barn .barn-door { bottom: 0; left: 32px; width: 66px; height: 65px; }
-
-.yellow-house { left: 38%; bottom: 29%; width: 100px; }
-.yellow-house .building-body { height: 95px; background: #f1c40f; }
-.yellow-house .roof.triangle {
-    width: 0; height: 0; border-left: 50px solid transparent; border-right: 50px solid transparent; border-bottom: 35px solid #d35400; align-self: center;
-}
-.yellow-house .yellow-win { top: 25px; left: 30px; width: 36px; height: 36px; }
-
-.log-cabin { right: 38%; bottom: 22%; width: 115px; }
-.log-cabin .building-body { height: 100px; background: #d35400; border-image: repeating-linear-gradient(0deg, #d35400, #d35400 15px, #ba4a00 15px, #ba4a00 18px) 10; }
-.log-cabin .roof.cabin-roof {
-    width: 0; height: 0; border-left: 58px solid transparent; border-right: 58px solid transparent; border-bottom: 38px solid #5e2700; align-self: center;
-}
-.log-cabin .cabin-win { top: 20px; left: 15px; width: 32px; height: 32px; }
-.log-cabin .cabin-door { bottom: 0; right: 15px; width: 32px; height: 58px; }
-
-.suburban-lavender { right: 20%; bottom: 21%; width: 120px; }
-.suburban-lavender .building-body { height: 115px; background: #82589f; }
-.suburban-lavender .roof.split {
-    height: 30px; background: #4b4b4b; clip-path: polygon(0% 100%, 50% 0%, 100% 100%); border: 3px solid #28211f;
-}
-.suburban-lavender .sub-win { top: 15px; left: 15px; width: 36px; height: 36px; }
-.suburban-lavender .sub-door { bottom: 0; right: 20px; width: 36px; height: 65px; }
-
-.green-inn { right: 3%; width: 125px; }
-.green-inn .building-body { height: 135px; background: #44bd32; }
-.green-inn .roof.triangle {
-    width: 0; height: 0; border-left: 62px solid transparent; border-right: 62px solid transparent; border-bottom: 45px solid #2f3640; align-self: center;
-}
-.green-inn .inn-win { top: 20px; left: 38px; width: 44px; height: 44px; }
-.green-inn .inn-door { bottom: 0; left: 42px; width: 36px; height: 65px; }
-
-
-/* --- TIER 1: VALLEY FOREGROUND (Base baseline alignment) --- */
-.front-tier { bottom: 0; transform: scale(1.0); }
-
-.shed { left: 1%; width: 80px; }
-.shed .building-body { height: 80px; background: #7f8c8d; }
-.shed .roof.shed-roof { height: 15px; background: #34495e; clip-path: polygon(0 0, 100% 70%, 100% 100%, 0 100%); border: 2px solid #28211f; }
-.shed .shed-door { bottom: 0; left: 20px; width: 40px; height: 60px; }
-
-.bakery { left: 12%; width: 130px; }
-.bakery .building-body { height: 130px; background: #f7d070; }
-.bakery .roof.awning { height: 25px; background: #d9534f; border: 3px solid #28211f; border-bottom: none; }
-.bakery .bake-win { top: 20px; left: 15px; width: 40px; height: 40px; }
-.bakery .bake-door { bottom: 0; right: 20px; width: 36px; height: 75px; }
-
-.town-hall { left: 32%; width: 220px; }
-.town-hall .building-body { height: 200px; background: #9fa6b5; }
+/* --- TOWN HALL ----------------------------------------------------- */
+.town-hall { left: 530px; width: 240px; }
+.town-hall .building-body { height: 210px; background: #9fa6b5; }
 .town-hall .roof.interstate-mansard {
-    height: 45px; background: #495261; clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%); border: 3px solid #28211f;
+    height: 46px;
+    background: #495261;
+    clip-path: polygon(12% 0%, 88% 0%, 100% 100%, 0% 100%);
+    border: 3px solid #1a1208;
+    border-bottom: none;
 }
-.town-hall .win-left { top: 30px; left: 30px; width: 45px; height: 50px; }
-.town-hall .win-right { top: 30px; right: 30px; width: 45px; height: 50px; }
-.town-hall .grand-door { bottom: 0; left: 77px; width: 66px; height: 85px; }
+.town-hall .win-left  { top: 30px; left: 30px;  width: 46px; height: 52px; }
+.town-hall .win-right { top: 30px; right: 30px; width: 46px; height: 52px; }
+.town-hall .grand-door {
+    bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 68px; height: 88px;
+}
 
-.library { right: 18%; width: 135px; }
-.library .building-body { height: 185px; background: #3c6382; }
-.library .roof.flat { height: 15px; background: #1e3799; border: 3px solid #28211f; border-bottom: none; }
-.library .window-upper { top: 20px; left: 42px; width: 46px; height: 46px; }
-.library .window-lower { bottom: 20px; left: 42px; width: 46px; height: 46px; }
+/* --- LIBRARY ------------------------------------------------------- */
+.library { right: 310px; width: 150px; }
+.library .building-body { height: 195px; background: #3c6382; }
+.library .roof.flat {
+    height: 16px;
+    background: #1e3799;
+    border: 3px solid #1a1208;
+    border-bottom: none;
+}
+.library .window-upper { top: 22px; left: 50%; transform: translateX(-50%); width: 48px; height: 48px; }
+.library .window-lower { bottom: 22px; left: 50%; transform: translateX(-50%); width: 48px; height: 48px; }
 
-.brick-office { right: 2%; width: 145px; }
-.brick-office .building-body { height: 210px; background: #b22222; background-image: linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px); background-size: 10px 6px; }
-.brick-office .roof.commercial { height: 12px; background: #333; border-bottom: 3px solid #28211f; }
-.brick-office .office-win-1 { top: 25px; left: 20px; width: 40px; height: 45px; }
-.brick-office .office-win-2 { top: 25px; right: 20px; width: 40px; height: 45px; }
-.brick-office .office-door { bottom: 0; left: 50px; width: 42px; height: 75px; }
+/* --- BRICK OFFICE -------------------------------------------------- */
+.brick-office { right: 18px; width: 260px; }
+.brick-office .building-body {
+    height: 220px;
+    background: #b22222;
+    background-image:
+        linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+    background-size: 10px 6px;
+}
+.brick-office .roof.commercial {
+    height: 13px;
+    background: #333;
+    border: 3px solid #1a1208;
+    border-bottom: none;
+}
+.brick-office .office-win-1 { top: 28px; left: 28px;  width: 44px; height: 48px; }
+.brick-office .office-win-2 { top: 28px; right: 28px; width: 44px; height: 48px; }
+.brick-office .office-door  { bottom: 0; left: 50%; transform: translateX(-50%); width: 46px; height: 80px; }
 
 
-/* --- DYNAMIC CLIPPING INTERNAL HIDING PORTS --- */
+/* ===================================================================
+   TIER 2 — MID-HILLSIDE  (scale 0.86)
+
+   Each building gets an individual `bottom` that matches the Bliss
+   hill surface at that building's X position.
+
+   Hill surface lookup (pixel-measured from Bliss.png at 1920x1035):
+     left=18px   (center x≈75)    → bottom ≈ 443px
+     left=268px  (center x≈340)   → bottom ≈ 472px
+     left=820px  (center x≈875)   → bottom ≈ 399px
+     right=630px (center x≈1230)  → bottom ≈ 299px
+     right=440px (center x≈1416)  → bottom ≈ 284px
+     right=290px (center x≈1565)  → bottom ≈ 246px
+
+   NOTE: `bottom` here is in pre-scale px space (the building's own
+   coordinate inside .town-environment). The scale(0.86) shrinks the
+   building visually but does NOT move its `bottom` anchor — that's
+   still measured from the canvas bottom in raw px.
+   =================================================================== */
+.mid-tier {
+    transform: scale(0.86);
+    transform-origin: bottom center;
+}
+
+/* --- COTTAGE (center x≈197) --------------------------------------- */
+.cottage { left: 140px; bottom: 462px; width: 115px; }
+.cottage .building-body { height: 108px; background: #c26d52; }
+.cottage .roof.triangle {
+    width: 0; height: 0;
+    border-left: 58px solid transparent;
+    border-right: 58px solid transparent;
+    border-bottom: 42px solid #733c3c;
+    align-self: center;
+    filter: drop-shadow(0 -1px 0 #1a1208);
+}
+.cottage .cottage-win  { top: 16px; left: 12px;  width: 34px; height: 34px; }
+.cottage .cottage-door { bottom: 0;  right: 14px; width: 34px; height: 60px; }
+
+/* --- BARN (x≈268) ------------------------------------------------- */
+.barn { left: 268px; bottom: 472px; width: 145px; }
+.barn .building-body { height: 130px; background: #a53737; }
+.barn .roof.gambrel {
+    height: 42px;
+    background: #5c1d1d;
+    clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+    border: 3px solid #1a1208;
+    border-bottom: none;
+}
+.barn .loft-window { top: 16px; left: 50%; transform: translateX(-50%); width: 36px; height: 36px; }
+.barn .barn-door   { bottom: 0;  left: 50%; transform: translateX(-50%); width: 68px; height: 68px; }
+
+/* --- YELLOW HOUSE (x≈820) ----------------------------------------- */
+.yellow-house { left: 820px; bottom: 399px; width: 110px; }
+.yellow-house .building-body { height: 100px; background: #f1c40f; }
+.yellow-house .roof.triangle {
+    width: 0; height: 0;
+    border-left: 55px solid transparent;
+    border-right: 55px solid transparent;
+    border-bottom: 38px solid #d35400;
+    align-self: center;
+    filter: drop-shadow(0 -1px 0 #1a1208);
+}
+.yellow-house .yellow-win { top: 26px; left: 50%; transform: translateX(-50%); width: 38px; height: 38px; }
+
+/* --- LOG CABIN (x≈1290, right:630) -------------------------------- */
+.log-cabin { right: 630px; bottom: 299px; width: 120px; }
+.log-cabin .building-body {
+    height: 103px;
+    background: #d35400;
+    border: 3px solid #1a1208;
+}
+.log-cabin .roof.cabin-roof {
+    width: 0; height: 0;
+    border-left: 60px solid transparent;
+    border-right: 60px solid transparent;
+    border-bottom: 40px solid #5e2700;
+    align-self: center;
+    filter: drop-shadow(0 -1px 0 #1a1208);
+}
+.log-cabin .cabin-win  { top: 20px; left: 15px;  width: 32px; height: 32px; }
+.log-cabin .cabin-door { bottom: 0;  right: 15px; width: 32px; height: 58px; }
+
+/* --- SUBURBAN LAVENDER (x≈1480, right:440) ------------------------ */
+.suburban-lavender { right: 440px; bottom: 284px; width: 128px; }
+.suburban-lavender .building-body { height: 120px; background: #82589f; }
+.suburban-lavender .roof.split {
+    height: 34px;
+    background: #4b4b4b;
+    clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
+    border: 3px solid #1a1208;
+    border-bottom: none;
+}
+.suburban-lavender .sub-win  { top: 16px; left: 15px;  width: 36px; height: 36px; }
+.suburban-lavender .sub-door { bottom: 0;  right: 20px; width: 36px; height: 66px; }
+
+/* --- GREEN INN (x≈1630, right:290) -------------------------------- */
+.green-inn { right: 290px; bottom: 246px; width: 130px; }
+.green-inn .building-body { height: 140px; background: #44bd32; }
+.green-inn .roof.triangle {
+    width: 0; height: 0;
+    border-left: 65px solid transparent;
+    border-right: 65px solid transparent;
+    border-bottom: 48px solid #2f3640;
+    align-self: center;
+    filter: drop-shadow(0 -1px 0 #1a1208);
+}
+.green-inn .inn-win  { top: 20px; left: 50%; transform: translateX(-50%); width: 44px; height: 44px; }
+.green-inn .inn-door { bottom: 0;  left: 50%; transform: translateX(-50%); width: 38px; height: 66px; }
+
+
+/* ===================================================================
+   TIER 3 — CREST RIDGE  (scale 0.72)
+
+   Crest buildings sit near the top of the hill. In the 1035px canvas
+   the sky/grass boundary near the peak is at ~540–570px from bottom.
+   Each building's `bottom` puts its base ON the hill slope at its X.
+
+   Hill surface lookup (pixel-measured from Bliss.png at 1920x1035):
+     left=55px   (center x≈100)   → bottom ≈ 432px
+     left=390px  (center x≈430)   → bottom ≈ 474px
+     left=740px  (center x≈782)   → bottom ≈ 417px
+     right=180px (center x≈1692)  → bottom ≈ 233px
+     right=60px  (center x≈1815)  → bottom ≈ 221px
+   =================================================================== */
+.crest-tier {
+    transform: scale(0.72);
+    transform-origin: bottom center;
+}
+
+/* --- CLOCK TOWER (x≈55) ------------------------------------------- */
+.clock-tower { left: 55px; bottom: 432px; width: 90px; }
+.clock-tower .building-body { height: 228px; background: #d1ccc0; }
+.clock-tower .roof.peak {
+    width: 0; height: 0;
+    border-left: 45px solid transparent;
+    border-right: 45px solid transparent;
+    border-bottom: 54px solid #57606f;
+    align-self: center;
+    filter: drop-shadow(0 -1px 0 #1a1208);
+}
+.clock-tower .clock-face      { top: 22px; left: 50%; transform: translateX(-50%); width: 46px; height: 46px; border-radius: 50%; }
+.clock-tower .tower-base-door { bottom: 0; left: 50%; transform: translateX(-50%); width: 36px; height: 64px; }
+
+/* --- WINDMILL (center x≈470) -------------------------------------- */
+.windmill { left: 430px; bottom: 474px; width: 80px; }
+.windmill .building-body { height: 148px; background: #eaedd0; border-radius: 40% 40% 0 0; }
+.windmill .roof.cap {
+    width: 86px; height: 38px;
+    background: #a04040;
+    border-radius: 50% 50% 0 0;
+    align-self: center;
+    border: 3px solid #1a1208;
+}
+.windmill .gears-win { top: 40px; left: 50%; transform: translateX(-50%); width: 30px; height: 34px; }
+
+/* --- WIZARD SHACK (x≈740) ----------------------------------------- */
+.wizard-shack { left: 740px; bottom: 417px; width: 84px; }
+.wizard-shack .building-body { height: 85px; background: #6c5ce7; }
+.wizard-shack .roof.steep-cone {
+    width: 0; height: 0;
+    border-left: 42px solid transparent;
+    border-right: 42px solid transparent;
+    border-bottom: 74px solid #2d3436;
+    align-self: center;
+    filter: drop-shadow(0 -1px 0 #1a1208);
+}
+.wizard-shack .attic { top: 18px; left: 50%; transform: translateX(-50%); width: 32px; height: 32px; }
+
+/* --- OBSERVATORY (right:180, center x≈1692) ----------------------- */
+.observatory { right: 180px; bottom: 233px; width: 96px; }
+.observatory .building-body { height: 90px; background: #bdc3c7; border-radius: 10px 10px 0 0; }
+.observatory .roof.dome {
+    width: 76px; height: 38px;
+    background: #7f8c8d;
+    border-radius: 38px 38px 0 0;
+    align-self: center;
+    border: 3px solid #1a1208;
+    border-bottom: none;
+}
+.observatory .lens-win { top: 24px; left: 50%; transform: translateX(-50%); width: 32px; height: 36px; }
+
+/* --- LOOKOUT TOWER (x≈1860, right:60) ----------------------------- */
+.lookout-tower { right: 60px; bottom: 221px; width: 90px; }
+.lookout-tower .building-body { height: 240px; background: #878076; }
+.lookout-tower .roof.steep {
+    width: 0; height: 0;
+    border-left: 45px solid transparent;
+    border-right: 45px solid transparent;
+    border-bottom: 70px solid #3d3b40;
+    align-self: center;
+    filter: drop-shadow(0 -1px 0 #1a1208);
+}
+.lookout-tower .tower-top { top: 22px; left: 50%; transform: translateX(-50%); width: 42px; height: 42px; }
+.lookout-tower .tower-mid { top: 95px; left: 50%; transform: translateX(-50%); width: 42px; height: 42px; }
+
+
+/* ===================================================================
+   HIDEOUTS
+   =================================================================== */
 .hideout {
     position: absolute;
-    background: #0f1217;
-    border: 3px solid #28211f;
+    background: #0d1014;
+    border: 3px solid #1a1208;
     overflow: hidden;
+    z-index: 5;
 }
 
 .glass-window {
     width: 100%; height: 100%;
-    background: linear-gradient(135deg, rgba(135, 206, 250, 0.35) 0%, rgba(30, 144, 255, 0.15) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: linear-gradient(135deg, rgba(135,206,250,0.35) 0%, rgba(30,144,255,0.15) 100%);
+    border: 1px solid rgba(255,255,255,0.4);
     box-shadow: inset 0 0 6px rgba(255,255,255,0.3);
     position: absolute;
     top: 0; left: 0;
@@ -426,7 +578,9 @@ body, html {
 }
 
 
-/* --- WEEGEE SPRITE ENGINE MECHANICS --- */
+/* ===================================================================
+   WEEGEE SPRITE
+   =================================================================== */
 #weegee {
     position: absolute;
     left: 50%;
@@ -436,40 +590,30 @@ body, html {
     opacity: 0;
 }
 
-/* WINDOW OVERRIDES: HEAD ONLY PEEKS FROM THE TOP EDGE */
 .window-spot #weegee {
-    width: 145%;
-    height: auto;
-    top: 100%;
-    bottom: auto;
-    transition: top 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.14s ease;
+    width: 145%; height: auto;
+    top: 100%; bottom: auto;
+    transition: top 0.22s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.14s ease;
 }
-.window-spot #weegee.visible {
-    top: 2%;
-    opacity: 1;
-}
+.window-spot #weegee.visible { top: 2%; opacity: 1; }
 
-/* DOOR OVERRIDES: FULL STRUCTURAL BODY SLIDES UP */
 .door-spot #weegee {
-    width: auto;
-    height: 96%;
-    top: auto;
-    bottom: -100%;
-    transition: bottom 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.14s ease;
+    width: auto; height: 96%;
+    top: auto; bottom: -100%;
+    transition: bottom 0.22s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.14s ease;
 }
-.door-spot #weegee.visible {
-    bottom: 0%;
-    opacity: 1;
-}
+.door-spot #weegee.visible { bottom: 0; opacity: 1; }
 
 
-/* --- SYSTEM ERROR DIALOG POPUPS --- */
+/* ===================================================================
+   SYSTEM ERROR DIALOG
+   =================================================================== */
 .xp-window {
     background: #ece9d8;
     border: 3px solid #0058e6;
     border-top-left-radius: 7px;
     border-top-right-radius: 7px;
-    box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.6);
+    box-shadow: 4px 4px 20px rgba(0,0,0,0.6);
 }
 .title-bar {
     background: linear-gradient(to bottom, #0058e6 0%, #3a82f7 12%, #0058e6 100%);
@@ -477,19 +621,16 @@ body, html {
     color: white;
     font-weight: bold;
     font-size: 13px;
+    border-radius: 4px 4px 0 0;
 }
 .dialog {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     z-index: 1000;
     width: 440px;
 }
-.dialog-content {
-    padding: 20px;
-    font-size: 13px;
-}
+.dialog-content { padding: 20px; font-size: 13px; }
 .error-msg-layout {
     display: flex;
     gap: 15px;
@@ -497,15 +638,8 @@ body, html {
     margin-bottom: 20px;
     line-height: 1.4;
 }
-.error-icon {
-    font-size: 32px;
-}
-.dialog-footer-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    width: 100%;
-}
+.error-icon { font-size: 32px; }
+.dialog-footer-actions { display: flex; justify-content: flex-end; gap: 10px; width: 100%; }
 .xp-btn {
     padding: 5px 15px;
     background: #ece9d8;
@@ -515,9 +649,5 @@ body, html {
     font-weight: normal;
     font-size: 12px;
 }
-.xp-btn:active {
-    box-shadow: inset 1px 1px #0a0a0a, inset -1px -1px #fff;
-}
-#restart-btn {
-    font-weight: bold;
-}
+.xp-btn:active { box-shadow: inset 1px 1px #0a0a0a, inset -1px -1px #fff; }
+#restart-btn { font-weight: bold; }
