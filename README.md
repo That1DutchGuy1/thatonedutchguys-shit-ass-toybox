@@ -2,10 +2,10 @@
 
 <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 10px;">
   <a href="https://www.youtube.com/@That1DutchGuy">
-    <img src="That-One-Dutch-Guy-Channel-Logo-Circle.png" alt="My YouTube Channel" width="150" />
+    <img src="./hub-assets/That-One-Dutch-Guy-Channel-Logo-Circle.png" alt="My YouTube Channel" width="150" />
   </a>
   <br>
-  <img src="That-One-Dutch-Guy-Logo-Text.png" alt="That One Dutch Guy" width="150" />
+  <img src="./hub-assets/That-One-Dutch-Guy-Logo-Text.png" alt="That One Dutch Guy" width="150" />
 </div>
 
 ---

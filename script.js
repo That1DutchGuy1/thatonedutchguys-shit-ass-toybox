@@ -162,7 +162,7 @@ if (isPhone) {
             const alpha = hitTestCtx.getImageData(px, py, 1, 1).data[3];
             if (alpha === 0) return; // fully transparent — ignore the tap
 
-            new Audio('splash-sound.mp3').play().catch(() => {});
+            new Audio('./hub-assets/splash-sound.mp3').play().catch(() => {});
 
             // Quick scale-up-and-back bounce on every qualifying tap.
             // Restart the animation even on rapid repeat taps by
@@ -232,7 +232,7 @@ function startMusic() {
     if (isAudioInitialized) return;
     isAudioInitialized = true;
 
-    hubTheme = new Audio('hub-theme.wav');
+    hubTheme = new Audio('./hub-assets/hub-theme.wav');
     hubTheme.loop = true;
     hubTheme.play().catch(() => {});
     isMusicPlaying = true;
@@ -276,40 +276,40 @@ const TOYS = [
     {
         id:       'airhorn',
         label:    'MLG AIRHORN',
-        img:      'MLG-Airhorn.png',
-        sounds:   ['mlg-airhorn.mp3'],
+        img:      './hub-assets/MLG-Airhorn.png',
+        sounds:   ['./hub-assets/mlg-airhorn.mp3'],
         overlap:  true,
         cssClass: 'toy-airhorn',
     },
     {
         id:       'pingas',
         label:    'PINGAS',
-        img:      'PingasToy.png',
-        sounds:   ['pingas.mp3'],
+        img:      './hub-assets/PingasToy.png',
+        sounds:   ['./hub-assets/pingas.mp3'],
         overlap:  true,
         cssClass: 'toy-pingas',
     },
     {
         id:       'harkinian',
         label:    'KING HARKINIAN',
-        img:      'KingHarkinian.png',
-        sounds:   ['Mah-Boi.mp3'],
+        img:      './hub-assets/KingHarkinian.png',
+        sounds:   ['./hub-assets/Mah-Boi.mp3'],
         overlap:  true,
         cssClass: 'toy-cd-i-king-harkinian',
     },
     {
         id:       'mama-luigi',
         label:    'MAMA LUIGI',
-        img:      'Mama-Luigi.png',
-        sounds:   ['Mama-luigi.mp3'],
+        img:      './hub-assets/Mama-Luigi.png',
+        sounds:   ['./hub-assets/Mama-luigi.mp3'],
         overlap:  true,
         cssClass: 'toy-mama-luigi',
     },
     {
         id:       'mario-toast',
         label:    'MARIO TOAST',
-        img:      'Mario-Toast.png',
-        sounds:   ['toast.mp3'],
+        img:      './hub-assets/Mario-Toast.png',
+        sounds:   ['./hub-assets/toast.mp3'],
         overlap:  true,
         cssClass: 'toy-mario-toast',
     }
