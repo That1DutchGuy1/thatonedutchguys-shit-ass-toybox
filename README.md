@@ -62,6 +62,7 @@
 * Meme Claw Machine (I dunno, stable, logic works, but might add more shit in the future)
 * The Big Meme Quiz (Finished, unless I come up with some big brain additions)
 * Meme Mafia (Finished, unless I come up with some big brain additions)
+* Grand Meme Prix 3D (Beta / WIP)
 
 ---
 
@@ -86,6 +87,15 @@
 > Led by Don Skibidi, they seem unstoppable! Unless one person helps the OGs, and that is YOU! 🫵🏻
 > Assemble hit parties and launch attacks on the Gen Alpha memes! 🔫
 > NOW GO PLAY THE GAME MOTHERFUCKER! 🔫
+
+---
+
+<p><strong><font size="4">🚨 BRAND NEW BETA GAME!</font></strong></p>
+
+<p><strong><font size="2">Grand Meme Prix 3D is getting a public Beta!</font></strong></p>  <br>
+
+* Select your favorite meme and race against a friend in local multiplayer co-op! 🏎️
+* Use items to irritate the hell out of them! 😜
 
 ---
 
