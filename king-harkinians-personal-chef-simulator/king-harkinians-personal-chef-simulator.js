@@ -9,7 +9,7 @@
    GAME STATE
 ───────────────────────────────────────────── */
 const state = {
-    chosenMeal:        null,   // 'spaghetti' | 'pizza' | 'chicken' | 'seafood'
+    chosenMeal:        null,   // 'spaghetti' | 'pizza' | 'chicken' | 'seafood' | 'burger' | 'steakfrites' | 'pancakes' | 'lobsterbisque'
     rupees:            200,
     cart:              [],     // array of ingredient ids purchased
     cookingMethod:     null,   // 'pot' | 'pan' | 'both' | 'oven'
@@ -285,7 +285,7 @@ function stopMenuBgm() {
 
 /* ─────────────────────────────────────────────
    GAME BGM  (prep-theme.wav)
-   Plays from market through to score reveal.
+   Plays from shop through to score reveal.
 ───────────────────────────────────────────── */
 let gameBgm = null;
 
@@ -437,20 +437,20 @@ function startIntro() {
         // Play per-meal announcement audio
         const announceAudioObj = playAudio(meal.announceAudio);
 
-        // 3. Go to market once the announce audio finishes (+ small buffer)
+        // 3. Go to shop once the announce audio finishes (+ small buffer)
         const TRANSITION_DELAY_MS = 500;
         announceAudioObj.addEventListener("ended", () => {
-            setTimeout(initMarket, TRANSITION_DELAY_MS);
+            setTimeout(initShop, TRANSITION_DELAY_MS);
         });
 
     }, 5500);
 }
 
 /* ─────────────────────────────────────────────
-   MARKET
+   SHOP
 ───────────────────────────────────────────── */
-function initMarket() {
-    showScreen("screen-market");
+function initShop() {
+    showScreen("screen-shop");
     state.cart = [];
     state.rupees = 200;
 
@@ -461,10 +461,10 @@ function initMarket() {
     document.getElementById("morshu-idle-img").classList.remove("hidden");
 
     // Reset Morshu's GIF and play his greeting (locks the kitchen button until he's done)
-    replayGifsInContainer(document.getElementById("screen-market"));
+    replayGifsInContainer(document.getElementById("screen-shop"));
     playMorshuGreeting();
 
-    updateMarketHUD();
+    updateShopHUD();
     renderIngredientShelf();
 
     const btnKitchen = document.getElementById("btn-to-kitchen");
@@ -475,7 +475,7 @@ function initMarket() {
     };
 }
 
-function updateMarketHUD() {
+function updateShopHUD() {
     document.getElementById("rupee-count").textContent = state.rupees;
     document.getElementById("cart-count").textContent  = state.cart.length;
 
@@ -486,14 +486,14 @@ function updateMarketHUD() {
 
 /* ─────────────────────────────────────────────
    MORSHU VOICE LINES
-   Handles the greeting (on market entry) and the
+   Handles the greeting (on shop entry) and the
    can't-afford GIF+audio (on failed purchase),
    both of which lock the "To The Kitchen" button
    until Morshu finishes speaking.
 ───────────────────────────────────────────── */
 function playMorshuGreeting() {
     state.morshuSpeaking = true;
-    updateMarketHUD();
+    updateShopHUD();
 
     // Dialogue box is locked to the greeting line for the full length of the
     // greeting audio — nothing else is allowed to overwrite it until then
@@ -504,13 +504,13 @@ function playMorshuGreeting() {
 
     setTimeout(() => {
         state.morshuSpeaking = false;
-        updateMarketHUD();
+        updateShopHUD();
     }, MORSHU_GREETING_DURATION_MS);
 }
 
 function playMorshuCantAfford() {
     state.morshuSpeaking = true;
-    updateMarketHUD();
+    updateShopHUD();
 
     const idleImg       = document.getElementById("morshu-idle-img");
     const cantAffordImg = document.getElementById("morshu-cant-afford-img");
@@ -541,7 +541,7 @@ function playMorshuCantAfford() {
         // Only unlock the dialogue right as the audio finishes.
         setMorshuSpeech(MORSHU_DEFAULT_SPEECH);
         state.morshuSpeaking = false;
-        updateMarketHUD();
+        updateShopHUD();
     }, MORSHU_CANT_AFFORD_DURATION_MS);
 }
 
@@ -588,7 +588,7 @@ function buyIngredient(ing, card) {
     state.rupees -= ing.price;
     state.cart.push(ing.id);
     card.classList.add("purchased");
-    updateMarketHUD();
+    updateShopHUD();
 
     // Don't step on a locked dialogue line (greeting or can't-afford) that's
     // still playing out its audio — skip the transient "added to your bag"
@@ -1185,7 +1185,7 @@ const PRELOAD_IMAGES = [
     // Backdrops
     "./assets/backdrops/menu-background.png",
     "./assets/backdrops/CD-i-castle-bg.png",
-    "./assets/backdrops/market-bg.png",
+    "./assets/backdrops/morshu-shop.png",
     "./assets/backdrops/kitchen-bg.png",
     "./assets/backdrops/dirty-floor-bg.png",
     "./assets/backdrops/dungeon.png",

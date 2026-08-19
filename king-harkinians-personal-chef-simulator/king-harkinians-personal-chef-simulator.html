@@ -78,13 +78,13 @@
 
 
 <!-- ============================================================
-     SCREEN: MARKET  (Buy ingredients from Morshu)
+     SCREEN: SHOP  (Buy ingredients from Morshu)
      ============================================================ -->
-<div id="screen-market" class="screen">
+<div id="screen-shop" class="screen">
     <!-- FIX: Background is now applied properly to stay behind the HUD -->
-    <div class="bg-layer" style="background-image: url('./assets/backdrops/market-bg.png');"></div>
+    <div class="bg-layer" style="background-image: url('./assets/backdrops/morshu-shop.png');"></div>
 
-    <div class="market-ui">
+    <div class="shop-ui">
         <h2 class="screen-title">Morshu's Shop</h2>
 
         <!-- ASSET: morshu-idle.gif standing behind counter -->
@@ -96,7 +96,7 @@
 
         <div id="morshu-speech" class="speech-bubble">Fish? Cheese? Pasta! You want it? It's yours my friend, as long as you have enough rupees!</div>
 
-        <div class="market-hud">
+        <div class="shop-hud">
             <span>💎 Rupees: <strong id="rupee-count">200</strong></span>
             <span id="cart-label">🛍 Bag: <strong id="cart-count">0</strong> items</span>
         </div>
@@ -106,7 +106,7 @@
             <!-- JS inserts item cards here -->
         </div>
 
-        <div class="market-actions">
+        <div class="shop-actions">
             <button class="btn-cdi" id="btn-to-kitchen">🍳 To The Kitchen →</button>
             <!-- Disabled until at least 1 item purchased -->
         </div>
