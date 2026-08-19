@@ -1,6 +1,6 @@
 /* =============================================================
-   KING HARKINIAN DINNER MAKING SIMULATOR
-   king-harkinian-dinner-making-simulator.js
+   KING HARKINIAN'S PERSONAL CHEF SIMULATOR
+   king-harkinians-personal-chef-simulator.js
    ============================================================= */
 
 "use strict";
@@ -23,6 +23,7 @@ const state = {
     bgmStarted:        false,
     fireAudio:         null,
     morshuSpeaking:    false,  // true while Morshu's greeting/can't-afford audio is playing — locks the kitchen button
+    usedMeals:         new Set(), // tracks meals the King has already requested this session
 };
 
 /* ─────────────────────────────────────────────
@@ -60,7 +61,9 @@ const DEADLY_INGREDIENT_IDS = [
   "scorpion", 
   "unicorn", 
   "human", 
-  "pufferfish"
+  "pufferfish",
+  "cyanide",
+  "diesel"
 ];
 
 
@@ -180,7 +183,7 @@ seafood: {
         ingredients: [
             { id: "steak",      name: "Steak",         price: 60, icon: "🥩", essential: true,  bad: false },
             { id: "fries",      name: "French Fries",  price: 23, icon: "🍟", essential: true,  bad: false },
-            { id: "butter",     name: "Butter",        price: 18, icon: "🧈", essential: false, bad: false },
+            { id: "butter",     name: "Butter",        price: 20, icon: "🧈", essential: false, bad: false },
             { id: "garlic",     name: "Garlic",        price: 13, icon: "🧄", essential: false, bad: false },
             { id: "thyme",      name: "Thyme",         price: 9, icon: "🌿",  essential: false, bad: false },
             { id: "seasalt",    name: "Sea Salt",      price: 6,  icon: "🧂", essential: false, bad: false },
@@ -188,8 +191,28 @@ seafood: {
             { id: "spacecake",  name: "Space Cake",    price: 12, icon: "🧁", essential: false, bad: true  },
             { id: "human",      name: "Human Flesh",   price: 100, icon: "🫀", essential: false, bad: true },
             { id: "pufferfish",    name: "Pufferfish",    price: 50, icon: "🐡", essential: false, bad: true  },
-        ]
-    }
+        ],
+    },
+
+    pancakes: {
+        label: "Pancakes",
+        announceAudio: "./assets/sounds/king-wants-pancakes.mp3",
+        idealMethod:   "pan",
+        idealPlating:  "plate",
+        idealTemp:     null,
+        ingredients: [
+            { id: "pancakebatter", name: "Pancake Batter", price: 22, icon: "🥞", essential: true,  bad: false },
+            { id: "maplesyrup",    name: "Maple Syrup",    price: 14, icon: "🍁", essential: true,  bad: false },
+            { id: "butter",        name: "Butter",         price: 20, icon: "🧈", essential: true, bad: false },
+            { id: "blueberries",   name: "Blueberries",    price: 18, icon: "🫐", essential: false, bad: false },
+            { id: "bananas",       name: "Bananas",        price: 13, icon: "🍌", essential: false, bad: false },
+            { id: "vanilla",       name: "Vanilla Extract", price:19, icon: "🫙", essential: false, bad: false },
+            { id: "horse" ,        name: "Horse Meat",     price: 45, icon: "🐴", essential: false, bad: true  },
+            { id: "LSD",          name: "LSD",            price: 30, icon: "💊", essential: false, bad: true  },
+            { id: "cyanide",      name: "Cyanide",        price: 69, icon: "☠️", essential: false, bad: true  },
+            { id: "diesel",        name: "Diesel Fuel",    price: 25, icon: "⛽", essential: false, bad: true  },
+        ],
+    },
 };
 
 /* ─────────────────────────────────────────────
@@ -366,9 +389,17 @@ function startIntro() {
 
     // 2. Thinking phase (~3s)
     setTimeout(() => {
-        // Pick a random meal
-        const meals = Object.keys(MEALS);
-        const chosen = meals[Math.floor(Math.random() * meals.length)];
+        // Pick a random meal the King hasn't requested yet this session.
+        // If all meals have been seen, wipe the memory and start fresh.
+        const allMeals = Object.keys(MEALS);
+        const availableMeals = allMeals.filter(m => !state.usedMeals.has(m));
+        if (availableMeals.length === 0) {
+            // Every dish has been cooked — reset the King's memory for a new cycle
+            state.usedMeals.clear();
+            availableMeals.push(...allMeals);
+        }
+        const chosen = availableMeals[Math.floor(Math.random() * availableMeals.length)];
+        state.usedMeals.add(chosen);
         state.chosenMeal = chosen;
         const meal = MEALS[chosen];
 
@@ -1110,6 +1141,7 @@ function initDeathPunishment() {
     document.getElementById("btn-death-punishment-again").onclick = () => {
         stopAudio(state.fireAudio);
         state.fireAudio = null;
+        state.usedMeals.clear(); // King is dead — wipe the royal dinner menu memory
         initMainMenu(true);
     };
     document.getElementById("btn-death-punishment-hub").onclick = () => {

@@ -251,28 +251,23 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
-    position: relative;
-    justify-content: flex-end;
-    padding-bottom: 60px;
+    gap: 16px;
 }
 
 #king-walkin-anim,
 #king-thinking-anim,
 #king-announce-anim {
-    position: absolute;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #intro-speech-bubble {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
     min-width: 300px;
+    max-width: 480px;
 }
 
 /* ============================================================
@@ -851,8 +846,12 @@ html, body {
     font-size: 22px;
     font-weight: bold;
     font-family: Comic Sans MS, sans-serif;
-    color: #3be515;
-    text-shadow: 0 0 6px #3a5d32, 0 2px 3px #000;
+    background-image: linear-gradient(to bottom, #ffe066, #cc8800);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(2px 2px 0px #000) drop-shadow(-1px -1px 0px #000) drop-shadow(1px -1px 0px #000) drop-shadow(-1px 1px 0px #000);
     letter-spacing: 1px;
     pointer-events: none;
     white-space: nowrap;
@@ -863,15 +862,20 @@ html, body {
 
 .yt-credit {
     font-family: Comic Sans MS, sans-serif;
-    position: absolute !important;
+    position: fixed !important;
     top: 16px;
+    right: auto;
     left: 16px;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: bold;
-    color: #3be515;
-    text-shadow: 0 0 6px #3a5d32, 0 2px 3px #000;
+    background-image: linear-gradient(to bottom, #ffe066, #cc8800);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(2px 2px 0px #000) drop-shadow(-1px -1px 0px #000) drop-shadow(1px -1px 0px #000) drop-shadow(-1px 1px 0px #000);
     letter-spacing: 1px;
-    z-index: 2;
+    z-index: 9999;
     text-decoration: none;
 }
 
@@ -892,10 +896,9 @@ html, body {
     position: absolute !important;
     bottom: 0;
     left: 0;
-    width: 100%;
     display: flex;
     align-items: flex-end;
-    justify-content: center;
+    justify-content: flex-start;
     z-index: 10;
     pointer-events: none;
 }
