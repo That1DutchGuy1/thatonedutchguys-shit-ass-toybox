@@ -63,7 +63,9 @@ const DEADLY_INGREDIENT_IDS = [
   "human", 
   "pufferfish",
   "cyanide",
-  "diesel"
+  "diesel",
+  "uranium",
+  "lampoil"
 ];
 
 
@@ -211,6 +213,27 @@ seafood: {
             { id: "LSD",          name: "LSD",            price: 30, icon: "💊", essential: false, bad: true  },
             { id: "cyanide",      name: "Cyanide",        price: 69, icon: "☠️", essential: false, bad: true  },
             { id: "diesel",        name: "Diesel Fuel",    price: 25, icon: "⛽", essential: false, bad: true  },
+        ],
+    },
+
+    lobsterbisque: {
+        label: "Lobster Bisque",
+        announceAudio: "./assets/sounds/king-wants-lobster-bisque.mp3",
+        idealMethod:   "pot",
+        idealPlating:  "bowl",
+        idealTemp:     null,
+        ingredients: [
+            { id: "lobster",      name: "Lobster",        price: 53, icon: "🦞", essential: true,  bad: false },
+            { id: "cream",        name: "Heavy Cream",    price: 24, icon: "🥛", essential: true,  bad: false },
+            { id: "butter",       name: "Butter",         price: 20, icon: "🧈", essential: true,  bad: false },
+            { id: "garlic",       name: "Garlic",         price: 13, icon: "🧄", essential: false, bad: false },
+            { id: "tomato",       name: "Tomato Paste",   price: 15, icon: "🍅", essential: false, bad: false },
+            { id: "whitewine",    name: "White Wine",     price: 25, icon: "🥂", essential: false, bad: false },
+            { id: "turtle",        name: "Turtle Meat",   price: 61, icon: "🐢", essential: false, bad: true },
+            { id: "pretzel",       name: "Pretzel",       price: 11, icon: "🥨", essential: false, bad: true },
+            { id: "uranium",       name: "Uranium",       price: 86, icon: "☢️", essential: false, bad: true },
+            { id: "lampoil",       name: "Lamp Oil",      price: 19, icon: "🪔", essential: false, bad: true },
+
         ],
     },
 };
@@ -1210,6 +1233,8 @@ const PRELOAD_AUDIO = [
     "./assets/sounds/king-wants-burger.mp3",
     "./assets/sounds/king-wants-seafood.mp3",
     "./assets/sounds/king-wants-steak-frites.mp3",
+    "./assets/sounds/king-wants-pancakes.mp3",
+    "./assets/sounds/king-wants-lobster-bisque.mp3",
     "./assets/sounds/morshu-greeting.mp3",
     "./assets/sounds/morshu-cant-afford.mp3",
     "./assets/sounds/crowd-gasp.mp3",
