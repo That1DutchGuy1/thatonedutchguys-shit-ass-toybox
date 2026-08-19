@@ -418,7 +418,152 @@ const player = {
 };
 
 const gravity = 0.3;
+// Mario-style air physics ✈️
+// How fast dx accelerates toward target speed while airborne (per frame at 60fps).
+// Lower = more floaty/slippery; higher = snappier. ~0.6 feels like SMB.
+const airAccel = 0.6;
+// Friction factor applied to dx each frame while airborne with NO input.
+// 1.0 = no slowdown; 0.88 = gradual bleed-off. Keeps momentum but doesn't slide forever.
+const airFriction = 0.88;
+
+// ── Variable-height jump (Mario-style jump-cut) ───────────────
+// The actual Nintendo trick:
+//   Always launch at full JUMP_MAX_POWER (-13) → 275px max apex.
+//   While button is HELD: normal gravity acts; Rick coasts to the apex.
+//   Button released EARLY while still rising: dy is clamped to
+//     JUMP_CUT_POWER (-4), killing most upward velocity instantly → ~25px hop.
+//
+// This is framerate-independent by construction — gravity and position
+// are integrated the same way regardless of fps. 🥔 == 💻
+//
+// JUMP_MAX_POWER : launch velocity (pixels/frame at 165fps base-dt=1).
+//   -13 gives exactly 275px with dt=1, gravity=0.3.
+// JUMP_CUT_POWER : dy ceiling applied on early release.
+//   -4 → ~25px minimum hop (feels like a crisp tap).
+//   More negative = higher minimum hop.
+const JUMP_MAX_POWER  = -13;   // full held jump → 275px apex
+const JUMP_CUT_POWER  = -4;    // tap/early release → ~25px hop
+
+// jumpButtonWasHeld: true if the jump button was held on the previous frame.
+// Used to detect the rising→not-held transition (the cut moment).
+let jumpButtonWasHeld = false;
+
+let jumpStartTime = -1;  // kept for compatibility; not used by cut logic
+
 const keys = { ArrowUp: false, ArrowLeft: false, ArrowRight: false };
+
+// ============================================================
+//  🎮 Gamepad Support — DualShock 4 (standard + raw Linux)
+// ============================================================
+//
+//  Mirrors the buildInputMap() pattern from script.js so both
+//  standard (Windows / some Linux) and raw non-standard
+//  (Linux/Chrome with gp.mapping === "") DS4 layouts work.
+//
+//  RAW DS4 layout (Linux, mapping === ""):
+//   buttons[0]  = Square        buttons[1]  = Cross (✕)  ← JUMP
+//   buttons[2]  = Circle        buttons[3]  = Triangle
+//   buttons[4]  = L1            buttons[5]  = R1
+//   buttons[6]  = L2 (analog)   buttons[7]  = R2 (analog)
+//   buttons[8]  = Share         buttons[9]  = Options
+//   buttons[10] = L3            buttons[11] = R3
+//   buttons[12] = PS            buttons[13] = Touchpad
+//   axes[6] = D-pad L/R hat  (-1 = left, +1 = right)
+//   axes[7] = D-pad U/D hat  (-1 = up,   +1 = down)
+//
+//  STANDARD mapping (Windows / some Linux setups):
+//   buttons[0]  = Cross (✕)     ← JUMP
+//   buttons[12] = D-Up   buttons[13] = D-Down
+//   buttons[14] = D-Left buttons[15] = D-Right
+
+let activeGamepadIndex = null;
+
+// ── Gamepad state — fully separate from the keyboard `keys` object ───────────
+// Zeroed at the top of every pollGamepad() call so stale values never linger
+// when the player drops the controller and picks up the keyboard (or vice versa).
+// The game loop ORs keyboard + gamepad signals at read-time, so both devices
+// work simultaneously and switching between them is seamless at any moment.
+let gpLeft   = false;  // d-pad left  OR left-stick left
+let gpRight  = false;  // d-pad right OR left-stick right
+let gpJump   = false;  // Cross button (raw held, every frame)
+let gpStickX = 0;      // left-stick X float (-1..+1), 0 when inside deadzone
+
+// Deadzone for the left stick — filters out resting drift / stick creep.
+// 0.15 is a safe value for DS4; below this the stick is treated as centered.
+const STICK_DEADZONE = 0.15;
+
+function gpIsButtonPressed(gp, index) {
+    const btn = gp.buttons[index];
+    if (!btn) return false;
+    return btn.pressed || btn.value > 0.5;
+}
+
+function buildGameInputMap(gp) {
+    const isStandard = gp.mapping === 'standard';
+    if (isStandard) {
+        return {
+            jump:   () => gpIsButtonPressed(gp, 0),   // Cross
+            dLeft:  () => gpIsButtonPressed(gp, 14),
+            dRight: () => gpIsButtonPressed(gp, 15),
+            // Left stick X is axes[0] in both standard and raw DS4 — same index, lucky us!
+            lsX:    () => gp.axes[0] ?? 0,
+        };
+    }
+    // Raw non-standard DS4 on Linux — d-pad comes in as hat-switch axes
+    return {
+        jump:   () => gpIsButtonPressed(gp, 1),        // Cross = buttons[1]
+        dLeft:  () => (gp.axes[6] ?? 0) < -0.5,
+        dRight: () => (gp.axes[6] ?? 0) >  0.5,
+        lsX:    () => gp.axes[0] ?? 0,
+    };
+}
+
+function pollGamepad() {
+    // Zero every gamepad signal first — if no pad is active this frame,
+    // releasing the controller leaves no stale inputs pressed.
+    gpLeft = gpRight = gpJump = false;
+    gpStickX = 0;
+
+    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+
+    // Auto-discover: grab first real gamepad (skip fake HID devices —
+    // real pads have ≥10 buttons and ≥4 axes, just like in script.js).
+    if (activeGamepadIndex === null) {
+        for (const gp of pads) {
+            if (gp && gp.buttons.length >= 10 && gp.axes.length >= 4) {
+                activeGamepadIndex = gp.index;
+                break;
+            }
+        }
+        if (activeGamepadIndex === null) return;
+    }
+
+    const gp = pads[activeGamepadIndex];
+    if (!gp) { activeGamepadIndex = null; return; } // disconnected — already zeroed above
+
+    const map = buildGameInputMap(gp);
+
+    gpLeft  = map.dLeft();
+    gpRight = map.dRight();
+    gpJump  = map.jump();
+
+    // Left stick — apply deadzone; negative X = left, positive = right.
+    const rawStick = map.lsX();
+    gpStickX = Math.abs(rawStick) > STICK_DEADZONE ? rawStick : 0;
+}
+
+// Restore gamepad d-pad keys on disconnect / focus loss so Rick doesn't
+// drift off screen (mirrors the clearKeys() behaviour for keyboard).
+window.addEventListener('gamepaddisconnected', (e) => {
+    if (e.gamepad.index === activeGamepadIndex) {
+        activeGamepadIndex = null;
+        // pollGamepad() already zeroes gpLeft/gpRight/gpJump/gpStickX at the
+        // top of every call, so no explicit clear is needed here — but do it
+        // anyway so the very next frame sees clean state even before poll runs.
+        gpLeft = gpRight = gpJump = false;
+        gpStickX = 0;
+    }
+});
 
 // ============================================================
 //  🎵 Web Audio Sound Engine
@@ -723,6 +868,8 @@ function resetPlayer() {
     player.onMovingPlat = null;
     player.facing = 'right';
     rickFrozen = false;
+    jumpStartTime = -1;       // legacy reset, harmless
+    jumpButtonWasHeld = false;
     initTrolls();
 }
 
@@ -812,6 +959,10 @@ function update(timestamp) {
     // chrome rather than the page, so event-based approaches miss it entirely.
     if (!document.hasFocus()) canvas.focus();
 
+    // Sync gamepad state into keys before reading input below.
+    // Must run every frame since the Gamepad API is poll-based (no events).
+    pollGamepad();
+
     // Animate Rick (frozen if side-killed)
     if (!rickFrozen) {
         frameCounter += dt;
@@ -828,17 +979,77 @@ function update(timestamp) {
     // so Rick gets carried first, then his own input is applied on top
     tickMovingPlatforms(dt);
 
-    // Player input
-    if (keys.ArrowRight) { player.dx = player.speed;  player.facing = 'right'; }
-    else if (keys.ArrowLeft) { player.dx = -player.speed; player.facing = 'left'; }
-    else player.dx = 0;
+    // Player input — keyboard and gamepad are merged here every frame.
+    // Both devices work simultaneously; switching between them is seamless
+    // because gamepad state is zeroed at the top of pollGamepad() each frame,
+    // so releasing the controller leaves no ghost inputs behind.
+    //
+    // Priority: digital (keyboard OR d-pad) over analog stick, because a
+    // decisive button press should always win over residual stick drift.
+    const digitalLeft  = keys.ArrowLeft  || gpLeft;
+    const digitalRight = keys.ArrowRight || gpRight;
+    const hasDigital   = digitalLeft || digitalRight;
+    // Analog stick: only kicks in when no digital input is present.
+    // Scaled to player.speed so full tilt = full speed, gentle tilt = slow walk.
+    const stickInput   = hasDigital ? 0 : gpStickX * player.speed;
+    const hasStick     = Math.abs(stickInput) > 0.01;
 
-    if (keys.ArrowUp && player.grounded) {
-        player.dy = player.jumpPower;
+    if (player.grounded) {
+        // On the ground: snap dx instantly (classic platformer feel)
+        if (digitalRight)       { player.dx = player.speed;  player.facing = 'right'; }
+        else if (digitalLeft)   { player.dx = -player.speed; player.facing = 'left'; }
+        else if (hasStick) {
+            player.dx = stickInput;
+            player.facing = stickInput > 0 ? 'right' : 'left';
+        } else { player.dx = 0; }
+    } else {
+        // In the air: steer with air acceleration, momentum persists
+        if (digitalRight) {
+            player.facing = 'right';
+            // Nudge dx toward target speed; overshoot is clamped so you can't go faster than ground speed
+            player.dx = Math.min(player.dx + airAccel * dt, player.speed);
+        } else if (digitalLeft) {
+            player.facing = 'left';
+            player.dx = Math.max(player.dx - airAccel * dt, -player.speed);
+        } else if (hasStick) {
+            // Analog air control: nudge toward stick target (same airAccel feel, analog magnitude)
+            const target = stickInput;
+            player.facing = target > 0 ? 'right' : 'left';
+            if (target > player.dx) {
+                player.dx = Math.min(player.dx + airAccel * dt, target);
+            } else {
+                player.dx = Math.max(player.dx - airAccel * dt, target);
+            }
+        } else {
+            // No input — bleed off speed gradually (not a brick wall stop)
+            player.dx *= Math.pow(airFriction, dt);
+            // Kill tiny residual drift so Rick doesn't creep forever
+            if (Math.abs(player.dx) < 0.05) player.dx = 0;
+        }
+    }
+
+    // ── Variable-height jump (jump-cut) ──────────────────────
+    // "Jump held" = keyboard ArrowUp still down OR gamepad Cross still down.
+    const jumpHeld = keys.ArrowUp || gpJump;
+
+    // Launch whenever the jump button is held AND Rick is on the ground.
+    // grounded is the natural gate — no rising-edge check needed or wanted,
+    // so holding either button makes Rick auto-jump on every landing.
+    if (jumpHeld && player.grounded) {
+        // Always launch at full power — 275px if held to apex.
+        player.dy = JUMP_MAX_POWER;
         player.grounded = false;
         player.onMovingPlat = null;
         playJumpSound();
     }
+
+    // Jump cut: if the button was held last frame but is now released while
+    // Rick is still rising (dy < 0), clamp dy to JUMP_CUT_POWER.
+    // This kills most upward velocity instantly → small hop on tap.
+    if (jumpButtonWasHeld && !jumpHeld && player.dy < 0) {
+        player.dy = Math.max(player.dy, JUMP_CUT_POWER);
+    }
+    jumpButtonWasHeld = jumpHeld;
 
     player.dy += gravity * dt;
     player.y += player.dy * dt;
