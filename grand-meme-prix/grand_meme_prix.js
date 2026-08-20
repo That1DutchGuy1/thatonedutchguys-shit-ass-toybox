@@ -5,10 +5,12 @@
 const CHARACTERS = [
   { name: "Mama Luigi",    img: "assets/Mama-Luigi.png",     color: 0x228B22 },
   { name: "King Harkinian",img: "assets/King-Harkinian.png", color: 0xDAA520 },
-  { name: "Doge",          img: "assets/Doge.png",           color:  0xCBB987 },
+  { name: "Doge",          img: "assets/Doge.png",           color: 0xCBB987 },
   { name: "Gwonam",        img: "assets/Gwonam.png",         color: 0x8A45A1 },
   { name: "Zelda",         img: "assets/Zelda.png",          color: 0xFF00AA },
   { name: "Longcat",       img: "assets/Longcat.png",        color: 0xDEDEDE },
+  { name: "Rick Astley",   img: "assets/Rick-Astley.png",    color: 0x363030 },
+  { name: "Weegee",        img: "assets/Weegee.png",         color: 0x4c7e66 },
 ];
 
 // =============================================
