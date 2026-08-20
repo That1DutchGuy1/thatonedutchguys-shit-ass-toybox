@@ -362,37 +362,57 @@ function buildTrack(sceneObj) {
   geo.computeVertexNormals();
   sceneObj.add(new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true })));
 
-  // Kerbs — raised above asphalt to eliminate z-fighting; DoubleSide so both sides render
+  // Kerbs — build N+1 rings where ring N is a copy of ring 0's *positions*.
+  // This guarantees the closing quad's far edge lands exactly on ring 0,
+  // sealing the loop with no gap, no spike, and no twisted geometry.
   for (let side = -1; side <= 1; side += 2) {
     const kVerts = [], kInds = [], kCols = [];
-    // Raise each side slightly differently so they can't z-fight each other either
-    const kY = side === -1 ? 0.025 : 0.030;
-    for (let i = 0; i <= N; i++) {
-      const t = i / N;
-      const p = TRACK_CURVE.getPoint(t);
-      const tan = TRACK_CURVE.getTangent(t).normalize();
+
+    // Collect the N ring positions first so we can copy ring 0 at the end.
+    const rings = [];
+    for (let i = 0; i < N; i++) {
+      const t    = i / N;
+      const p    = TRACK_CURVE.getPoint(t);
+      const tan  = TRACK_CURVE.getTangent(t).normalize();
       const perp = new THREE.Vector3(-tan.z, 0, tan.x);
       const inner = p.clone().addScaledVector(perp, side * hw);
       const outer = p.clone().addScaledVector(perp, side * (hw + 2.8));
-      kVerts.push(inner.x, kY, inner.z,  outer.x, kY, outer.z);
+      rings.push({ inner, outer });
+    }
+
+    // Push N rings then close with an exact copy of ring 0's positions.
+    for (let i = 0; i <= N; i++) {
+      const { inner, outer } = rings[i % N]; // ring N reuses ring 0 positions exactly
+      kVerts.push(inner.x, 0.02, inner.z,  outer.x, 0.02, outer.z);
       const kColor = Math.floor(i / 3) % 2 === 0 ? [1,0.1,0.1] : [1,1,1];
       kCols.push(...kColor, ...kColor);
-      if (i < N) {
-        const b = i * 2;
-        // Consistent winding regardless of side so both faces are front-facing
-        if (side === 1) {
-          kInds.push(b, b+1, b+2, b+1, b+3, b+2);
-        } else {
-          kInds.push(b+2, b+1, b, b+2, b+3, b+1);
-        }
+    }
+
+    // N quads, each connecting ring i to ring i+1 — no wrap-around needed.
+    for (let i = 0; i < N; i++) {
+      const b  = i * 2;
+      const nb = (i + 1) * 2;
+      if (side === 1) {
+        kInds.push(b, b+1, nb,  b+1, nb+1, nb);
+      } else {
+        kInds.push(nb, b+1, b,  nb, nb+1, b+1);
       }
     }
+
     const kg = new THREE.BufferGeometry();
     kg.setAttribute('position', new THREE.Float32BufferAttribute(kVerts, 3));
     kg.setAttribute('color',    new THREE.Float32BufferAttribute(kCols, 3));
     kg.setIndex(kInds);
     kg.computeVertexNormals();
-    sceneObj.add(new THREE.Mesh(kg, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })));
+    const kerbMesh = new THREE.Mesh(kg, new THREE.MeshLambertMaterial({
+      vertexColors: true,
+      side: THREE.DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1,
+    }));
+    kerbMesh.renderOrder = 1;
+    sceneObj.add(kerbMesh);
   }
 
   // Centre dashed line
@@ -427,14 +447,15 @@ function buildTrack(sceneObj) {
   const flW = TRACK_WIDTH;
   const flD = 4.5;
   const flGeo = new THREE.PlaneGeometry(flW, flD);
-  const flMat = new THREE.MeshBasicMaterial({ map: flTex, transparent: false, depthWrite: false });
+  const flMat = new THREE.MeshBasicMaterial({ map: flTex, transparent: false, depthWrite: true,
+    polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 });
   const flMesh = new THREE.Mesh(flGeo, flMat);
 
   const flAngle = Math.atan2(sfTan.x, sfTan.z);
   flMesh.rotation.x = -Math.PI / 2;
   flMesh.rotation.z = -flAngle;
   flMesh.position.set(sfOrigin.x, 0.04, sfOrigin.z);
-  flMesh.renderOrder = 1;
+  flMesh.renderOrder = 2;
   sceneObj.add(flMesh);
 }
 
@@ -457,10 +478,10 @@ function addDecorations(sceneObj) {
   // Trees removed
 
   // ── FULL STADIUM: stands placed outside every track segment ──
-  const STADIUM_OFFSET = 16;
+  const STADIUM_OFFSET = 26;
   const STAND_SEGMENT = 18;
   const STAND_H = 7;
-  const STAND_D = 6;
+  const STAND_D = 8;
   const standMat = new THREE.MeshLambertMaterial({ color: 0x778899 });
   const roofMat  = new THREE.MeshLambertMaterial({ color: 0xCC3300 });
   const seatColors = [0x1144CC, 0xCC1111, 0xFFDD00, 0x119922, 0xAA22CC];
@@ -587,7 +608,7 @@ function buildKart(charIndex, scene) {
   group.add(new THREE.Mesh(new THREE.BoxGeometry(2, 0.7, 3.5), bodyMat));
 
   const noseMesh = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.5, 1), bodyMat);
-  noseMesh.position.set(0, -0.05, -2.2);
+  noseMesh.position.set(0, -0.05, 2.2);
   group.add(noseMesh);
 
   const wheelGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.35, 8);
@@ -667,6 +688,7 @@ function createPlayer(charIndex, startPos, startAngle, scene) {
     spinoutAngle: 0,   // accumulated extra rotation during spinout
     bananaImmune: 0,   // > 0 = immune to banana peels (just threw one)
     starTimer: 0,      // > 0 while star power-up is active (10s)
+    boostTimer: 0,     // > 0 while boost is active (3s)
     charIndex,
     camDist: 14,
     camHeight: 6,
@@ -705,7 +727,11 @@ function checkAllFinished() {
   if (players.every(p => p.finishTime !== null)) {
     showFinish();
   } else if (players.some(p => p.finishTime !== null)) {
-    setTimeout(() => { if (!players.every(p=>p.finishTime)) showFinish(); }, 10000);
+    // Winner finished — hand their kart to the AI, wait for the other player
+    const winnerIdx = players.findIndex(p => p.finishTime !== null);
+    activateWinnerAI(winnerIdx);
+    // Safety fallback: force finish after 60s if second player never crosses the line
+    setTimeout(() => { if (raceRunning) showFinish(); }, 60000);
   }
 }
 
@@ -858,6 +884,263 @@ function playSlipSound() {
   osc.stop(audioCtx.currentTime + 0.65);
 }
 
+// =============================================
+// RED SHELL PROJECTILE SYSTEM
+// =============================================
+// Each shell: { mesh1, mesh2, owner, target, active,
+//              trackT,         ← current t on the CatmullRom curve (0-1)
+//              speed,          ← units/s along curve
+//              homingDist,     ← switch to direct homing when target within this range
+//              homingVel,      ← {x,z} velocity used during direct homing phase
+//              phase }         ← 'track' | 'homing'
+let redShells = [];
+
+// ── Build a 3D red shell mesh ──
+function makeRedShellMesh() {
+  const group = new THREE.Group();
+
+  // Bottom dome (flattened hemisphere) — red
+  const bottomGeo = new THREE.SphereGeometry(0.55, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+  const redMat = new THREE.MeshLambertMaterial({ color: 0xCC1100 });
+  const bottom = new THREE.Mesh(bottomGeo, redMat);
+  bottom.rotation.x = Math.PI; // flip so dome faces down
+  bottom.position.y = 0.05;
+  group.add(bottom);
+
+  // Top dome — lighter red, slightly smaller
+  const topGeo = new THREE.SphereGeometry(0.52, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+  const topMat = new THREE.MeshLambertMaterial({ color: 0xEE2200 });
+  const top = new THREE.Mesh(topGeo, topMat);
+  top.position.y = 0.05;
+  group.add(top);
+
+  // White belly plate (flat circle on underside)
+  const bellyGeo = new THREE.CircleGeometry(0.48, 16);
+  const bellyMat = new THREE.MeshLambertMaterial({ color: 0xFFEECC });
+  const belly = new THREE.Mesh(bellyGeo, bellyMat);
+  belly.rotation.x = -Math.PI / 2;
+  belly.position.y = 0.04;
+  group.add(belly);
+
+  // Ridge ring around equator — dark outline
+  const ridgeGeo = new THREE.TorusGeometry(0.52, 0.045, 8, 32);
+  const ridgeMat = new THREE.MeshLambertMaterial({ color: 0x880000 });
+  const ridge = new THREE.Mesh(ridgeGeo, ridgeMat);
+  ridge.rotation.x = Math.PI / 2;
+  ridge.position.y = 0.05;
+  group.add(ridge);
+
+  // Shell segments — 6 raised ridges radiating from top
+  const segMat = new THREE.MeshLambertMaterial({ color: 0xAA0000 });
+  for (let i = 0; i < 6; i++) {
+    const angle = (i / 6) * Math.PI * 2;
+    const segGeo = new THREE.BoxGeometry(0.07, 0.06, 0.44);
+    const seg = new THREE.Mesh(segGeo, segMat);
+    seg.position.set(Math.sin(angle) * 0.22, 0.32, Math.cos(angle) * 0.22);
+    seg.rotation.y = angle;
+    seg.rotation.x = 0.35; // tilt to follow dome curve
+    group.add(seg);
+  }
+
+  // Shine highlight (small white ellipse near top of dome)
+  const shineGeo = new THREE.SphereGeometry(0.13, 8, 6);
+  const shineMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.7 });
+  const shine = new THREE.Mesh(shineGeo, shineMat);
+  shine.scale.set(1, 0.45, 0.7);
+  shine.position.set(-0.15, 0.42, -0.2);
+  group.add(shine);
+
+  // Position shell hovering just above ground
+  group.position.y = 0.6;
+  return group;
+}
+
+// Find the closest t on the track curve to a given world position — full search
+function closestTrackT(pos) {
+  let bestT = 0;
+  let bestDist = Infinity;
+  for (let i = 0; i < TRACK_SAMPLES; i++) {
+    const t = i / TRACK_SAMPLES;
+    const pt = TRACK_CURVE.getPoint(t);
+    const dx = pos.x - pt.x, dz = pos.z - pt.z;
+    const d = dx * dx + dz * dz;
+    if (d < bestDist) { bestDist = d; bestT = t; }
+  }
+  return bestT;
+}
+
+function spawnRedShell(thrower, target) {
+  // Launch shell from just in front of the thrower
+  const frontX = thrower.kart.position.x + Math.sin(thrower.angle) * 3;
+  const frontZ = thrower.kart.position.z + Math.cos(thrower.angle) * 3;
+  const spawnPos = new THREE.Vector3(frontX, 0, frontZ);
+
+  // Snap shell and target to nearest track t (full search — no blind spot)
+  const shellT  = closestTrackT(spawnPos);
+  const targetT = closestTrackT(target.kart.position);
+
+  // Choose the direction (forward or backward around the loop) that reaches
+  // the target in fewer steps — this is what makes it actually chase the right way
+  const fwdSteps = ((targetT - shellT + 1) % 1) * TRACK_SAMPLES;
+  const bwdSteps = ((shellT - targetT + 1) % 1) * TRACK_SAMPLES;
+  const trackDir = fwdSteps <= bwdSteps ? 1 : -1; // +1 = forward, -1 = backward
+
+  const mesh1 = makeRedShellMesh();
+  const mesh2 = makeRedShellMesh();
+  mesh1.position.copy(spawnPos).setY(0.6);
+  mesh2.position.copy(spawnPos).setY(0.6);
+  scenes[0].add(mesh1);
+  scenes[1].add(mesh2);
+
+  redShells.push({
+    mesh1, mesh2,
+    owner: thrower,
+    target,
+    active: true,
+    trackT: shellT,
+    trackDir,            // which way to travel around the curve
+    speed: 30,           // m/s along curve — comfortably faster than max kart speed
+    homingDist: 40,      // large window: switch to direct homing within 40 units
+    homingVel: new THREE.Vector3(Math.sin(thrower.angle), 0, Math.cos(thrower.angle)),
+    phase: 'track',
+    spinAngle: 0,
+    lifeTimer: 15,       // self-destruct after 15s if something goes very wrong
+  });
+
+  playShellLaunchSound();
+}
+
+function updateRedShells(delta) {
+  redShells.forEach(shell => {
+    if (!shell.active) return;
+
+    shell.lifeTimer -= delta;
+    if (shell.lifeTimer <= 0) {
+      destroyRedShell(shell);
+      return;
+    }
+
+    // Spin the shell visually
+    shell.spinAngle += delta * 5;
+    shell.mesh1.rotation.y = shell.spinAngle;
+    shell.mesh2.rotation.y = shell.spinAngle;
+
+    const targetPos = shell.target.kart.position;
+    const dist = shell.mesh1.position.distanceTo(targetPos);
+
+    if (shell.phase === 'track') {
+      // ── TRACK-FOLLOWING PHASE ──
+      const arcLength = TRACK_CURVE.getLength();
+      const dt = (shell.speed * delta) / arcLength;
+
+      // Advance in the pre-computed direction (toward target around the loop)
+      shell.trackT = ((shell.trackT + dt * shell.trackDir) % 1 + 1) % 1;
+
+      const pt  = TRACK_CURVE.getPoint(shell.trackT);
+      const tan = TRACK_CURVE.getTangent(shell.trackT).normalize();
+
+      shell.mesh1.position.set(pt.x, 0.6, pt.z);
+      shell.mesh2.position.set(pt.x, 0.6, pt.z);
+
+      // Face direction of travel (account for trackDir so reversed shell still faces forward)
+      const facingTan = shell.trackDir === 1 ? tan : tan.clone().negate();
+      const shellAngle = Math.atan2(facingTan.x, facingTan.z);
+      shell.mesh1.rotation.y = shellAngle + shell.spinAngle;
+      shell.mesh2.rotation.y = shellAngle + shell.spinAngle;
+
+      // Switch to direct homing when close enough to target
+      if (dist < shell.homingDist) {
+        shell.phase = 'homing';
+        shell.homingVel.set(facingTan.x, 0, facingTan.z).multiplyScalar(shell.speed);
+      }
+
+    } else {
+      // ── HOMING PHASE ──
+      // Steer toward target with a generous turn rate — this is the guarantee it lands
+      const toTarget = new THREE.Vector3(
+        targetPos.x - shell.mesh1.position.x,
+        0,
+        targetPos.z - shell.mesh1.position.z
+      ).normalize();
+
+      const TURN_RATE = 9; // rad/s — sharp enough to always catch a turning kart
+      const currentDir = shell.homingVel.clone().normalize();
+
+      const cross = currentDir.x * toTarget.z - currentDir.z * toTarget.x;
+      const dot   = currentDir.dot(toTarget);
+      const angleErr = Math.atan2(cross, dot);
+      const maxTurn = TURN_RATE * delta;
+      // Positive angleErr = target is to the left → turn left (positive Y rotation)
+      const turn = Math.max(-maxTurn, Math.min(maxTurn, angleErr));
+
+      const cosT = Math.cos(turn), sinT = Math.sin(turn);
+      const newX = shell.homingVel.x * cosT - shell.homingVel.z * sinT;
+      const newZ = shell.homingVel.x * sinT + shell.homingVel.z * cosT;
+      shell.homingVel.set(newX, 0, newZ).normalize().multiplyScalar(shell.speed);
+
+      shell.mesh1.position.x += shell.homingVel.x * delta;
+      shell.mesh1.position.z += shell.homingVel.z * delta;
+      shell.mesh1.position.y = 0.6;
+      shell.mesh2.position.copy(shell.mesh1.position);
+    }
+
+    // ── HIT CHECK ──
+    const hitDist = shell.mesh1.position.distanceTo(targetPos);
+    if (hitDist < 2.4 && shell.target.stunTimer <= 0) {
+      // DIRECT HIT — full spinout
+      shell.target.spinoutTimer = 3.0;
+      shell.target.spinoutAngle = 0;
+      shell.target.stunTimer    = 3.0;
+      shell.target.speed       *= 0.3;
+      playShellHitSound();
+      destroyRedShell(shell);
+    }
+  });
+
+  // Clean up inactive shells
+  redShells = redShells.filter(s => s.active);
+}
+
+function destroyRedShell(shell) {
+  shell.active = false;
+  scenes[0].remove(shell.mesh1);
+  scenes[1].remove(shell.mesh2);
+}
+
+function playShellLaunchSound() {
+  if (!audioCtx) return;
+  // Short rising whistle
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.18);
+  gain.gain.setValueAtTime(0.22, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.28);
+}
+
+function playShellHitSound() {
+  if (!audioCtx) return;
+  // Ceramic crack + descending thud
+  [0, 0.06].forEach(offset => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = offset === 0 ? 'square' : 'sawtooth';
+    osc.frequency.setValueAtTime(offset === 0 ? 700 : 300, audioCtx.currentTime + offset);
+    osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + offset + 0.35);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime + offset);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + offset + 0.4);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime + offset);
+    osc.stop(audioCtx.currentTime + offset + 0.45);
+  });
+}
+
 function collectItem(player, idx) {
   if (!player.item && itemBoxes[idx].active) {
     player.item = ITEMS[Math.floor(Math.random()*ITEMS.length)];
@@ -871,7 +1154,8 @@ function useItem(player, otherPlayer) {
   if (!player.item || player.itemCooldown > 0) return;
 
   if (player.item.includes('Boost')) {
-    player.speed = Math.max(player.speed, MAX_SPEED * 1.4);
+    player.boostTimer = 3.0; // 3 seconds of fire 🔥
+    player.speed = Math.max(player.speed, MAX_SPEED * 1.3); // immediate kick
 
   } else if (player.item.includes('Star')) {
     player.starTimer = 10; // 10 seconds of ABSOLUTE POWER 🌟
@@ -883,12 +1167,7 @@ function useItem(player, otherPlayer) {
     player.bananaImmune = 2.5;
 
   } else if (player.item.includes('Shell')) {
-    const dist = player.kart.position.distanceTo(otherPlayer.kart.position);
-    if (dist < 15) {
-      otherPlayer.stunTimer = 2;
-      otherPlayer.speed *= -0.5;
-      showHitEffect(otherPlayer);
-    }
+    spawnRedShell(player, otherPlayer);
   }
 
   player.item = null;
@@ -952,6 +1231,12 @@ function updatePlayer(player, binds, delta, otherPlayer) {
     if (player.starTimer < 0) player.starTimer = 0;
   }
 
+  // Tick boost timer
+  if (player.boostTimer > 0) {
+    player.boostTimer -= delta;
+    if (player.boostTimer < 0) player.boostTimer = 0;
+  }
+
   // ── Star cancels incoming spinouts ──
   if (player.starTimer > 0 && player.spinoutTimer > 0) {
     player.spinoutTimer = 0;
@@ -991,9 +1276,11 @@ function updatePlayer(player, binds, delta, otherPlayer) {
     if (keys[binds.item])    useItem(player, otherPlayer);
   }
 
-  // Clamp speed — star gives a higher ceiling
-  const starSpeedCap = player.starTimer > 0 ? MAX_SPEED * 1.55 : MAX_SPEED;
-  player.speed = Math.max(-6, Math.min(starSpeedCap * speedMult, player.speed));
+  // Clamp speed — boost raises ceiling, star raises it even higher (star wins if both)
+  const speedCap = player.starTimer > 0 ? MAX_SPEED * 1.55
+                 : player.boostTimer > 0 ? MAX_SPEED * 1.4
+                 : MAX_SPEED;
+  player.speed = Math.max(-6, Math.min(speedCap * speedMult, player.speed));
 
   // Frame-rate-independent friction: multiply by (1 - friction)^delta
   player.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
@@ -1095,6 +1382,160 @@ function updateCamera(camera, player) {
   );
   camera.position.lerp(player.kart.position.clone().add(behind), 0.12);
   camera.lookAt(player.kart.position.clone().add(new THREE.Vector3(0, 1, 0)));
+}
+
+// =============================================
+// WINNER AI DRIVER + CINEMATIC CAMERA
+// =============================================
+// winnerAI: { playerIdx, trackT, cinCam: { mode, timer, modeTimer } }
+let winnerAI = null;
+
+const AI_SPEED_TARGET = MAX_SPEED * 0.82; // a little slower than max so it feels natural
+const AI_STEER_RATE   = 2.6;              // rad/s steering correction
+
+function activateWinnerAI(playerIdx) {
+  const p = players[playerIdx];
+  // Snap to the nearest track position so the AI has a clean starting t
+  const snapT = closestTrackT(p.kart.position);
+  winnerAI = {
+    playerIdx,
+    trackT: snapT,
+    // Cinematic camera state for the winner's viewport
+    cinCam: {
+      mode: 'chase',       // 'chase' | 'side' | 'high' | 'ahead'
+      modeTimer: 0,        // time spent in current mode
+      modeDuration: 3.5,   // seconds before switching to next mode
+      t: 0,                // global time accumulator for smooth motion
+    },
+  };
+}
+
+function updateWinnerAI(delta) {
+  if (!winnerAI) return;
+  const pi  = winnerAI.playerIdx;
+  const p   = players[pi];
+  if (!p || p.finishTime === null) return; // safety — shouldn't happen
+
+  // ── 1. DRIVE ALONG THE TRACK ──
+  // Compute the track centre-line point one lookahead distance ahead of the kart
+  const LOOKAHEAD = 0.025; // fraction of curve to look ahead (~one corner)
+  const arcLen    = TRACK_CURVE.getLength();
+  const dtPerSec  = AI_SPEED_TARGET / arcLen; // how much t to cover per second at target speed
+
+  // Advance internal trackT at the same rate as the kart will actually travel
+  winnerAI.trackT = (winnerAI.trackT + dtPerSec * delta) % 1;
+
+  const lookaheadT  = (winnerAI.trackT + LOOKAHEAD) % 1;
+  const targetPt    = TRACK_CURVE.getPoint(lookaheadT);
+
+  // Desired angle: from kart position toward lookahead point on curve
+  const dx = targetPt.x - p.kart.position.x;
+  const dz = targetPt.z - p.kart.position.z;
+  const desiredAngle = Math.atan2(dx, dz);
+
+  // Steer angle toward desired, clamped to AI_STEER_RATE
+  let angleDiff = desiredAngle - p.angle;
+  // Wrap to [-π, π]
+  while (angleDiff >  Math.PI) angleDiff -= Math.PI * 2;
+  while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+  const maxSteer = AI_STEER_RATE * delta;
+  p.angle += Math.max(-maxSteer, Math.min(maxSteer, angleDiff));
+
+  // Accelerate toward target speed
+  if (p.speed < AI_SPEED_TARGET) {
+    p.speed += ACCEL * 0.7 * delta;
+  }
+  p.speed = Math.min(p.speed, AI_SPEED_TARGET);
+  p.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
+
+  // Move the kart
+  p.kart.position.x += Math.sin(p.angle) * p.speed * delta;
+  p.kart.position.z += Math.cos(p.angle) * p.speed * delta;
+  p.kart.rotation.y  = p.angle;
+  p.kart.rotation.z  = 0;
+
+  // Still track laps so the HUD is accurate
+  updateLaps(p);
+
+  // ── 2. CINEMATIC CAMERA ──
+  updateCinematicCamera(delta, pi);
+}
+
+// Camera modes: each shoots from a different angle relative to the kart / track
+const CIN_MODES = ['chase', 'side', 'high', 'ahead'];
+let cinModeIdx = 0;
+
+function updateCinematicCamera(delta, playerIdx) {
+  const cc  = winnerAI.cinCam;
+  const p   = players[playerIdx];
+  const cam = cameras[playerIdx];
+  cc.t += delta;
+  cc.modeTimer += delta;
+
+  // Cycle to next mode after modeTimer expires
+  if (cc.modeTimer >= cc.modeDuration) {
+    cc.modeTimer = 0;
+    cinModeIdx = (cinModeIdx + 1) % CIN_MODES.length;
+    cc.mode = CIN_MODES[cinModeIdx];
+    // Vary duration so cuts don't feel mechanical
+    cc.modeDuration = 3.0 + Math.random() * 2.5;
+  }
+
+  const kpos  = p.kart.position;
+  const fwdX  = Math.sin(p.angle);
+  const fwdZ  = Math.cos(p.angle);
+  const rightX =  fwdZ;   // perpendicular right in XZ
+  const rightZ = -fwdX;
+
+  // Smooth blend factor for lerp (faster lerp = snappier cut; ease in on fresh mode)
+  const blend = Math.min(cc.modeTimer / 0.5, 1) * 0.08 + 0.02;
+
+  let targetPos, lookAt;
+
+  if (cc.mode === 'chase') {
+    // Classic chase cam but floated up higher and further back than gameplay cam
+    const dist = 18 + Math.sin(cc.t * 0.4) * 3;
+    const height = 9 + Math.sin(cc.t * 0.3) * 2;
+    targetPos = new THREE.Vector3(
+      kpos.x - fwdX * dist,
+      kpos.y + height,
+      kpos.z - fwdZ * dist
+    );
+    lookAt = kpos.clone().add(new THREE.Vector3(fwdX * 4, 1.5, fwdZ * 4));
+
+  } else if (cc.mode === 'side') {
+    // Tracking shot from the side, slowly drifting
+    const side = 20 + Math.sin(cc.t * 0.25) * 5;
+    const sign = Math.sin(cc.t * 0.1) >= 0 ? 1 : -1; // alternate which side
+    targetPos = new THREE.Vector3(
+      kpos.x + rightX * side * sign,
+      kpos.y + 7 + Math.sin(cc.t * 0.5) * 2,
+      kpos.z + rightZ * side * sign
+    );
+    lookAt = kpos.clone().add(new THREE.Vector3(0, 1, 0));
+
+  } else if (cc.mode === 'high') {
+    // Overhead / blimp shot — hovers above a fixed track point, kart drives under it
+    const highT   = (winnerAI.trackT + 0.12) % 1;
+    const highPt  = TRACK_CURVE.getPoint(highT);
+    targetPos = new THREE.Vector3(highPt.x, 45 + Math.sin(cc.t * 0.2) * 5, highPt.z);
+    lookAt = kpos.clone().add(new THREE.Vector3(0, 0, 0));
+
+  } else { // 'ahead'
+    // Camera placed ahead on the track, kart drives toward it
+    const aheadT  = (winnerAI.trackT + 0.06) % 1;
+    const aheadPt = TRACK_CURVE.getPoint(aheadT);
+    const aheadTan = TRACK_CURVE.getTangent(aheadT).normalize();
+    targetPos = new THREE.Vector3(
+      aheadPt.x - aheadTan.x * 3 + rightX * (Math.sin(cc.t * 0.3) * 4),
+      kpos.y + 4 + Math.sin(cc.t * 0.4) * 1.5,
+      aheadPt.z - aheadTan.z * 3 + rightZ * (Math.sin(cc.t * 0.3) * 4)
+    );
+    lookAt = kpos.clone().add(new THREE.Vector3(0, 1, 0));
+  }
+
+  cam.position.lerp(targetPos, blend);
+  cam.lookAt(lookAt);
 }
 
 // =============================================
@@ -1217,19 +1658,30 @@ function startGame() {
     lastTime = now;
 
     if (raceRunning) {
-      updatePlayer(players[0], P1_KEYS, delta, players[1]);
-      updatePlayer(players[1], P2_KEYS, delta, players[0]);
+      const aiIdx = winnerAI ? winnerAI.playerIdx : -1;
+
+      // Normal player update — skip the AI-controlled winner
+      if (aiIdx !== 0) updatePlayer(players[0], P1_KEYS, delta, players[1]);
+      if (aiIdx !== 1) updatePlayer(players[1], P2_KEYS, delta, players[0]);
+
+      // AI drives the winner's kart (also updates that kart's laps)
+      updateWinnerAI(delta);
+
       updateItemBoxes(delta);
       updateBananaPeels(delta, players[0], players[1]);
+      updateRedShells(delta);
       syncItemBoxVisibility();
 
       raceTimer = (Date.now() - raceStart) / 1000;
 
-      updateCamera(cameras[0], players[0]);
-      updateCamera(cameras[1], players[1]);
+      // Camera: cinematic for AI player (handled inside updateWinnerAI),
+      //         normal chase for the human still racing
+      if (aiIdx !== 0) updateCamera(cameras[0], players[0]);
+      if (aiIdx !== 1) updateCamera(cameras[1], players[1]);
 
       updateMirrorKarts();
       updateStarEffects(delta);
+      updateFireParticles(delta);
       updateHUD();
       updateEngineAudio();
     }
@@ -1242,6 +1694,119 @@ function startGame() {
     renderers[1].render(scenes[1], cameras[1]);
   }
   loop();
+}
+
+// =============================================
+// BOOST FIRE PARTICLES
+// =============================================
+// Two pools (one per player), each containing particle meshes in both scenes.
+// Each particle: { mesh1, mesh2, life, maxLife, vx, vy, vz }
+const FIRE_COLORS = [0xFF4400, 0xFF8800, 0xFFCC00, 0xFF2200, 0xFFFFAA];
+const FIRE_POOL_SIZE = 28; // particles per player
+
+// Pools are initialised lazily on first boost so scenes[] is ready.
+const _firePools = [null, null];
+
+function initFirePool(pi) {
+  if (_firePools[pi]) return;
+  const pool = [];
+  for (let i = 0; i < FIRE_POOL_SIZE; i++) {
+    const geo = new THREE.SphereGeometry(0.18, 4, 4);
+    const mat1 = new THREE.MeshBasicMaterial({ color: 0xFF4400, transparent: true, opacity: 0 });
+    const mat2 = mat1.clone();
+    const m1 = new THREE.Mesh(geo, mat1);
+    const m2 = new THREE.Mesh(geo, mat2);
+    m1.visible = false; m2.visible = false;
+    scenes[0].add(m1); scenes[1].add(m2);
+    pool.push({ mesh1: m1, mesh2: m2, life: 0, maxLife: 0, vx: 0, vy: 0, vz: 0 });
+  }
+  _firePools[pi] = pool;
+}
+
+function spawnFireParticle(pool, player) {
+  // Find a dead particle to recycle
+  const p = pool.find(p => p.life <= 0);
+  if (!p) return;
+
+  // Exhaust exits from behind the kart
+  const bx = -Math.sin(player.angle) * 1.9;
+  const bz = -Math.cos(player.angle) * 1.9;
+
+  // Random spread around the exhaust point
+  const spread = 0.35;
+  const ox = (Math.random() - 0.5) * spread;
+  const oz = (Math.random() - 0.5) * spread;
+
+  const worldX = player.kart.position.x + bx + ox;
+  const worldY = player.kart.position.y + 0.1 + Math.random() * 0.3;
+  const worldZ = player.kart.position.z + bz + oz;
+
+  p.mesh1.position.set(worldX, worldY, worldZ);
+  p.mesh2.position.set(worldX, worldY, worldZ);
+
+  // Velocity: mostly backward/upward with slight randomness
+  const speed = 3 + Math.random() * 3;
+  p.vx = bx / 1.9 * speed * 0.5 + (Math.random() - 0.5) * 1.5;
+  p.vy = 1.5 + Math.random() * 2.5;
+  p.vz = bz / 1.9 * speed * 0.5 + (Math.random() - 0.5) * 1.5;
+
+  p.maxLife = 0.25 + Math.random() * 0.2;
+  p.life    = p.maxLife;
+
+  const col = FIRE_COLORS[Math.floor(Math.random() * FIRE_COLORS.length)];
+  p.mesh1.material.color.set(col);
+  p.mesh2.material.color.set(col);
+  p.mesh1.visible = true;
+  p.mesh2.visible = true;
+}
+
+function updateFireParticles(delta) {
+  players.forEach((player, pi) => {
+    const boosting = player.boostTimer > 0;
+
+    if (boosting) {
+      initFirePool(pi);
+      // Spawn ~8 new particles per second at 60fps feels great
+      const spawnCount = Math.random() < delta * 50 ? 2 : 1;
+      for (let i = 0; i < spawnCount; i++) spawnFireParticle(_firePools[pi], player);
+    }
+
+    if (!_firePools[pi]) return;
+
+    _firePools[pi].forEach(p => {
+      if (p.life <= 0) return;
+      p.life -= delta;
+
+      if (p.life <= 0) {
+        p.mesh1.visible = false;
+        p.mesh2.visible = false;
+        return;
+      }
+
+      // Integrate position
+      p.mesh1.position.x += p.vx * delta;
+      p.mesh1.position.y += p.vy * delta;
+      p.mesh1.position.z += p.vz * delta;
+      p.mesh2.position.copy(p.mesh1.position);
+
+      // Rise slows, gravity pulls back
+      p.vy -= 6 * delta;
+
+      // Fade and shrink as life runs out
+      const t = p.life / p.maxLife; // 1→0
+      const opacity = t * 0.9;
+      const scale   = 0.4 + t * 0.6;
+      p.mesh1.material.opacity = opacity;
+      p.mesh2.material.opacity = opacity;
+      p.mesh1.scale.setScalar(scale);
+      p.mesh2.scale.setScalar(scale);
+
+      // Shift colour toward yellow/white as they cool
+      const hue = 0.08 - (1 - t) * 0.08; // orange → red
+      p.mesh1.material.color.setHSL(hue, 1.0, 0.5 + (1 - t) * 0.3);
+      p.mesh2.material.color.copy(p.mesh1.material.color);
+    });
+  });
 }
 
 // =============================================
@@ -1407,8 +1972,13 @@ function backToMenu() {
   ghostKarts = null;
   itemBoxes = [];
   bananaPeels = [];
+  redShells = [];
+  winnerAI = null;
+  cinModeIdx = 0;
   _starOrigColors[0] = null;
   _starOrigColors[1] = null;
+  _firePools[0] = null;
+  _firePools[1] = null;
   stadiumWalls.length = 0;
   players = [];
   scenes = [];
