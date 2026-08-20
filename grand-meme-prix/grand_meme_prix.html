@@ -15,41 +15,88 @@
 <!-- MAIN MENU -->
 <div id="mainMenu">
   <div class="stars" id="starsContainer"></div>
-  <h1>🏎️ GRAND<br>MEME PRIX 🏎️ <br> 3D</h1>
-  <div class="subtitle">2-PLAYER LOCAL CO-OP</div>
 
-  <div class="char-select-grid">
-    <div class="player-select">
-      <h3>🕹️ PLAYER 1</h3>
-      <div class="char-display"><img id="p1img" src="" alt=""/></div>
-      <div class="char-name" id="p1name">-</div>
-      <div class="char-controls">
-        <button class="char-btn" onclick="changeChar(0,-1)">◀</button>
-        <button class="char-btn" onclick="changeChar(0,1)">▶</button>
+  <!-- SCREEN 1: Mode Select -->
+  <div id="screenModeSelect">
+    <h1>🏎️ GRAND<br>MEME PRIX 🏎️ <br> 3D</h1>
+    <div class="subtitle">SELECT YOUR MODE</div>
+    <div class="mode-btn-group">
+      <button class="mode-btn" onclick="selectMode('solo')">🤖 SINGLE PLAYER<br><span class="mode-btn-sub">vs CPU</span></button>
+      <button class="mode-btn" onclick="selectMode('coop')">👥 TWO PLAYER<br><span class="mode-btn-sub">LOCAL CO-OP</span></button>
+    </div>
+    <button onclick="toggleFullscreen()" style="background:rgba(255,255,255,0.15);color:#FFD700;border:2px solid #FFD700;padding:8px 24px;font-family:inherit;font-size:16px;cursor:pointer;border-radius:6px;letter-spacing:1px">⛶ FULLSCREEN (F11)</button>
+  </div>
+
+  <!-- SCREEN 2: Character Select (Solo) -->
+  <div id="screenCharSolo" style="display:none;flex-direction:column;align-items:center;gap:20px">
+    <h1 style="font-size:48px">🤖 SINGLE PLAYER</h1>
+    <div class="subtitle">CHOOSE YOUR DRIVER</div>
+    <div class="char-select-grid">
+      <div class="player-select">
+        <h3>🕹️ YOU</h3>
+        <div class="char-display"><img id="p1img" src="" alt=""/></div>
+        <div class="char-name" id="p1name">-</div>
+        <div class="char-controls">
+          <button class="char-btn" onclick="changeChar(0,-1)">◀</button>
+          <button class="char-btn" onclick="changeChar(0,1)">▶</button>
+        </div>
+        <div class="controls-hint" style="margin-top:10px">
+          <span>WASD</span> to drive<br><span>SPACE</span> = item
+        </div>
       </div>
-      <div class="controls-hint" style="margin-top:10px">
-        <span>WASD</span> to drive<br><span>SPACE</span> = item
+      <div class="player-select cpu-select">
+        <h3>🤖 CPU</h3>
+        <div class="char-display"><img id="cpuimg" src="" alt=""/></div>
+        <div class="char-name" id="cpuname">???</div>
+        <div class="controls-hint" style="margin-top:10px;color:#FFD700">
+          Random pick<br>after you choose!
+        </div>
       </div>
     </div>
-    <div class="player-select">
-      <h3>🕹️ PLAYER 2</h3>
-      <div class="char-display"><img id="p2img" src="" alt=""/></div>
-      <div class="char-name" id="p2name">-</div>
-      <div class="char-controls">
-        <button class="char-btn" onclick="changeChar(1,-1)">◀</button>
-        <button class="char-btn" onclick="changeChar(1,1)">▶</button>
-      </div>
-      <div class="controls-hint" style="margin-top:10px">
-        <span>↑↓←→</span> to drive<br><span>ENTER</span> = item
-      </div>
+    <div class="controls-hint">Complete <span>3 laps</span> to win! Stay on track or you'll slow down!</div>
+    <div style="display:flex;gap:14px">
+      <button class="back-btn" onclick="goBack()">◀ BACK</button>
+      <button id="startBtn" onclick="startGame()">🏁 START RACE! 🏁</button>
     </div>
   </div>
 
-  <div class="controls-hint">
-    Complete <span>3 laps</span> to win! Stay on track or you'll slow down!
+  <!-- SCREEN 2b: Character Select (Co-op) -->
+  <div id="screenCharCoop" style="display:none;flex-direction:column;align-items:center;gap:20px">
+    <h1 style="font-size:48px">👥 TWO PLAYER</h1>
+    <div class="subtitle">CHOOSE YOUR DRIVERS</div>
+    <div class="char-select-grid">
+      <div class="player-select">
+        <h3>🕹️ PLAYER 1</h3>
+        <div class="char-display"><img id="p1img_co" src="" alt=""/></div>
+        <div class="char-name" id="p1name_co">-</div>
+        <div class="char-controls">
+          <button class="char-btn" onclick="changeChar(0,-1)">◀</button>
+          <button class="char-btn" onclick="changeChar(0,1)">▶</button>
+        </div>
+        <div class="controls-hint" style="margin-top:10px">
+          <span>WASD</span> to drive<br><span>SPACE</span> = item
+        </div>
+      </div>
+      <div class="player-select">
+        <h3>🕹️ PLAYER 2</h3>
+        <div class="char-display"><img id="p2img_co" src="" alt=""/></div>
+        <div class="char-name" id="p2name_co">-</div>
+        <div class="char-controls">
+          <button class="char-btn" onclick="changeChar(1,-1)">◀</button>
+          <button class="char-btn" onclick="changeChar(1,1)">▶</button>
+        </div>
+        <div class="controls-hint" style="margin-top:10px">
+          <span>↑↓←→</span> to drive<br><span>ENTER</span> = item
+        </div>
+      </div>
+    </div>
+    <div class="controls-hint">Complete <span>3 laps</span> to win! Stay on track or you'll slow down!</div>
+    <div style="display:flex;gap:14px">
+      <button class="back-btn" onclick="goBack()">◀ BACK</button>
+      <button id="startBtnCoop" onclick="startGame()">🏁 START TWO PLAYER CO-OP! 🏁</button>
+    </div>
   </div>
-  <button id="startBtn" onclick="startGame()">🏁 START RACE! 🏁</button>
-  <button onclick="toggleFullscreen()" style="background:rgba(255,255,255,0.15);color:#FFD700;border:2px solid #FFD700;padding:8px 24px;font-family:inherit;font-size:16px;cursor:pointer;border-radius:6px;letter-spacing:1px">⛶ FULLSCREEN (F11)</button>
+
 </div>
 
 <!-- HUB BUTTON — always visible bottom-left -->

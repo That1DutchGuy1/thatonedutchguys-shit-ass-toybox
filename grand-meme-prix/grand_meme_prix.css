@@ -51,7 +51,7 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   text-align: center; line-height: 1.6;
 }
 .controls-hint span { color: #FFD700; }
-#startBtn {
+#startBtn, #startBtnCoop {
   background: linear-gradient(180deg, #FFD700, #FF8C00);
   color: #000; border: none; padding: 18px 60px;
   font-family: inherit; font-size: 32px; font-weight: bold;
@@ -59,12 +59,66 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   text-shadow: none; box-shadow: 0 6px 0 #8B4500;
   transform: translateY(0); transition: transform 0.1s, box-shadow 0.1s;
 }
-#startBtn:hover { transform: translateY(3px); box-shadow: 0 3px 0 #8B4500; background: linear-gradient(180deg, #fff700, #FFD700); }
+#startBtn:hover, #startBtnCoop:hover { transform: translateY(3px); box-shadow: 0 3px 0 #8B4500; background: linear-gradient(180deg, #fff700, #FFD700); }
 .stars {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   pointer-events: none; overflow: hidden;
 }
 .star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle 2s infinite alternate; }
+
+/* MODE SELECT BUTTONS */
+.mode-btn-group {
+  display: flex; gap: 24px; margin: 10px 0;
+}
+.mode-btn {
+  background: linear-gradient(180deg, #2a0060, #0a0030);
+  border: 3px solid #FFD700;
+  color: #FFD700;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: bold;
+  padding: 22px 36px;
+  cursor: pointer;
+  border-radius: 10px;
+  letter-spacing: 1px;
+  line-height: 1.4;
+  text-align: center;
+  min-width: 200px;
+  box-shadow: 0 6px 0 #8B4500, 0 0 20px rgba(255,215,0,0.2);
+  transition: transform 0.1s, box-shadow 0.1s, background 0.2s;
+}
+.mode-btn:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(180deg, #4a0090, #1a0060);
+  box-shadow: 0 9px 0 #8B4500, 0 0 30px rgba(255,215,0,0.4);
+}
+.mode-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #8B4500; }
+.mode-btn-sub { font-size: 14px; color: #fff; letter-spacing: 3px; display: block; margin-top: 4px; }
+
+/* BACK BUTTON */
+.back-btn {
+  background: rgba(255,255,255,0.15);
+  color: #FFD700;
+  border: 2px solid #FFD700;
+  padding: 14px 28px;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 8px;
+  letter-spacing: 1px;
+  transition: background 0.15s;
+}
+.back-btn:hover { background: rgba(255,215,0,0.2); }
+
+/* CPU character panel */
+.cpu-select { opacity: 0.85; border-color: #aaa; }
+.cpu-select h3 { color: #aaa; }
+
+/* Screen sub-divs inside mainMenu */
+#screenModeSelect, #screenCharSolo, #screenCharCoop {
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
 
 /* HUD */
 #hud {

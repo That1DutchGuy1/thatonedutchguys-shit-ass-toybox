@@ -15,6 +15,8 @@ const CHARACTERS = [
 // PLAYER STATE
 // =============================================
 let playerChars = [0, 1 % CHARACTERS.length];
+let gameMode = 'coop';
+let soloAI = null;
 
 function changeChar(player, dir) {
   playerChars[player] = (playerChars[player] + dir + CHARACTERS.length) % CHARACTERS.length;
@@ -22,11 +24,37 @@ function changeChar(player, dir) {
 }
 
 function updateCharUI() {
-  ['p1','p2'].forEach((id, i) => {
-    const c = CHARACTERS[playerChars[i]];
-    document.getElementById(id+'img').src = c.img;
-    document.getElementById(id+'name').textContent = c.name;
-  });
+  const c0 = CHARACTERS[playerChars[0]];
+  const c1 = CHARACTERS[playerChars[1]];
+  const p1img = document.getElementById('p1img');
+  const p1name = document.getElementById('p1name');
+  const p2img = document.getElementById('p2img');
+  const p2name = document.getElementById('p2name');
+  const p1imgCoop = document.getElementById('p1img_co');
+  const p1nameCoop = document.getElementById('p1name_co');
+  const p2imgCoop = document.getElementById('p2img_co');
+  const p2nameCoop = document.getElementById('p2name_co');
+  if (p1img) p1img.src = c0.img;
+  if (p1name) p1name.textContent = c0.name;
+  if (p2img) p2img.src = '';
+  if (p2name) p2name.textContent = '???';
+  if (p1imgCoop) p1imgCoop.src = c0.img;
+  if (p1nameCoop) p1nameCoop.textContent = c0.name;
+  if (p2imgCoop) p2imgCoop.src = c1.img;
+  if (p2nameCoop) p2nameCoop.textContent = c1.name;
+}
+
+function selectMode(mode) {
+  gameMode = mode;
+  document.getElementById('screenModeSelect').style.display = 'none';
+  document.getElementById(mode === 'solo' ? 'screenCharSolo' : 'screenCharCoop').style.display = 'flex';
+  updateCharUI();
+}
+
+function goBack() {
+  document.getElementById('screenCharSolo').style.display = 'none';
+  document.getElementById('screenCharCoop').style.display = 'none';
+  document.getElementById('screenModeSelect').style.display = 'flex';
 }
 
 // Stars background
@@ -813,15 +841,15 @@ function spawnBananaPeel(thrower) {
   spawnPos.y = 0;
 
   const mesh1 = makeBananaPeelMesh();
-  const mesh2 = makeBananaPeelMesh();
+  const mesh2 = scenes[1] ? makeBananaPeelMesh() : null;
   // Random slight rotation so each peel looks unique
   const yRot = Math.random() * Math.PI * 2;
   mesh1.rotation.y = yRot;
-  mesh2.rotation.y = yRot;
+  if (mesh2) mesh2.rotation.y = yRot;
   mesh1.position.copy(spawnPos);
-  mesh2.position.copy(spawnPos);
+  if (mesh2) mesh2.position.copy(spawnPos);
   scenes[0].add(mesh1);
-  scenes[1].add(mesh2);
+  if (mesh2) scenes[1].add(mesh2);
 
   bananaPeels.push({ mesh1, mesh2, position: spawnPos.clone(), active: true });
 }
@@ -832,7 +860,7 @@ function updateBananaPeels(delta, p1, p2) {
 
     // Gentle wobble so it's not completely static
     peel.mesh1.rotation.y += delta * 0.4;
-    peel.mesh2.rotation.y += delta * 0.4;
+    if (peel.mesh2) peel.mesh2.rotation.y += delta * 0.4;
 
     // Check collision with each player.
     // IMPORTANT: use a for-loop with break so that if p1 consumes the peel,
@@ -847,7 +875,7 @@ function updateBananaPeels(delta, p1, p2) {
         // Consume the peel atomically FIRST so nothing else can claim it
         peel.active = false;
         scenes[0].remove(peel.mesh1);
-        scenes[1].remove(peel.mesh2);
+        if (peel.mesh2) scenes[1].remove(peel.mesh2);
 
         // Now apply spinout to the player who hit it
         player.spinoutTimer = 3.0;
@@ -986,11 +1014,11 @@ function spawnRedShell(thrower, target) {
   const trackDir = fwdSteps <= bwdSteps ? 1 : -1; // +1 = forward, -1 = backward
 
   const mesh1 = makeRedShellMesh();
-  const mesh2 = makeRedShellMesh();
+  const mesh2 = scenes[1] ? makeRedShellMesh() : null;
   mesh1.position.copy(spawnPos).setY(0.6);
-  mesh2.position.copy(spawnPos).setY(0.6);
+  if (mesh2) mesh2.position.copy(spawnPos).setY(0.6);
   scenes[0].add(mesh1);
-  scenes[1].add(mesh2);
+  if (mesh2) scenes[1].add(mesh2);
 
   redShells.push({
     mesh1, mesh2,
@@ -1023,7 +1051,7 @@ function updateRedShells(delta) {
     // Spin the shell visually
     shell.spinAngle += delta * 5;
     shell.mesh1.rotation.y = shell.spinAngle;
-    shell.mesh2.rotation.y = shell.spinAngle;
+    if (shell.mesh2) shell.mesh2.rotation.y = shell.spinAngle;
 
     const targetPos = shell.target.kart.position;
     const dist = shell.mesh1.position.distanceTo(targetPos);
@@ -1040,13 +1068,13 @@ function updateRedShells(delta) {
       const tan = TRACK_CURVE.getTangent(shell.trackT).normalize();
 
       shell.mesh1.position.set(pt.x, 0.6, pt.z);
-      shell.mesh2.position.set(pt.x, 0.6, pt.z);
+      if (shell.mesh2) shell.mesh2.position.set(pt.x, 0.6, pt.z);
 
       // Face direction of travel (account for trackDir so reversed shell still faces forward)
       const facingTan = shell.trackDir === 1 ? tan : tan.clone().negate();
       const shellAngle = Math.atan2(facingTan.x, facingTan.z);
       shell.mesh1.rotation.y = shellAngle + shell.spinAngle;
-      shell.mesh2.rotation.y = shellAngle + shell.spinAngle;
+      if (shell.mesh2) shell.mesh2.rotation.y = shellAngle + shell.spinAngle;
 
       // Switch to direct homing when close enough to target
       if (dist < shell.homingDist) {
@@ -1081,7 +1109,7 @@ function updateRedShells(delta) {
       shell.mesh1.position.x += shell.homingVel.x * delta;
       shell.mesh1.position.z += shell.homingVel.z * delta;
       shell.mesh1.position.y = 0.6;
-      shell.mesh2.position.copy(shell.mesh1.position);
+      if (shell.mesh2) shell.mesh2.position.copy(shell.mesh1.position);
     }
 
     // ── HIT CHECK ──
@@ -1104,7 +1132,7 @@ function updateRedShells(delta) {
 function destroyRedShell(shell) {
   shell.active = false;
   scenes[0].remove(shell.mesh1);
-  scenes[1].remove(shell.mesh2);
+  if (shell.mesh2) scenes[1].remove(shell.mesh2);
 }
 
 function playShellLaunchSound() {
@@ -1371,6 +1399,67 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   updateLaps(player);
 }
 
+function updateSoloAI(delta) {
+  const ai = players[1];
+  const human = players[0];
+  if (!ai || ai.finishTime) return;
+
+  if (ai.bananaImmune > 0) ai.bananaImmune -= delta;
+  if (ai.itemCooldown > 0) ai.itemCooldown -= delta;
+  if (ai.starTimer > 0) ai.starTimer = Math.max(0, ai.starTimer - delta);
+  if (ai.boostTimer > 0) ai.boostTimer = Math.max(0, ai.boostTimer - delta);
+
+  if (ai.spinoutTimer > 0) {
+    ai.spinoutTimer = Math.max(0, ai.spinoutTimer - delta);
+    ai.stunTimer = ai.spinoutTimer;
+    ai.angle += (2 + ai.spinoutTimer * 2) * delta;
+    ai.speed *= Math.pow(0.12, delta);
+    if (ai.spinoutTimer === 0) {
+      ai.stunTimer = 0;
+      ai.speed = 0;
+    }
+    ai.kart.rotation.y = ai.angle;
+    updateLaps(ai);
+    return;
+  }
+
+  const aiT = closestTrackT(ai.kart.position);
+  const humanT = closestTrackT(human.kart.position);
+  const distanceBehind = (aiT - humanT + 1) % 1;
+  const lookaheadT = (aiT + 0.025) % 1;
+  const target = TRACK_CURVE.getPoint(lookaheadT);
+  const desiredAngle = Math.atan2(target.x - ai.kart.position.x, target.z - ai.kart.position.z);
+  let angleDiff = desiredAngle - ai.angle;
+  while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+  while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+  ai.angle += Math.max(-2.8 * delta, Math.min(2.8 * delta, angleDiff));
+
+  const onTrack = isOnTrack(ai.kart.position);
+  const targetSpeed = (onTrack ? MAX_SPEED * 0.88 : MAX_SPEED * 0.25);
+  if (ai.speed < targetSpeed) ai.speed += ACCEL * 0.72 * delta;
+  const speedCap = ai.starTimer > 0 ? MAX_SPEED * 1.55 : ai.boostTimer > 0 ? MAX_SPEED * 1.4 : MAX_SPEED;
+  ai.speed = Math.min(speedCap, ai.speed);
+  ai.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
+  ai.kart.position.x += Math.sin(ai.angle) * ai.speed * delta;
+  ai.kart.position.z += Math.cos(ai.angle) * ai.speed * delta;
+  ai.kart.rotation.y = ai.angle;
+  ai.kart.rotation.z = 0;
+
+  itemBoxes.forEach((box, index) => {
+    if (box.active && !ai.item && ai.kart.position.distanceTo(box.mesh.position) < 2.5) collectItem(ai, index);
+  });
+
+  if (ai.item && ai.itemCooldown <= 0) {
+    const item = ai.item;
+    const shouldUse = item.includes('Star') || item.includes('Boost') ||
+      (item.includes('Shell') && human.finishTime === null) ||
+      (item.includes('Banana') && distanceBehind < 0.45);
+    if (shouldUse) useItem(ai, human);
+  }
+
+  updateLaps(ai);
+}
+
 // =============================================
 // CAMERA
 // =============================================
@@ -1469,6 +1558,7 @@ function updateCinematicCamera(delta, playerIdx) {
   const cc  = winnerAI.cinCam;
   const p   = players[playerIdx];
   const cam = cameras[playerIdx];
+  if (!cam) return;
   cc.t += delta;
   cc.modeTimer += delta;
 
@@ -1562,43 +1652,63 @@ function updateItemBoxes(delta) {
 // RACE SETUP & START
 // =============================================
 function startGame() {
+  const isSolo = gameMode === 'solo';
+  soloAI = null;
+  if (isSolo) {
+    const available = CHARACTERS.map((_, index) => index).filter(index => index !== playerChars[0]);
+    playerChars[1] = available[Math.floor(Math.random() * available.length)];
+  }
+
   document.getElementById('mainMenu').style.display = 'none';
   document.getElementById('hud').style.display = 'block';
-  document.getElementById('divider').style.display = 'block';
+  document.getElementById('divider').style.display = isSolo ? 'none' : 'block';
 
-  const W = window.innerWidth / 2;
+  const W = isSolo ? window.innerWidth : window.innerWidth / 2;
   const H = window.innerHeight;
 
   const c1 = document.getElementById('canvas1');
   const c2 = document.getElementById('canvas2');
   c1.width = W; c1.height = H; c1.style.width = W+'px'; c1.style.height = H+'px';
   c2.width = W; c2.height = H; c2.style.width = W+'px'; c2.style.height = H+'px';
+  c2.style.display = isSolo ? 'none' : '';
 
   const r1 = new THREE.WebGLRenderer({ canvas: c1, antialias: true });
   r1.setSize(W, H);
-  const r2 = new THREE.WebGLRenderer({ canvas: c2, antialias: true });
-  r2.setSize(W, H);
-  renderers = [r1, r2];
+  renderers = [r1];
+  if (!isSolo) {
+    const r2 = new THREE.WebGLRenderer({ canvas: c2, antialias: true });
+    r2.setSize(W, H);
+    renderers.push(r2);
+  }
 
-  const s1 = new THREE.Scene(), s2 = new THREE.Scene();
-  scenes = [s1, s2];
+  const s1 = new THREE.Scene();
+  scenes = [s1];
   buildScene(s1);
-  buildScene(s2);
+  let s2;
+  if (!isSolo) {
+    s2 = new THREE.Scene();
+    scenes.push(s2);
+    buildScene(s2);
+  }
 
   // Item boxes synced to both scenes — evenly spaced on track centre line
   itemBoxes = [];
   const BOX_T_OFFSETS = [0.06, 0.17, 0.28, 0.39, 0.50, 0.61, 0.72, 0.83, 0.94];
   BOX_T_OFFSETS.forEach(t => {
     const pt = TRACK_CURVE.getPoint(t);
-    const b1 = makeItemBox(), b2 = makeItemBox();
+    const b1 = makeItemBox();
     b1.position.set(pt.x, 0.5, pt.z); s1.add(b1);
-    b2.position.set(pt.x, 0.5, pt.z); s2.add(b2);
+    let b2 = null;
+    if (!isSolo) {
+      b2 = makeItemBox();
+      b2.position.set(pt.x, 0.5, pt.z); s2.add(b2);
+    }
     itemBoxes.push({ mesh: b1, mesh2: b2, active: true, respawnTimer: 0 });
   });
 
   const cam1 = new THREE.PerspectiveCamera(75, W/H, 0.1, 1200);
-  const cam2 = new THREE.PerspectiveCamera(75, W/H, 0.1, 1200);
-  cameras = [cam1, cam2];
+  cameras = [cam1];
+  if (!isSolo) cameras.push(new THREE.PerspectiveCamera(75, W/H, 0.1, 1200));
 
   // ── SPAWN ANGLE FIX ──
   // Compute the track tangent at t=0 so karts face the direction of travel.
@@ -1617,11 +1727,13 @@ function startGame() {
 
   players = [
     createPlayer(playerChars[0], p1Start, spawnAngle, s1),
-    createPlayer(playerChars[1], p2Start, spawnAngle, s2),
+    createPlayer(playerChars[1], p2Start, spawnAngle, isSolo ? s1 : s2),
   ];
 
   document.getElementById('hud1name').textContent = '🏎️ ' + CHARACTERS[playerChars[0]].name;
-  document.getElementById('hud2name').textContent = '🏎️ ' + CHARACTERS[playerChars[1]].name;
+  document.getElementById('hud2name').textContent = (isSolo ? '🤖 ' : '🏎️ ') + CHARACTERS[playerChars[1]].name;
+
+  if (isSolo) soloAI = { itemDecisionTimer: 0 };
 
   // Countdown
   raceRunning = false;
@@ -1662,7 +1774,11 @@ function startGame() {
 
       // Normal player update — skip the AI-controlled winner
       if (aiIdx !== 0) updatePlayer(players[0], P1_KEYS, delta, players[1]);
-      if (aiIdx !== 1) updatePlayer(players[1], P2_KEYS, delta, players[0]);
+      if (isSolo) {
+        if (aiIdx !== 1) updateSoloAI(delta);
+      } else if (aiIdx !== 1) {
+        updatePlayer(players[1], P2_KEYS, delta, players[0]);
+      }
 
       // AI drives the winner's kart (also updates that kart's laps)
       updateWinnerAI(delta);
@@ -1670,16 +1786,16 @@ function startGame() {
       updateItemBoxes(delta);
       updateBananaPeels(delta, players[0], players[1]);
       updateRedShells(delta);
-      syncItemBoxVisibility();
+      if (!isSolo) syncItemBoxVisibility();
 
       raceTimer = (Date.now() - raceStart) / 1000;
 
       // Camera: cinematic for AI player (handled inside updateWinnerAI),
       //         normal chase for the human still racing
       if (aiIdx !== 0) updateCamera(cameras[0], players[0]);
-      if (aiIdx !== 1) updateCamera(cameras[1], players[1]);
+      if (!isSolo && aiIdx !== 1) updateCamera(cameras[1], players[1]);
 
-      updateMirrorKarts();
+      if (!isSolo) updateMirrorKarts();
       updateStarEffects(delta);
       updateFireParticles(delta);
       updateHUD();
@@ -1691,7 +1807,7 @@ function startGame() {
     });
 
     renderers[0].render(scenes[0], cameras[0]);
-    renderers[1].render(scenes[1], cameras[1]);
+    if (!isSolo) renderers[1].render(scenes[1], cameras[1]);
   }
   loop();
 }
@@ -1717,7 +1833,8 @@ function initFirePool(pi) {
     const m1 = new THREE.Mesh(geo, mat1);
     const m2 = new THREE.Mesh(geo, mat2);
     m1.visible = false; m2.visible = false;
-    scenes[0].add(m1); scenes[1].add(m2);
+    scenes[0].add(m1);
+    if (scenes[1]) scenes[1].add(m2);
     pool.push({ mesh1: m1, mesh2: m2, life: 0, maxLife: 0, vx: 0, vy: 0, vz: 0 });
   }
   _firePools[pi] = pool;
@@ -1742,7 +1859,7 @@ function spawnFireParticle(pool, player) {
   const worldZ = player.kart.position.z + bz + oz;
 
   p.mesh1.position.set(worldX, worldY, worldZ);
-  p.mesh2.position.set(worldX, worldY, worldZ);
+  if (p.mesh2) p.mesh2.position.set(worldX, worldY, worldZ);
 
   // Velocity: mostly backward/upward with slight randomness
   const speed = 3 + Math.random() * 3;
@@ -1755,9 +1872,9 @@ function spawnFireParticle(pool, player) {
 
   const col = FIRE_COLORS[Math.floor(Math.random() * FIRE_COLORS.length)];
   p.mesh1.material.color.set(col);
-  p.mesh2.material.color.set(col);
+  if (p.mesh2) p.mesh2.material.color.set(col);
   p.mesh1.visible = true;
-  p.mesh2.visible = true;
+  if (p.mesh2) p.mesh2.visible = true;
 }
 
 function updateFireParticles(delta) {
@@ -1779,7 +1896,7 @@ function updateFireParticles(delta) {
 
       if (p.life <= 0) {
         p.mesh1.visible = false;
-        p.mesh2.visible = false;
+        if (p.mesh2) p.mesh2.visible = false;
         return;
       }
 
@@ -1787,7 +1904,7 @@ function updateFireParticles(delta) {
       p.mesh1.position.x += p.vx * delta;
       p.mesh1.position.y += p.vy * delta;
       p.mesh1.position.z += p.vz * delta;
-      p.mesh2.position.copy(p.mesh1.position);
+      if (p.mesh2) p.mesh2.position.copy(p.mesh1.position);
 
       // Rise slows, gravity pulls back
       p.vy -= 6 * delta;
@@ -1797,14 +1914,14 @@ function updateFireParticles(delta) {
       const opacity = t * 0.9;
       const scale   = 0.4 + t * 0.6;
       p.mesh1.material.opacity = opacity;
-      p.mesh2.material.opacity = opacity;
+      if (p.mesh2) p.mesh2.material.opacity = opacity;
       p.mesh1.scale.setScalar(scale);
-      p.mesh2.scale.setScalar(scale);
+      if (p.mesh2) p.mesh2.scale.setScalar(scale);
 
       // Shift colour toward yellow/white as they cool
       const hue = 0.08 - (1 - t) * 0.08; // orange → red
       p.mesh1.material.color.setHSL(hue, 1.0, 0.5 + (1 - t) * 0.3);
-      p.mesh2.material.color.copy(p.mesh1.material.color);
+      if (p.mesh2) p.mesh2.material.color.copy(p.mesh1.material.color);
     });
   });
 }
