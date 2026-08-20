@@ -751,6 +751,8 @@ function updateLaps(player) {
   }
 }
 
+let _finishFallbackTimer = null;
+
 function checkAllFinished() {
   if (players.every(p => p.finishTime !== null)) {
     showFinish();
@@ -759,7 +761,9 @@ function checkAllFinished() {
     const winnerIdx = players.findIndex(p => p.finishTime !== null);
     activateWinnerAI(winnerIdx);
     // Safety fallback: force finish after 60s if second player never crosses the line
-    setTimeout(() => { if (raceRunning) showFinish(); }, 60000);
+    // Store the timer ID so we can cancel it if the user goes back to the menu
+    if (_finishFallbackTimer) clearTimeout(_finishFallbackTimer);
+    _finishFallbackTimer = setTimeout(() => { if (raceRunning) showFinish(); }, 60000);
   }
 }
 
@@ -1423,6 +1427,16 @@ function updateSoloAI(delta) {
     return;
   }
 
+  // ── Star collision: human with star rams the AI ──
+  const distToHuman = ai.kart.position.distanceTo(human.kart.position);
+  if (distToHuman < 2.5 && human.starTimer > 0 && ai.starTimer <= 0 && ai.spinoutTimer <= 0) {
+    ai.spinoutTimer = 3.0;
+    ai.spinoutAngle = 0;
+    ai.stunTimer    = 3.0;
+    ai.speed       *= 0.4;
+    playSlipSound();
+  }
+
   const aiT = closestTrackT(ai.kart.position);
   const humanT = closestTrackT(human.kart.position);
   const distanceBehind = (aiT - humanT + 1) % 1;
@@ -1435,8 +1449,8 @@ function updateSoloAI(delta) {
   ai.angle += Math.max(-2.8 * delta, Math.min(2.8 * delta, angleDiff));
 
   const onTrack = isOnTrack(ai.kart.position);
-  const targetSpeed = (onTrack ? MAX_SPEED * 0.88 : MAX_SPEED * 0.25);
-  if (ai.speed < targetSpeed) ai.speed += ACCEL * 0.72 * delta;
+  const targetSpeed = (onTrack ? MAX_SPEED : MAX_SPEED * 0.25);
+  if (ai.speed < targetSpeed) ai.speed += ACCEL * delta;
   const speedCap = ai.starTimer > 0 ? MAX_SPEED * 1.55 : ai.boostTimer > 0 ? MAX_SPEED * 1.4 : MAX_SPEED;
   ai.speed = Math.min(speedCap, ai.speed);
   ai.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
@@ -1668,15 +1682,21 @@ function startGame() {
 
   const c1 = document.getElementById('canvas1');
   const c2 = document.getElementById('canvas2');
-  c1.width = W; c1.height = H; c1.style.width = W+'px'; c1.style.height = H+'px';
-  c2.width = W; c2.height = H; c2.style.width = W+'px'; c2.style.height = H+'px';
+  const dpr = window.devicePixelRatio || 1;
+  c1.width = W * dpr; c1.height = H * dpr; c1.style.width = W+'px'; c1.style.height = H+'px';
+  c2.width = W * dpr; c2.height = H * dpr; c2.style.width = W+'px'; c2.style.height = H+'px';
   c2.style.display = isSolo ? 'none' : '';
+  // Ensure co-op canvas positions are correct
+  c1.style.left = '0';
+  c2.style.left = isSolo ? '0' : '50%';
 
   const r1 = new THREE.WebGLRenderer({ canvas: c1, antialias: true });
+  r1.setPixelRatio(dpr);
   r1.setSize(W, H);
   renderers = [r1];
   if (!isSolo) {
     const r2 = new THREE.WebGLRenderer({ canvas: c2, antialias: true });
+    r2.setPixelRatio(dpr);
     r2.setSize(W, H);
     renderers.push(r2);
   }
@@ -2101,5 +2121,6 @@ function backToMenu() {
   scenes = [];
   cameras = [];
   if (animId) cancelAnimationFrame(animId);
+  if (_finishFallbackTimer) { clearTimeout(_finishFallbackTimer); _finishFallbackTimer = null; }
   updateCharUI();
 }
