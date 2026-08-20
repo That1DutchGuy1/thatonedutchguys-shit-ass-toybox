@@ -663,6 +663,10 @@ function createPlayer(charIndex, startPos, startAngle, scene) {
     item: null,
     itemCooldown: 0,
     stunTimer: 0,
+    spinoutTimer: 0,   // > 0 while spinning from a banana
+    spinoutAngle: 0,   // accumulated extra rotation during spinout
+    bananaImmune: 0,   // > 0 = immune to banana peels (just threw one)
+    starTimer: 0,      // > 0 while star power-up is active (10s)
     charIndex,
     camDist: 14,
     camHeight: 6,
@@ -710,6 +714,150 @@ function checkAllFinished() {
 // =============================================
 const ITEMS = ['🍌 Banana', '🔴 Shell', '⭐ Star', '💨 Boost'];
 
+// =============================================
+// BANANA PEELS — live 3D objects in world space
+// =============================================
+// Each entry: { mesh1, mesh2, position, active }
+// mesh1 lives in scenes[0], mesh2 in scenes[1]
+let bananaPeels = [];
+
+function makeBananaPeelMesh() {
+  const group = new THREE.Group();
+
+  // ── Main peel body: flattened ellipsoid via scaled sphere ──
+  const bodyGeo = new THREE.SphereGeometry(0.38, 10, 6);
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0xFFE135 });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.scale.set(1, 0.22, 1.6);
+  body.position.set(0, 0.07, 0);
+  group.add(body);
+
+  // ── Four curled peel flaps ──
+  const flapMat = new THREE.MeshLambertMaterial({ color: 0xFFD700, side: THREE.DoubleSide });
+  const flapInnerMat = new THREE.MeshLambertMaterial({ color: 0xFFF176, side: THREE.DoubleSide });
+
+  const flapAngles = [0, Math.PI / 2, Math.PI, -Math.PI / 2];
+  flapAngles.forEach((baseAngle, fi) => {
+    // Outer flap strip
+    const fGeo = new THREE.PlaneGeometry(0.18, 0.55, 1, 4);
+    // Curl the flap by offsetting top verts upward
+    const pos = fGeo.attributes.position;
+    for (let vi = 0; vi < pos.count; vi++) {
+      const t = (pos.getY(vi) + 0.275) / 0.55; // 0 at base, 1 at tip
+      pos.setY(vi, pos.getY(vi) + t * t * 0.28); // curl upward
+      pos.setX(vi, pos.getX(vi) * (1 - t * 0.4)); // taper
+    }
+    pos.needsUpdate = true;
+    fGeo.computeVertexNormals();
+
+    const flap = new THREE.Mesh(fGeo, fi % 2 === 0 ? flapMat : flapInnerMat);
+    flap.rotation.x = -Math.PI / 2;
+    // Rotate flap in XZ plane around peel centre
+    flap.position.set(
+      Math.sin(baseAngle) * 0.3,
+      0.05,
+      Math.cos(baseAngle) * 0.3 * 1.4
+    );
+    flap.rotation.z = baseAngle;
+    group.add(flap);
+  });
+
+  // ── Brown bruise spots ──
+  const spotMat = new THREE.MeshLambertMaterial({ color: 0xC8A000 });
+  [[-0.1, 0.13, 0.1], [0.12, 0.13, -0.15], [-0.05, 0.13, -0.05]].forEach(([x, y, z]) => {
+    const spot = new THREE.Mesh(new THREE.SphereGeometry(0.06, 5, 4), spotMat);
+    spot.scale.set(1, 0.3, 1);
+    spot.position.set(x, y, z);
+    group.add(spot);
+  });
+
+  // Lay flat on the ground
+  group.position.y = 0.08;
+  return group;
+}
+
+function spawnBananaPeel(thrower) {
+  // Drop it 3 units behind the thrower
+  const behind = new THREE.Vector3(
+    -Math.sin(thrower.angle) * 3,
+    0,
+    -Math.cos(thrower.angle) * 3
+  );
+  const spawnPos = thrower.kart.position.clone().add(behind);
+  spawnPos.y = 0;
+
+  const mesh1 = makeBananaPeelMesh();
+  const mesh2 = makeBananaPeelMesh();
+  // Random slight rotation so each peel looks unique
+  const yRot = Math.random() * Math.PI * 2;
+  mesh1.rotation.y = yRot;
+  mesh2.rotation.y = yRot;
+  mesh1.position.copy(spawnPos);
+  mesh2.position.copy(spawnPos);
+  scenes[0].add(mesh1);
+  scenes[1].add(mesh2);
+
+  bananaPeels.push({ mesh1, mesh2, position: spawnPos.clone(), active: true });
+}
+
+function updateBananaPeels(delta, p1, p2) {
+  bananaPeels.forEach((peel, idx) => {
+    if (!peel.active) return;
+
+    // Gentle wobble so it's not completely static
+    peel.mesh1.rotation.y += delta * 0.4;
+    peel.mesh2.rotation.y += delta * 0.4;
+
+    // Check collision with each player.
+    // IMPORTANT: use a for-loop with break so that if p1 consumes the peel,
+    // p2 cannot also trigger off it in the same frame (forEach can't break).
+    for (const player of [p1, p2]) {
+      if (!peel.active) break; // already consumed this frame — stop immediately
+      if (player.bananaImmune > 0) continue;
+      if (player.stunTimer > 0) continue;
+
+      const dist = player.kart.position.distanceTo(peel.position);
+      if (dist < 2.2) {
+        // Consume the peel atomically FIRST so nothing else can claim it
+        peel.active = false;
+        scenes[0].remove(peel.mesh1);
+        scenes[1].remove(peel.mesh2);
+
+        // Now apply spinout to the player who hit it
+        player.spinoutTimer = 3.0;
+        player.spinoutAngle = 0;
+        player.stunTimer    = 3.0;
+        player.speed       *= 0.4;
+        showSlipEffect(player);
+        playSlipSound();
+      }
+    }
+  });
+
+  // Purge inactive peels
+  bananaPeels = bananaPeels.filter(p => p.active);
+}
+
+function showSlipEffect(player) {
+  // No color overlay — the spinout animation speaks for itself
+}
+
+function playSlipSound() {
+  if (!audioCtx) return;
+  // Cartoon slip: descending glide
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.5);
+  gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.65);
+}
+
 function collectItem(player, idx) {
   if (!player.item && itemBoxes[idx].active) {
     player.item = ITEMS[Math.floor(Math.random()*ITEMS.length)];
@@ -721,11 +869,20 @@ function collectItem(player, idx) {
 
 function useItem(player, otherPlayer) {
   if (!player.item || player.itemCooldown > 0) return;
+
   if (player.item.includes('Boost')) {
     player.speed = Math.max(player.speed, MAX_SPEED * 1.4);
+
   } else if (player.item.includes('Star')) {
-    player.speed = Math.max(player.speed, MAX_SPEED * 1.6);
-  } else if (player.item.includes('Shell') || player.item.includes('Banana')) {
+    player.starTimer = 10; // 10 seconds of ABSOLUTE POWER 🌟
+
+  } else if (player.item.includes('Banana')) {
+    // Spawn a 3D peel behind the kart
+    spawnBananaPeel(player);
+    // Thrower gets 2.5s immunity so they don't immediately roll over their own peel
+    player.bananaImmune = 2.5;
+
+  } else if (player.item.includes('Shell')) {
     const dist = player.kart.position.distanceTo(otherPlayer.kart.position);
     if (dist < 15) {
       otherPlayer.stunTimer = 2;
@@ -733,18 +890,13 @@ function useItem(player, otherPlayer) {
       showHitEffect(otherPlayer);
     }
   }
+
   player.item = null;
   player.itemCooldown = 1;
 }
 
 function showHitEffect(player) {
-  player.kart.children.forEach(m => {
-    if (m.material && m.material.color) {
-      const orig = m.material.color.clone();
-      m.material.color.set(0xff0000);
-      setTimeout(() => { m.material.color.copy(orig); }, 500);
-    }
-  });
+  // No color overlay — handled by spinout animation
 }
 
 // =============================================
@@ -791,8 +943,42 @@ const OFFTRACK_MULT = 0.3;     // speed multiplier when off track
 function updatePlayer(player, binds, delta, otherPlayer) {
   if (player.finishTime) return;
 
-  const stunned = player.stunTimer > 0;
-  if (player.stunTimer > 0) player.stunTimer -= delta;
+  // Tick immunity timer
+  if (player.bananaImmune > 0) player.bananaImmune -= delta;
+
+  // Tick star timer
+  if (player.starTimer > 0) {
+    player.starTimer -= delta;
+    if (player.starTimer < 0) player.starTimer = 0;
+  }
+
+  // ── Star cancels incoming spinouts ──
+  if (player.starTimer > 0 && player.spinoutTimer > 0) {
+    player.spinoutTimer = 0;
+    player.stunTimer    = 0;
+    player.speed        = 0;
+  }
+
+  // ── Spinout from banana peel ──
+  const spinning = player.spinoutTimer > 0;
+  if (spinning) {
+    player.spinoutTimer -= delta;
+    // Fast spin: ~4 full rotations over 3 seconds, eases out near the end
+    const t = Math.max(player.spinoutTimer, 0) / 3.0; // 1→0
+    const spinRate = 8 * t + 2;                         // fast at start, slows down
+    player.angle += spinRate * delta;
+    // Friction brings speed to ~0 quickly but not instant (over ~1.5s)
+    player.speed *= Math.pow(0.12, delta);
+    // Once timer expires, make sure kart is fully stopped
+    if (player.spinoutTimer <= 0) {
+      player.spinoutTimer = 0;
+      player.stunTimer    = 0;
+      player.speed        = 0;
+    }
+  }
+
+  const stunned = player.stunTimer > 0 || spinning;
+  if (player.stunTimer > 0 && !spinning) player.stunTimer -= delta;
 
   const onTrack = isOnTrack(player.kart.position);
   const speedMult = onTrack ? 1 : OFFTRACK_MULT;
@@ -805,8 +991,9 @@ function updatePlayer(player, binds, delta, otherPlayer) {
     if (keys[binds.item])    useItem(player, otherPlayer);
   }
 
-  // Clamp speed
-  player.speed = Math.max(-6, Math.min(MAX_SPEED * speedMult, player.speed));
+  // Clamp speed — star gives a higher ceiling
+  const starSpeedCap = player.starTimer > 0 ? MAX_SPEED * 1.55 : MAX_SPEED;
+  player.speed = Math.max(-6, Math.min(starSpeedCap * speedMult, player.speed));
 
   // Frame-rate-independent friction: multiply by (1 - friction)^delta
   player.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
@@ -816,8 +1003,9 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   player.kart.position.z += Math.cos(player.angle) * player.speed * delta;
   player.kart.rotation.y = player.angle;
 
-  // Tilt on turns
-  player.kart.rotation.z = -player.speed * 0.01 * (keys[binds.left] ? 1 : keys[binds.right] ? -1 : 0);
+  // Tilt on turns (suppressed during spinout — the spin is on Y anyway)
+  player.kart.rotation.z = spinning ? 0 :
+    -player.speed * 0.01 * (keys[binds.left] ? 1 : keys[binds.right] ? -1 : 0);
 
   if (player.itemCooldown > 0) player.itemCooldown -= delta;
 
@@ -826,7 +1014,22 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   if (dist < 2.5) {
     const push = new THREE.Vector3().subVectors(player.kart.position, otherPlayer.kart.position).normalize();
     player.kart.position.addScaledVector(push, 1.5);
-    player.speed *= 0.5;
+
+    if (player.starTimer > 0 && otherPlayer.starTimer <= 0) {
+      // Star player smashes the other into a full spinout — KAPOW 💥
+      if (otherPlayer.spinoutTimer <= 0) {
+        otherPlayer.spinoutTimer = 3.0;
+        otherPlayer.spinoutAngle = 0;
+        otherPlayer.stunTimer    = 3.0;
+        otherPlayer.speed       *= 0.4;
+        playSlipSound();
+      }
+      // Star player barely slows down
+      player.speed *= 0.92;
+    } else {
+      // Normal bump
+      player.speed *= 0.5;
+    }
   }
 
   // Stadium wall collision — OBB test per stand, hard bounce with velocity reflection
@@ -1017,6 +1220,7 @@ function startGame() {
       updatePlayer(players[0], P1_KEYS, delta, players[1]);
       updatePlayer(players[1], P2_KEYS, delta, players[0]);
       updateItemBoxes(delta);
+      updateBananaPeels(delta, players[0], players[1]);
       syncItemBoxVisibility();
 
       raceTimer = (Date.now() - raceStart) / 1000;
@@ -1025,6 +1229,7 @@ function startGame() {
       updateCamera(cameras[1], players[1]);
 
       updateMirrorKarts();
+      updateStarEffects(delta);
       updateHUD();
       updateEngineAudio();
     }
@@ -1043,6 +1248,56 @@ function startGame() {
 // MIRROR KARTS (ghost of other player in each scene)
 // =============================================
 let ghostKarts = null;
+
+// =============================================
+// STAR RAINBOW EFFECT
+// =============================================
+// Store original material colors so we can restore them when the star expires.
+// We also track the last known starTimer state per player to know when to restore.
+const _starOrigColors = [null, null]; // per player, array of { mesh, color }
+
+function updateStarEffects(delta) {
+  players.forEach((player, pi) => {
+    const active = player.starTimer > 0;
+
+    if (active) {
+      // Lazily snapshot original colors on first frame of star activation
+      if (!_starOrigColors[pi]) {
+        _starOrigColors[pi] = [];
+        player.kart.children.forEach(child => {
+          // Kart body / wheel meshes
+          if (child.isMesh && child.material && child.material.color) {
+            _starOrigColors[pi].push({ target: child.material, origColor: child.material.color.clone() });
+          }
+          // Sprite (character portrait) — SpriteMaterial has a .color too
+          if (child.isSprite && child.material && child.material.color) {
+            _starOrigColors[pi].push({ target: child.material, origColor: child.material.color.clone() });
+          }
+        });
+      }
+
+      // Shift hue over time — full rainbow cycle every ~0.6s, fast enough to look wild
+      const hue = (Date.now() * 0.003 + pi * 0.5) % 1;
+      const rainbowColor = new THREE.Color().setHSL(hue, 1.0, 0.62);
+
+      player.kart.children.forEach(child => {
+        if (child.isMesh && child.material && child.material.color) {
+          child.material.color.copy(rainbowColor);
+        }
+        if (child.isSprite && child.material && child.material.color) {
+          child.material.color.copy(rainbowColor);
+        }
+      });
+
+    } else if (_starOrigColors[pi]) {
+      // Star just expired — restore all original colors
+      _starOrigColors[pi].forEach(({ target, origColor }) => {
+        target.color.copy(origColor);
+      });
+      _starOrigColors[pi] = null;
+    }
+  });
+}
 
 function updateMirrorKarts() {
   if (!ghostKarts) {
@@ -1151,6 +1406,9 @@ function backToMenu() {
   stopBGM();
   ghostKarts = null;
   itemBoxes = [];
+  bananaPeels = [];
+  _starOrigColors[0] = null;
+  _starOrigColors[1] = null;
   stadiumWalls.length = 0;
   players = [];
   scenes = [];
