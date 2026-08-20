@@ -659,6 +659,40 @@ function buildKart(charIndex, scene) {
   seat.position.set(0, 0.5, 0.4);
   group.add(seat);
 
+  // 3D Spoiler — two uprights + horizontal wing blade at the rear
+  const spoilerMat  = new THREE.MeshLambertMaterial({ color: char.color });
+  const spoilerDark = new THREE.MeshLambertMaterial({ color: 0x111111 });
+
+  // Left upright
+  const uprightGeo = new THREE.BoxGeometry(0.12, 0.55, 0.12);
+  const uprightL = new THREE.Mesh(uprightGeo, spoilerDark);
+  uprightL.position.set(-0.72, 0.72, -1.55);
+  group.add(uprightL);
+
+  // Right upright
+  const uprightR = new THREE.Mesh(uprightGeo, spoilerDark);
+  uprightR.position.set( 0.72, 0.72, -1.55);
+  group.add(uprightR);
+
+  // Wing blade — angled upward like a real spoiler
+  const wingGeo = new THREE.BoxGeometry(2.0, 0.10, 0.55);
+  const wing = new THREE.Mesh(wingGeo, spoilerMat);
+  wing.position.set(0, 1.02, -1.55);
+  wing.rotation.x = Math.PI * 0.18; // ~32° tilt so it reads as a raised wing
+  group.add(wing);
+
+  // Thin end plates on each tip of the blade
+  const endPlateGeo = new THREE.BoxGeometry(0.08, 0.28, 0.55);
+  const endPlateL = new THREE.Mesh(endPlateGeo, spoilerMat);
+  endPlateL.position.set(-0.96, 1.02, -1.55);
+  endPlateL.rotation.x = Math.PI * 0.18;
+  group.add(endPlateL);
+
+  const endPlateR = new THREE.Mesh(endPlateGeo, spoilerMat);
+  endPlateR.position.set( 0.96, 1.02, -1.55);
+  endPlateR.rotation.x = Math.PI * 0.18;
+  group.add(endPlateR);
+
   // 2D sprite character
   const spriteCanvas = document.createElement('canvas');
   spriteCanvas.width = 128; spriteCanvas.height = 128;
