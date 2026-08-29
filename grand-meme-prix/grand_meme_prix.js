@@ -641,19 +641,93 @@ function buildKart(charIndex, scene) {
   noseMesh.position.set(0, -0.05, 2.2);
   group.add(noseMesh);
 
-  const wheelGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.35, 8);
-  const wheelMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
-  const hubMat   = new THREE.MeshLambertMaterial({ color: 0xCCCCCC });
-  [[-1.1,-0.35,1.2],[1.1,-0.35,1.2],[-1.1,-0.35,-1.2],[1.1,-0.35,-1.2]].forEach(([x,y,z]) => {
-    const w = new THREE.Mesh(wheelGeo, wheelMat);
-    w.rotation.z = Math.PI/2;
-    w.position.set(x,y,z);
-    group.add(w);
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,0.36,6), hubMat);
-    hub.rotation.z = Math.PI/2;
-    hub.position.set(x,y,z);
-    group.add(hub);
-  });
+  const wheelMat    = new THREE.MeshLambertMaterial({ color: 0x111111 });
+  const hubMat      = new THREE.MeshLambertMaterial({ color: 0xCCCCCC });
+  const axleMat     = new THREE.MeshLambertMaterial({ color: 0x444444 });
+  const tyreSidemat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+
+  // Wheel hierarchy per corner:
+  //   wheelGroup  ← no parent tilt; local X = world X = axle direction
+  //     ├─ tyre cylinder  (mesh.rotation.z=PI/2 bakes its axis along X, wheel stands upright)
+  //     ├─ torus sidewall (mesh.rotation.y=PI/2 rings around the X axle)
+  //     ├─ hub            (mesh.rotation.z=PI/2 same as tyre)
+  //     └─ spokes         (radiate in YZ plane, rotated around X)
+  //
+  // wheelGroup.rotation.x += rollDelta  → rotates around the X axle = forward/back rolling. ✅
+
+  function makeWheel() {
+    const wheelGroup = new THREE.Group();
+
+    // Tyre cylinder — rotate geometry so its axis runs along X (sideways/axle direction)
+    const tyre = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.38, 16), wheelMat);
+    tyre.rotation.z = Math.PI / 2;
+    wheelGroup.add(tyre);
+
+    // Torus sidewall — lies flat in XY by default, which is exactly what we want
+    // (it rings around the tread, perpendicular to the X axle)
+    const sidewall = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.07, 8, 20), tyreSidemat);
+    sidewall.rotation.y = Math.PI / 2;
+    wheelGroup.add(sidewall);
+
+    // Hub — same cylinder-along-X orientation
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.40, 8), hubMat);
+    hub.rotation.z = Math.PI / 2;
+    wheelGroup.add(hub);
+
+    // Five spokes radiating in the YZ plane (perpendicular to the X axle).
+    // Each spoke is a thin box, long along Y, rotated around X to fan out like clock hands.
+    const spokeMat = new THREE.MeshLambertMaterial({ color: 0xAAAAAA });
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2;
+      // Spoke box: thin in X (axle direction), tall in Y, narrow in Z
+      const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.38, 0.06), spokeMat);
+      // Rotate around X so each spoke points in a different direction in the YZ plane
+      spoke.rotation.x = angle;
+      // Offset along the spoke's local Y so it starts near the hub
+      spoke.position.set(0, Math.sin(angle) * 0.19, Math.cos(angle) * 0.19);
+      wheelGroup.add(spoke);
+    }
+
+    return wheelGroup;
+  }
+
+  // Axle pivot groups — front one also steers (rotation.y)
+  const frontAxlePivot = new THREE.Group();
+  frontAxlePivot.position.set(0, -0.35, 1.2);
+  group.add(frontAxlePivot);
+
+  const rearAxlePivot = new THREE.Group();
+  rearAxlePivot.position.set(0, -0.35, -1.2);
+  group.add(rearAxlePivot);
+
+  // Axle rod — cylinder along X
+  function addAxleRod(pivot) {
+    const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.6, 8), axleMat);
+    rod.rotation.z = Math.PI / 2;
+    pivot.add(rod);
+  }
+  addAxleRod(frontAxlePivot);
+  addAxleRod(rearAxlePivot);
+
+  // Returns array of wheelGroups (what we rotate for rolling)
+  function addWheelPair(pivot) {
+    const wheelGroups = [];
+    for (const side of [-1, 1]) {
+      const wheelGroup = makeWheel();
+      wheelGroup.position.set(side * 1.15, 0, 0);
+      pivot.add(wheelGroup);
+      wheelGroups.push(wheelGroup);
+    }
+    return wheelGroups;
+  }
+
+  const frontWheels = addWheelPair(frontAxlePivot);
+  const rearWheels  = addWheelPair(rearAxlePivot);
+
+  group.userData.frontAxlePivot = frontAxlePivot;
+  group.userData.frontWheels    = frontWheels;  // array of spinGroups
+  group.userData.rearWheels     = rearWheels;   // array of spinGroups
+  group.userData.steerAngle     = 0;
 
   const seat = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.8, 1.2), new THREE.MeshLambertMaterial({ color: 0x222222 }));
   seat.position.set(0, 0.5, 0.4);
@@ -692,6 +766,46 @@ function buildKart(charIndex, scene) {
   endPlateR.position.set( 0.96, 1.02, -1.55);
   endPlateR.rotation.x = Math.PI * 0.18;
   group.add(endPlateR);
+
+  // ── Dual exhaust pipes — lower rear of kart ──
+  const exhaustGunmetal = new THREE.MeshLambertMaterial({ color: 0x4a4a4a }); // dark gunmetal outer
+  const exhaustRim      = new THREE.MeshLambertMaterial({ color: 0x6a6a6a }); // slightly lighter rim ring
+  const exhaustDark     = new THREE.MeshLambertMaterial({ color: 0x111111 }); // near-black inner mouth
+
+  [-0.22, 0.22].forEach((xOffset) => {
+    const pipeGroup = new THREE.Group();
+
+    // Main pipe body — tapered slightly toward the mouth like real exhaust tips
+    const pipeGeo = new THREE.CylinderGeometry(0.13, 0.155, 0.55, 14);
+    const pipe = new THREE.Mesh(pipeGeo, exhaustGunmetal);
+    pipe.rotation.x = Math.PI / 2; // lay along Z axis, pointing out the back
+    pipeGroup.add(pipe);
+
+    // Outer lip ring — sits right at the exit, slightly lighter to catch light
+    const flareGeo = new THREE.TorusGeometry(0.155, 0.025, 8, 18);
+    const flare = new THREE.Mesh(flareGeo, exhaustRim);
+    flare.position.z = -0.27;
+    pipeGroup.add(flare);
+
+    // Dark inner mouth disc — sells the hollow pipe look
+    const mouthGeo = new THREE.CircleGeometry(0.128, 14);
+    const mouth = new THREE.Mesh(mouthGeo, exhaustDark);
+    mouth.position.z = -0.285;
+    pipeGroup.add(mouth);
+
+    // Subtle darker band near exit — like heat discoloration on real exhausts
+    const bandGeo = new THREE.TorusGeometry(0.138, 0.016, 6, 14);
+    const bandMat = new THREE.MeshLambertMaterial({ color: 0x2e2e2e });
+    const band = new THREE.Mesh(bandGeo, bandMat);
+    band.position.z = -0.17;
+    pipeGroup.add(band);
+
+    // Tight cluster, centered, no outward splay — pipes point straight back with a downward droop
+    pipeGroup.position.set(xOffset, -0.25, -1.88);
+    pipeGroup.rotation.x = 0.18; // more pronounced downward tilt like the reference
+
+    group.add(pipeGroup);
+  });
 
   // 2D sprite character
   const spriteCanvas = document.createElement('canvas');
@@ -756,6 +870,12 @@ function createPlayer(charIndex, startPos, startAngle, scene) {
     charIndex,
     camDist: 14,
     camHeight: 6,
+    // ── Rocket start state ──
+    launchResult: null,      // null | 'boost' | 'stall' | 'normal' — resolved at GO
+    launchStallTimer: 0,     // > 0 = engine stalled, can't move forward
+    launchBoostTimer: 0,     // > 0 = launch boost active (separate from item boost)
+    launchHoldStart: null,   // timestamp (ms) when forward was first held during countdown
+    launchSmokeTimer: 0,     // > 0 = emit dark smoke from exhaust
   };
 }
 
@@ -916,6 +1036,9 @@ function updateBananaPeels(delta, p1, p2) {
         peel.active = false;
         scenes[0].remove(peel.mesh1);
         if (peel.mesh2) scenes[1].remove(peel.mesh2);
+
+        // Star-powered player destroys the peel — no damage, no spinout!
+        if (player.starTimer > 0) break;
 
         // Now apply spinout to the player who hit it
         player.spinoutTimer = 3.0;
@@ -1155,6 +1278,11 @@ function updateRedShells(delta) {
     // ── HIT CHECK ──
     const hitDist = shell.mesh1.position.distanceTo(targetPos);
     if (hitDist < 2.4 && shell.target.stunTimer <= 0) {
+      // Star-powered target smashes through the shell — destroyed, no damage!
+      if (shell.target.starTimer > 0) {
+        destroyRedShell(shell);
+        return;
+      }
       // DIRECT HIT — full spinout
       shell.target.spinoutTimer = 3.0;
       shell.target.spinoutAngle = 0;
@@ -1209,6 +1337,52 @@ function playShellHitSound() {
   });
 }
 
+function playLaunchBoostSound() {
+  if (!audioCtx) return;
+  // Rising engine rev + turbo whoosh
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.3);
+  gain.gain.setValueAtTime(0.28, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.55);
+}
+
+function playLaunchStallSound() {
+  if (!audioCtx) return;
+  // Sputtering backfire — repeated low pops + a dying engine groan
+  [0, 0.08, 0.18, 0.30].forEach((offset, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(80 + i * 15, audioCtx.currentTime + offset);
+    osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + offset + 0.12);
+    gain.gain.setValueAtTime(0.22, audioCtx.currentTime + offset);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + offset + 0.14);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime + offset);
+    osc.stop(audioCtx.currentTime + offset + 0.18);
+  });
+  // Long groan
+  const groan = audioCtx.createOscillator();
+  const groanGain = audioCtx.createGain();
+  groan.type = 'sawtooth';
+  groan.frequency.setValueAtTime(55, audioCtx.currentTime + 0.35);
+  groan.frequency.exponentialRampToValueAtTime(25, audioCtx.currentTime + 1.0);
+  groanGain.gain.setValueAtTime(0.18, audioCtx.currentTime + 0.35);
+  groanGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+  groan.connect(groanGain);
+  groanGain.connect(audioCtx.destination);
+  groan.start(audioCtx.currentTime + 0.35);
+  groan.stop(audioCtx.currentTime + 1.25);
+}
+
 function collectItem(player, idx) {
   if (!player.item && itemBoxes[idx].active) {
     player.item = ITEMS[Math.floor(Math.random()*ITEMS.length)];
@@ -1253,21 +1427,8 @@ const GAME_KEYS = new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','Ar
 document.addEventListener('keydown', e => {
   keys[e.code] = true;
   if (GAME_KEYS.has(e.code)) e.preventDefault();
-  if (e.code === 'F11') { e.preventDefault(); toggleFullscreen(); }
-  // Allow F5 / Ctrl+R to refresh normally
-  if (e.code === 'F5' || (e.ctrlKey && e.code === 'KeyR')) return;
 });
 document.addEventListener('keyup', e => { keys[e.code] = false; });
-
-function toggleFullscreen() {
-  const el = document.documentElement;
-  const isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
-  if (!isFs) {
-    (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || (()=>{})).call(el);
-  } else {
-    (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || (()=>{})).call(document);
-  }
-}
 
 const P1_KEYS = { forward:'KeyW', back:'KeyS', left:'KeyA', right:'KeyD', item:'Space' };
 const P2_KEYS = { forward:'ArrowUp', back:'ArrowDown', left:'ArrowLeft', right:'ArrowRight', item:'Enter' };
@@ -1305,6 +1466,16 @@ function updatePlayer(player, binds, delta, otherPlayer) {
     if (player.boostTimer < 0) player.boostTimer = 0;
   }
 
+  // ── Launch boost timer (separate from item boost) ──
+  if (player.launchBoostTimer > 0) {
+    player.launchBoostTimer -= delta;
+    if (player.launchBoostTimer < 0) player.launchBoostTimer = 0;
+  }
+
+  // ── Launch stall + smoke timers — both tick independently ──
+  if (player.launchStallTimer > 0) player.launchStallTimer = Math.max(0, player.launchStallTimer - delta);
+  if (player.launchSmokeTimer > 0) player.launchSmokeTimer = Math.max(0, player.launchSmokeTimer - delta);
+
   // ── Star cancels incoming spinouts ──
   if (player.starTimer > 0 && player.spinoutTimer > 0) {
     player.spinoutTimer = 0;
@@ -1336,16 +1507,23 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   const onTrack = isOnTrack(player.kart.position);
   const speedMult = onTrack ? 1 : OFFTRACK_MULT;
 
+  const stalled = player.launchStallTimer > 0;
+
   if (!stunned) {
-    if (keys[binds.forward]) player.speed += ACCEL * delta * speedMult;
+    // Forward blocked during stall — can steer and brake but not accelerate
+    if (keys[binds.forward] && !stalled) player.speed += ACCEL * delta * speedMult;
     if (keys[binds.back])    player.speed -= BRAKE * delta * speedMult;
     if (keys[binds.left])    player.angle += STEER * delta * (player.speed / MAX_SPEED);
     if (keys[binds.right])   player.angle -= STEER * delta * (player.speed / MAX_SPEED);
     if (keys[binds.item])    useItem(player, otherPlayer);
   }
 
-  // Clamp speed — boost raises ceiling, star raises it even higher (star wins if both)
+  // Stall: clamp forward speed to 0 (can't drive forward) and decay to 0
+  if (stalled && player.speed > 0) player.speed *= Math.pow(0.05, delta);
+
+  // Clamp speed — launch boost stacks additively with item boost; star wins over all
   const speedCap = player.starTimer > 0 ? MAX_SPEED * 1.55
+                 : player.launchBoostTimer > 0 ? MAX_SPEED * 1.38
                  : player.boostTimer > 0 ? MAX_SPEED * 1.4
                  : MAX_SPEED;
   player.speed = Math.max(-6, Math.min(speedCap * speedMult, player.speed));
@@ -1448,6 +1626,29 @@ function updateSoloAI(delta) {
   if (ai.itemCooldown > 0) ai.itemCooldown -= delta;
   if (ai.starTimer > 0) ai.starTimer = Math.max(0, ai.starTimer - delta);
   if (ai.boostTimer > 0) ai.boostTimer = Math.max(0, ai.boostTimer - delta);
+  if (ai.launchBoostTimer > 0) ai.launchBoostTimer = Math.max(0, ai.launchBoostTimer - delta);
+  if (ai.launchSmokeTimer > 0) ai.launchSmokeTimer = Math.max(0, ai.launchSmokeTimer - delta);
+  if (ai.launchStallTimer > 0) {
+    ai.launchStallTimer = Math.max(0, ai.launchStallTimer - delta);
+    // Stall: AI can't drive forward — decay speed to zero
+    if (ai.speed > 0) ai.speed *= Math.pow(0.05, delta);
+    ai.kart.rotation.y = ai.angle;
+    updateLaps(ai);
+    return; // skip normal AI steering while stalled
+  }
+
+  // Initialise AI personality state on first call
+  if (soloAI.swerveTimer    === undefined) soloAI.swerveTimer  = 0;
+  if (soloAI.swerveOffset   === undefined) soloAI.swerveOffset = 0;
+  if (soloAI.swerveDir      === undefined) soloAI.swerveDir    = 0;
+  if (soloAI.peelDodge      === undefined) soloAI.peelDodge    = null;
+
+  // ── Star cancels incoming spinouts for the AI too ──
+  if (ai.starTimer > 0 && ai.spinoutTimer > 0) {
+    ai.spinoutTimer = 0;
+    ai.stunTimer    = 0;
+    ai.speed        = 0;
+  }
 
   if (ai.spinoutTimer > 0) {
     ai.spinoutTimer = Math.max(0, ai.spinoutTimer - delta);
@@ -1476,18 +1677,71 @@ function updateSoloAI(delta) {
   const aiT = closestTrackT(ai.kart.position);
   const humanT = closestTrackT(human.kart.position);
   const distanceBehind = (aiT - humanT + 1) % 1;
+
+  // ── Banana peel avoidance with 50/50 dodge chance ──
+  // Tick down any active dodge decision
+  if (soloAI.peelDodge && soloAI.peelDodge.timer > 0) {
+    soloAI.peelDodge.timer -= delta;
+    if (soloAI.peelDodge.timer <= 0) soloAI.peelDodge = null;
+  }
+  // Scan for nearby peels — make one dodge decision per peel encounter
+  const PEEL_LOOK_DIST = 7;
+  if (!soloAI.peelDodge) {
+    for (const peel of bananaPeels) {
+      if (!peel.active) continue;
+      if (ai.kart.position.distanceTo(peel.position) < PEEL_LOOK_DIST) {
+        const willDodge = Math.random() < 0.5;          // 50% chance to even try
+        const dodgeDir  = Math.random() < 0.5 ? 1 : -1; // random side
+        soloAI.peelDodge = {
+          dir:   willDodge ? dodgeDir : 0, // 0 = failed to react, drives straight into it
+          timer: 1.4,                       // hold decision for 1.4 s
+        };
+        break;
+      }
+    }
+  }
+
+  // ── Random swerve personality ──
+  // Periodically pick a new lateral bias so the AI weaves around the track a bit.
+  // Suppressed while actively dodge-steering away from a peel.
+  soloAI.swerveTimer -= delta;
+  if (soloAI.swerveTimer <= 0) {
+    soloAI.swerveTimer = 1.8 + Math.random() * 2.4;   // every 1.8 – 4.2 s
+    const roll = Math.random();
+    if      (roll < 0.35) soloAI.swerveDir =  1;      // drift right
+    else if (roll < 0.70) soloAI.swerveDir = -1;      // drift left
+    else                  soloAI.swerveDir =  0;       // go straight
+    soloAI.swerveOffset = (0.6 + Math.random() * 1.8) * soloAI.swerveDir;
+  }
+
+  // ── Steering: lookahead point + lateral nudge ──
   const lookaheadT = (aiT + 0.025) % 1;
-  const target = TRACK_CURVE.getPoint(lookaheadT);
-  const desiredAngle = Math.atan2(target.x - ai.kart.position.x, target.z - ai.kart.position.z);
+  const target     = TRACK_CURVE.getPoint(lookaheadT);
+  const tan        = TRACK_CURVE.getTangent(lookaheadT).normalize();
+  const perp       = new THREE.Vector3(-tan.z, 0, tan.x); // perpendicular to track
+
+  // Peel dodge overrides the random swerve; dir=0 means AI does nothing (hits the peel)
+  let lateralBias = soloAI.swerveOffset;
+  if (soloAI.peelDodge && soloAI.peelDodge.dir !== 0) {
+    lateralBias = soloAI.peelDodge.dir * 3.5;
+  }
+
+  const nudgedTarget = target.clone().addScaledVector(perp, lateralBias);
+  const desiredAngle = Math.atan2(
+    nudgedTarget.x - ai.kart.position.x,
+    nudgedTarget.z - ai.kart.position.z
+  );
   let angleDiff = desiredAngle - ai.angle;
-  while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+  while (angleDiff >  Math.PI) angleDiff -= Math.PI * 2;
   while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
   ai.angle += Math.max(-2.8 * delta, Math.min(2.8 * delta, angleDiff));
 
   const onTrack = isOnTrack(ai.kart.position);
-  const targetSpeed = (onTrack ? MAX_SPEED : MAX_SPEED * 0.25);
+  const speedCap = ai.starTimer > 0 ? MAX_SPEED * 1.55
+    : ai.launchBoostTimer > 0 ? MAX_SPEED * 1.38
+    : ai.boostTimer > 0 ? MAX_SPEED * 1.4 : MAX_SPEED;
+  const targetSpeed = (onTrack ? speedCap : MAX_SPEED * 0.25);
   if (ai.speed < targetSpeed) ai.speed += ACCEL * delta;
-  const speedCap = ai.starTimer > 0 ? MAX_SPEED * 1.55 : ai.boostTimer > 0 ? MAX_SPEED * 1.4 : MAX_SPEED;
   ai.speed = Math.min(speedCap, ai.speed);
   ai.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
   ai.kart.position.x += Math.sin(ai.angle) * ai.speed * delta;
@@ -1499,12 +1753,54 @@ function updateSoloAI(delta) {
     if (box.active && !ai.item && ai.kart.position.distanceTo(box.mesh.position) < 2.5) collectItem(ai, index);
   });
 
+  // ── Strategic item usage ──
+  // The AI holds items and only uses them when the situation calls for it.
+  // A random "hesitation delay" (0.5–2.5 s) is rolled each time a new item is
+  // picked up, so the CPU never reacts instantly — it feels like a real player
+  // thinking about what to do.
+
   if (ai.item && ai.itemCooldown <= 0) {
     const item = ai.item;
-    const shouldUse = item.includes('Star') || item.includes('Boost') ||
-      (item.includes('Shell') && human.finishTime === null) ||
-      (item.includes('Banana') && distanceBehind < 0.45);
-    if (shouldUse) useItem(ai, human);
+
+    // Initialise a hesitation delay when the item was just collected
+    if (soloAI.itemHesitation === undefined || soloAI.itemHesitation === null) {
+      soloAI.itemHesitation = 0.5 + Math.random() * 2.0; // 0.5 – 2.5 s before even considering using it
+    }
+    soloAI.itemHesitation -= delta;
+    if (soloAI.itemHesitation > 0) {
+      // Still thinking…
+    } else {
+      // Check if a red shell is currently targeting the AI and closing in
+      const shellIncoming = redShells.some(s =>
+        s.active && s.target === ai && s.mesh1.position.distanceTo(ai.kart.position) < 18
+      );
+
+      let shouldUse = false;
+
+      if (item.includes('Star')) {
+        // Use star immediately if a shell is incoming, or just randomly once hesitation expires
+        shouldUse = shellIncoming || Math.random() < 0.6;
+      } else if (item.includes('Boost')) {
+        // Use boost when behind or just ready to go
+        shouldUse = distanceBehind > 0.05 || Math.random() < 0.5;
+      } else if (item.includes('Shell')) {
+        // Fire at the human only if they're ahead and not already finished
+        const aiAhead = distanceBehind > 0.5; // distanceBehind wraps, so >0.5 means AI is actually behind
+        shouldUse = human.finishTime === null && (aiAhead || Math.random() < 0.35);
+      } else if (item.includes('Banana')) {
+        // Drop banana when close behind the human or shell is incoming (desperation)
+        const humanClose = ai.kart.position.distanceTo(human.kart.position) < 8;
+        shouldUse = (humanClose && distanceBehind < 0.45) || (shellIncoming && Math.random() < 0.4);
+      }
+
+      if (shouldUse) {
+        useItem(ai, human);
+        soloAI.itemHesitation = null; // reset for next item
+      }
+    }
+  } else if (!ai.item) {
+    // No item held — clear hesitation so a fresh delay is set when next item is picked up
+    soloAI.itemHesitation = null;
   }
 
   updateLaps(ai);
@@ -1791,14 +2087,40 @@ function startGame() {
 
   if (isSolo) soloAI = { itemDecisionTimer: 0 };
 
-  // Countdown
+  // ── Countdown + Launch Boost detection ──
+  //
+  // Rules (same as Mario Kart):
+  //   • Press forward DURING the "2" beat window (between the 2-beep and 1-beep, i.e.
+  //     900ms–1800ms into the countdown) and hold it → BOOST START (2s speed bonus).
+  //   • Hold forward for more than 2100ms total at any point → STALL (engine backfire,
+  //     3s unable to drive + dark smoke).
+  //   • Press too late (after "1" beep, i.e. after 1800ms) or not at all → NORMAL start.
+  //   • Stall check takes priority over boost if both conditions are met.
+  //
+  // The countdown beeps fire at: t=0 (3), t=900ms (2), t=1800ms (1), t=2700ms (GO).
+  // Race actually starts one interval later at t=3600ms.
+
   raceRunning = false;
   let count = 3;
   const cdEl = document.getElementById('countdown');
   cdEl.style.display = 'flex';
   cdEl.textContent = count;
-  initAudioContext(); // unlock AudioContext on this user gesture
-  playCountdownBeeps(); // schedule all 4 beeps immediately (timed via Web Audio clock)
+  initAudioContext();
+  playCountdownBeeps();
+
+  const cdStart = performance.now();
+
+  // Track the moment each human player first presses forward
+  const launchHoldKeydown = (e) => {
+    if (e.code === P1_KEYS.forward && players[0].launchHoldStart === null) {
+      players[0].launchHoldStart = performance.now();
+    }
+    if (!isSolo && e.code === P2_KEYS.forward && players[1].launchHoldStart === null) {
+      players[1].launchHoldStart = performance.now();
+    }
+  };
+  document.addEventListener('keydown', launchHoldKeydown);
+
   const cdInterval = setInterval(() => {
     count--;
     if (count > 0) {
@@ -1806,13 +2128,76 @@ function startGame() {
     } else if (count === 0) {
       cdEl.textContent = 'GO!';
       cdEl.style.color = '#00ff00';
+
+      // ── Resolve launch results for human players at GO ──
+      const now = performance.now();
+
+      function resolveHumanLaunch(player) {
+        const holdStart = player.launchHoldStart;
+
+        // Never pressed, or pressed after the "1" beep (after 1800ms) → normal
+        if (holdStart === null || (holdStart - cdStart) >= 1800) {
+          player.launchResult = 'normal';
+          return;
+        }
+
+        const heldFor = now - holdStart; // total ms held at the moment GO fires
+
+        // Stall check: held for more than 2100ms total → engine overrev
+        if (heldFor >= 2100) {
+          player.launchResult = 'stall';
+          return;
+        }
+
+        // Boost window: first pressed during the "2" beat (900ms–1800ms into countdown)
+        const pressedAt = holdStart - cdStart;
+        if (pressedAt >= 900 && pressedAt < 1800) {
+          player.launchResult = 'boost';
+          return;
+        }
+
+        // Pressed too early (before the "2" beat) but not held long enough to stall → normal
+        player.launchResult = 'normal';
+      }
+
+      resolveHumanLaunch(players[0]);
+      if (!isSolo) resolveHumanLaunch(players[1]);
+
+      // ── Resolve CPU launch result ──
+      if (isSolo) {
+        const roll = Math.random();
+        // 50% normal, 30% boost, 20% stall
+        players[1].launchResult = roll < 0.5 ? 'normal' : roll < 0.8 ? 'boost' : 'stall';
+      }
+
     } else {
+      // Race starts
+      document.removeEventListener('keydown', launchHoldKeydown);
       cdEl.style.display = 'none';
+      cdEl.style.color = '';
       clearInterval(cdInterval);
       raceRunning = true;
       raceStart = Date.now();
       startEngineAudio();
       startBGM();
+
+      // ── Apply launch effects ──
+      players.forEach((player, pi) => {
+        if (player.launchResult === 'boost') {
+          player.launchBoostTimer = 2.0;         // 2s raised speed ceiling
+          player.speed = MAX_SPEED * 1.35;        // immediate speed kick
+          playLaunchBoostSound();
+          // Seed fire pool so particles are ready on frame 1
+          initFirePool(pi);
+          for (let f = 0; f < 6; f++) spawnFireParticle(_firePools[pi], player);
+        } else if (player.launchResult === 'stall') {
+          player.launchStallTimer = 3.0;          // 3s can't move forward
+          player.launchSmokeTimer = 3.0;          // 3s dark smoke
+          player.speed = 0;
+          playLaunchStallSound();
+        }
+        // 'normal' — clean start from zero speed
+      });
     }
   }, 900);
 
@@ -1854,6 +2239,8 @@ function startGame() {
       if (!isSolo) updateMirrorKarts();
       updateStarEffects(delta);
       updateFireParticles(delta);
+      updateSmokeParticles(delta);
+      updateWheels(delta);
       updateHUD();
       updateEngineAudio();
     }
@@ -1935,7 +2322,7 @@ function spawnFireParticle(pool, player) {
 
 function updateFireParticles(delta) {
   players.forEach((player, pi) => {
-    const boosting = player.boostTimer > 0;
+    const boosting = player.boostTimer > 0 || player.launchBoostTimer > 0;
 
     if (boosting) {
       initFirePool(pi);
@@ -1983,7 +2370,97 @@ function updateFireParticles(delta) {
 }
 
 // =============================================
-// MIRROR KARTS (ghost of other player in each scene)
+// DARK SMOKE PARTICLES — launch stall exhaust
+// =============================================
+const SMOKE_POOL_SIZE = 32;
+const _smokePools = [null, null];
+
+function initSmokePool(pi) {
+  if (_smokePools[pi]) return;
+  const pool = [];
+  for (let i = 0; i < SMOKE_POOL_SIZE; i++) {
+    const geo = new THREE.SphereGeometry(0.28, 5, 5);
+    const mat1 = new THREE.MeshBasicMaterial({ color: 0x222222, transparent: true, opacity: 0 });
+    const mat2 = mat1.clone();
+    const m1 = new THREE.Mesh(geo, mat1);
+    const m2 = new THREE.Mesh(geo, mat2);
+    m1.visible = false; m2.visible = false;
+    scenes[0].add(m1);
+    if (scenes[1]) scenes[1].add(m2);
+    pool.push({ mesh1: m1, mesh2: m2, life: 0, maxLife: 0, vx: 0, vy: 0, vz: 0 });
+  }
+  _smokePools[pi] = pool;
+}
+
+function spawnSmokeParticle(pool, player) {
+  const p = pool.find(p => p.life <= 0);
+  if (!p) return;
+
+  const bx = -Math.sin(player.angle) * 1.9;
+  const bz = -Math.cos(player.angle) * 1.9;
+  const spread = 0.5;
+  const ox = (Math.random() - 0.5) * spread;
+  const oz = (Math.random() - 0.5) * spread;
+
+  const worldX = player.kart.position.x + bx + ox;
+  const worldY = player.kart.position.y + 0.2 + Math.random() * 0.3;
+  const worldZ = player.kart.position.z + bz + oz;
+
+  p.mesh1.position.set(worldX, worldY, worldZ);
+  if (p.mesh2) p.mesh2.position.set(worldX, worldY, worldZ);
+
+  const speed = 1.5 + Math.random() * 2;
+  p.vx = bx / 1.9 * speed * 0.3 + (Math.random() - 0.5) * 0.8;
+  p.vy = 1.8 + Math.random() * 2;
+  p.vz = bz / 1.9 * speed * 0.3 + (Math.random() - 0.5) * 0.8;
+
+  p.maxLife = 0.6 + Math.random() * 0.4;
+  p.life    = p.maxLife;
+
+  // Dark grey/brown smoke colour
+  const grey = 0.12 + Math.random() * 0.15;
+  p.mesh1.material.color.setRGB(grey, grey * 0.9, grey * 0.8);
+  if (p.mesh2) p.mesh2.material.color.copy(p.mesh1.material.color);
+  p.mesh1.visible = true;
+  if (p.mesh2) p.mesh2.visible = true;
+}
+
+function updateSmokeParticles(delta) {
+  players.forEach((player, pi) => {
+    const smoking = player.launchSmokeTimer > 0;
+    if (smoking) {
+      player.launchSmokeTimer -= delta;
+      initSmokePool(pi);
+      const spawnCount = Math.random() < delta * 40 ? 3 : 2;
+      for (let i = 0; i < spawnCount; i++) spawnSmokeParticle(_smokePools[pi], player);
+    }
+    if (!_smokePools[pi]) return;
+    _smokePools[pi].forEach(p => {
+      if (p.life <= 0) return;
+      p.life -= delta;
+      if (p.life <= 0) {
+        p.mesh1.visible = false;
+        if (p.mesh2) p.mesh2.visible = false;
+        return;
+      }
+      p.mesh1.position.x += p.vx * delta;
+      p.mesh1.position.y += p.vy * delta;
+      p.mesh1.position.z += p.vz * delta;
+      if (p.mesh2) p.mesh2.position.copy(p.mesh1.position);
+      p.vy -= 1.5 * delta; // slow float up then drift
+      const t = p.life / p.maxLife; // 1→0
+      // Expand as smoke rises
+      const scale = 0.5 + (1 - t) * 1.8;
+      p.mesh1.scale.setScalar(scale);
+      if (p.mesh2) p.mesh2.scale.setScalar(scale);
+      p.mesh1.material.opacity = t * 0.55;
+      if (p.mesh2) p.mesh2.material.opacity = t * 0.55;
+    });
+  });
+}
+
+// =============================================
+// MIRROR KARTS (real kart copy of each player in the other player's scene)
 // =============================================
 let ghostKarts = null;
 
@@ -2038,19 +2515,21 @@ function updateStarEffects(delta) {
 }
 
 function updateMirrorKarts() {
+  // Build real mirror karts on first call (scenes and players are ready by then)
   if (!ghostKarts) {
-    const g1 = new THREE.Mesh(new THREE.BoxGeometry(2,1.5,3.5),
-      new THREE.MeshLambertMaterial({ color: CHARACTERS[playerChars[1]].color, transparent: true, opacity: 0.8 }));
+    // P2's real kart is in scenes[1] — build a full copy in scenes[0] so P1 can see P2
+    const g1 = buildKart(players[1].charIndex, scenes[0]);
     scenes[0].add(g1);
-    const g2 = new THREE.Mesh(new THREE.BoxGeometry(2,1.5,3.5),
-      new THREE.MeshLambertMaterial({ color: CHARACTERS[playerChars[0]].color, transparent: true, opacity: 0.8 }));
+    // P1's real kart is in scenes[0] — build a full copy in scenes[1] so P2 can see P1
+    const g2 = buildKart(players[0].charIndex, scenes[1]);
     scenes[1].add(g2);
     ghostKarts = [g1, g2];
   }
+  // Sync mirror kart transforms to match the real karts every frame
   ghostKarts[0].position.copy(players[1].kart.position);
-  ghostKarts[0].rotation.y = players[1].angle;
+  ghostKarts[0].rotation.copy(players[1].kart.rotation);
   ghostKarts[1].position.copy(players[0].kart.position);
-  ghostKarts[1].rotation.y = players[0].angle;
+  ghostKarts[1].rotation.copy(players[0].kart.rotation);
 }
 
 function syncItemBoxVisibility() {
@@ -2060,6 +2539,56 @@ function syncItemBoxVisibility() {
       box.mesh2.position.copy(box.mesh.position);
       box.mesh2.rotation.copy(box.mesh.rotation);
     }
+  });
+}
+
+// =============================================
+// WHEEL ANIMATION — roll + steering
+// =============================================
+// Wheel cylinders are oriented with their Y axis along the kart's X axis (rotation.z = PI/2).
+// Rolling forward = positive X rotation in the wheel's local space.
+// Circumference = 2π * 0.5 = ~3.14 units, so roll rate = speed / 0.5 rad/s
+const WHEEL_RADIUS = 0.5;
+
+function updateWheels(delta) {
+  players.forEach((player, pi) => {
+    const ud = player.kart.userData;
+    if (!ud.frontWheels) return;
+
+    // ── Roll: spin each wheelGroup on its local X axis ──
+    // The cylinder axle is baked along X (tyre.rotation.z = PI/2 on the mesh).
+    // wheelGroup itself has no parent tilt, so its local X = world X = the axle.
+    // Rotating wheelGroup.rotation.x therefore rolls the wheel forward/backward. ✅
+    const rollRate  = player.speed / WHEEL_RADIUS;
+    const rollDelta = rollRate * delta;
+    [...ud.frontWheels, ...ud.rearWheels].forEach(wheelGroup => {
+      wheelGroup.rotation.x += rollDelta;
+    });
+
+    // ── Steering: smooth the target steer angle and apply to front axle pivot ──
+    // Determine raw steer input: check keys for human players, or derive from angle delta for AI
+    let steerTarget = 0;
+    if (pi === 0) {
+      if (keys[P1_KEYS.left])  steerTarget =  0.45;
+      if (keys[P1_KEYS.right]) steerTarget = -0.45;
+    } else if (pi === 1 && gameMode === 'coop') {
+      if (keys[P2_KEYS.left])  steerTarget =  0.45;
+      if (keys[P2_KEYS.right]) steerTarget = -0.45;
+    } else {
+      // AI / solo player 2 — derive from how fast the kart angle is changing
+      // We store last angle in userData to compute delta
+      const prevAngle = ud.lastAngle !== undefined ? ud.lastAngle : player.angle;
+      const angleDelta = player.angle - prevAngle;
+      steerTarget = Math.max(-0.45, Math.min(0.45, angleDelta / delta * 0.12));
+    }
+    ud.lastAngle = player.angle;
+
+    // Smooth toward target (snappy in, snappy out)
+    const steerSpeed = 6.0;
+    ud.steerAngle += (steerTarget - ud.steerAngle) * Math.min(steerSpeed * delta, 1);
+
+    // Apply to front axle pivot (Y rotation = left/right steer)
+    ud.frontAxlePivot.rotation.y = ud.steerAngle;
   });
 }
 
@@ -2152,6 +2681,8 @@ function backToMenu() {
   _starOrigColors[1] = null;
   _firePools[0] = null;
   _firePools[1] = null;
+  _smokePools[0] = null;
+  _smokePools[1] = null;
   stadiumWalls.length = 0;
   players = [];
   scenes = [];

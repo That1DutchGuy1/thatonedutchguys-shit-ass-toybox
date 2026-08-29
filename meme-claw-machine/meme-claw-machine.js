@@ -311,6 +311,53 @@ for (let i = 0; i < 3; i++) {
     prongs.push(pivot);
 }
 
+// --- NEON RING DECORATIONS ON CLAW BASE ---
+// A glowing torus ring around the hub equator
+const neonRingGeo = new THREE.TorusGeometry(0.95, 0.07, 12, 48);
+const neonRingMat = new THREE.MeshStandardMaterial({
+    color: 0x00ffff, emissive: 0x00ffff, emissiveIntensity: 2.5,
+    metalness: 0.1, roughness: 0.1
+});
+const neonRingMesh = new THREE.Mesh(neonRingGeo, neonRingMat);
+neonRingMesh.rotation.x = Math.PI / 2;
+neonRingMesh.position.y = -0.48;
+clawGroup.add(neonRingMesh);
+
+// Six equally-spaced neon bulb dots around the ring
+const neonBulbColors = [0xff00ff, 0x00ffff, 0xffff00, 0xff00ff, 0x00ffff, 0xffff00];
+const neonBulbGeo = new THREE.SphereGeometry(0.13, 10, 10);
+const neonBulbMeshes = [];
+for (let i = 0; i < 6; i++) {
+    const angle = (i / 6) * Math.PI * 2;
+    const bulbMat = new THREE.MeshStandardMaterial({
+        color: neonBulbColors[i], emissive: neonBulbColors[i], emissiveIntensity: 3,
+        metalness: 0, roughness: 0.2
+    });
+    const bulb = new THREE.Mesh(neonBulbGeo, bulbMat);
+    bulb.position.set(Math.cos(angle) * 0.95, -0.48, Math.sin(angle) * 0.95);
+    clawGroup.add(bulb);
+    neonBulbMeshes.push({ mesh: bulb, mat: bulbMat, baseAngle: angle });
+}
+
+// Two small point lights that orbit with the claw and cycle hue
+const clawNeonLight1 = new THREE.PointLight(0xff00ff, 3, 6);
+clawNeonLight1.position.set(0.95, -0.48, 0);
+clawGroup.add(clawNeonLight1);
+const clawNeonLight2 = new THREE.PointLight(0x00ffff, 3, 6);
+clawNeonLight2.position.set(-0.95, -0.48, 0);
+clawGroup.add(clawNeonLight2);
+
+// A subtle second ring lower near the prong pivots
+const neonRing2Geo = new THREE.TorusGeometry(0.72, 0.04, 8, 36);
+const neonRing2Mat = new THREE.MeshStandardMaterial({
+    color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 2,
+    metalness: 0.1, roughness: 0.1
+});
+const neonRing2Mesh = new THREE.Mesh(neonRing2Geo, neonRing2Mat);
+neonRing2Mesh.rotation.x = Math.PI / 2;
+neonRing2Mesh.position.y = -0.65;
+clawGroup.add(neonRing2Mesh);
+
 const clawBody = new CANNON.Body({
     type: CANNON.Body.KINEMATIC,
     shape: new CANNON.Box(new CANNON.Vec3(1.2, 1.2, 1.2)),
@@ -867,6 +914,36 @@ function animate() {
         }
 
         clawGroup.position.copy(clawBody.position);
+
+        // --- ANIMATE CLAW NEON LIGHTS ---
+        const neonT = clock.elapsedTime; // seconds
+        // Cycle ring colours between cyan and magenta
+        const ringCycle = (Math.sin(neonT * 1.8) * 0.5 + 0.5); // 0..1
+        const r1 = Math.round(ringCycle * 255);
+        const b1 = Math.round((1 - ringCycle) * 255);
+        neonRingMat.emissive.setRGB(r1 / 255, 0, b1 / 255);
+        neonRingMat.color.setRGB(r1 / 255, 0, b1 / 255);
+        neonRing2Mat.emissive.setRGB((1 - ringCycle), 0, ringCycle);
+        neonRing2Mat.color.setRGB((1 - ringCycle), 0, ringCycle);
+        // Pulse the emissive intensity
+        const pulse = 1.8 + Math.sin(neonT * 4) * 0.7;
+        neonRingMat.emissiveIntensity = pulse;
+        neonRing2Mat.emissiveIntensity = pulse * 0.8;
+        // Cycle each bulb colour individually with offset phases
+        neonBulbMeshes.forEach(({ mat }, i) => {
+            const t2 = neonT * 2 + i * (Math.PI / 3);
+            const cr = Math.max(0, Math.sin(t2));
+            const cg = Math.max(0, Math.sin(t2 + Math.PI * 2 / 3));
+            const cb = Math.max(0, Math.sin(t2 + Math.PI * 4 / 3));
+            mat.emissive.setRGB(cr, cg, cb);
+            mat.color.setRGB(cr, cg, cb);
+            mat.emissiveIntensity = 2.5 + Math.sin(neonT * 5 + i) * 1;
+        });
+        // Orbit and colour-cycle the two point lights
+        clawNeonLight1.color.setRGB(r1 / 255, 0.2, b1 / 255);
+        clawNeonLight2.color.setRGB(b1 / 255, 0.2, r1 / 255);
+        clawNeonLight1.intensity = 2.5 + Math.sin(neonT * 3) * 1;
+        clawNeonLight2.intensity = 2.5 + Math.cos(neonT * 3) * 1;
 
         const roofY = 18;
         const cordLength = roofY - clawBody.position.y;

@@ -76,84 +76,27 @@
 
 ---
 
-<p><strong><font size="4">🚨 NEW GAME ADDED!</font></strong></p>
+<p><strong><font size="4">🚨 BIG UPDATE!</font></strong></p>
 
-> Meme Mafia has been added to the Shit Ass Toybox! Fuck yeah! 🤵🏻‍♂️🎩🚬
+<p><strong><font size="2">Various games gotten small to large updates!</font></strong></p>  <br>
 
-<img src="./meme-mafia/assets/memes/OG-meme-family/don-harkinian.png" alt="Don Harkinian" width="150" />
-
-> Don Harkinian is the boss of the OG Meme Crime Family! 🤵🏻‍♂️ <br>
-> He hired you to help him and his henchmemes defeat their rivals: The Gen Alpha Meme Crime Family! 😯 <br>
-> Led by Don Skibidi, they seem unstoppable! Unless one person helps the OGs, and that is YOU! 🫵🏻
-> Assemble hit parties and launch attacks on the Gen Alpha memes! 🔫
-> NOW GO PLAY THE GAME MOTHERFUCKER! 🔫
+* Meme Claw Machine's claw now has NEON LIGHTS for absolutely no fucking reason! 🤩
+* three.min.js, three.module.js, and cannon-es.js are now sitting in the root of the repo so no more shitty lazy duplicates! 😎
+* Grand Meme Prix 3D got a huge update! We're getting close to a 1.0! 🤯
 
 ---
 
-<p><strong><font size="4">🚨 BRAND NEW BETA GAME!</font></strong></p>
+<p><strong><font size="4">🚨 THE GRAND MEME PRIX 3D UPDATE!</font></strong></p>
 
-<p><strong><font size="2">Grand Meme Prix 3D is getting a public Beta!</font></strong></p>  <br>
+<p><strong><font size="2">Grand Meme Prix 3D is now starting to look like a proper fucking game!</font></strong></p>  <br>
 
-* Select your favorite meme and race against a friend in local multiplayer co-op! 🏎️
-* Use items to irritate the hell out of them! 😜
-
----
-
-<p><strong><font size="4">🚨 RICK ROLLER 2D DELUXE EDITION FULL RELEASE!</font></strong></p>
-
-<p><strong><font size="2">Rick Roller 2D has finally come out of Beta after so long!</font></strong></p>  <br>
-
-* Added 10 whole new levels! 🤯
-* Fixed the framerate dependent game simulation to use something better instead! 😎
-* Added proper win and lose screens! 👌🏻
-* Added Trollface enemies that walk around on the platforms! 🤪
-* And so much more! GO CHECK IT OUT! 🔫
-
----
-
-<p><strong><font size="4">🚨 WEEGEE TOWN XP FULL RELEASE!</font></strong></p>
-
-<p><strong><font size="2">Weegee Town XP has finally come out of Beta after so long!</font></strong></p>  <br>
-
-* I never actually liked this game, lol, development was so fucking tedious and frustrating! 😤
-* I don't even know what it looks like on smaller screens than my 1440p monitor. If shit is overlapping, I don't care anymore! 😡
-* Game is still fun to play maybe a few times, but I'm not touching the code ever again! 🖕🏻
-
----
-
-<p><strong><font size="4">🚨 ANOTHER BIG WEEGEE'S MANSION 3D UPDATE!</font></strong></p>
-
-> I think this is 1.6 (I lost track lol but I'm gonna call it that anyway! 😂)
-> Here are several new things added to the game and bug fixes:
-
-* Weegee can now HEAR you! 👂🏻
-* Every sound you make now matters! 😈
-* Sneaking has been added to reduce footstep noise! 🥷🏻
-* If Weegee hears you, he WILL come to investigate! 😱
-* Fixed a few fucking annoying bugs! 🙄
-* AND SO MUCH MORE! GO CHECK IT OUT, OR ELSE... 🔫
-
----
-
-<p><strong><font size="4">🚨 SMALL KING HARKINIAN'S PERSONAL CHEF SIMULATOR UPDATE!</font></strong></p>
-
-* Added asset preloading for all of the assets so that the King arrives more smoothly! 😎
-* Added a fucking fabulous loading screen on enter so that the browser got the time to preload all the assets! 👌🏻
-* A few bug fixes here and there! 👾
-
----
-
-<p><strong><font size="4">🎮️ CONTROLLER SUPPORT UPDATE!</font></strong></p>
-
-> Added controller support for navigating the Shit Ass Toybox! 🎮️ <br>
-> Added controller support for Meme Claw Machine! 🎮️ <br>
-
----
-
-<p><strong><font size="4">🚨 SMALL BUP THE SUPER AWESOME CLICKER GAME UPDATE!</font></strong></p>
-
-* Added local storage for the milestone messages so that they won't repeat anymore when you reach the threshold again! 😉
-* Made a few small changes to the Mama Luigi gamble! 🎰
+* Da wheels on the kart go round and round! Yep, wheels now spin properly to your movement! 🛞
+* Wheels also have a proper steering axle now for that epic steering action! 😎
+* The wheel models have been redesigned! 🛞
+* Just like in Mario Kart, the rocket boosts and engine stalls have been added to the countdown sequence depending on your timing! 🚀
+* The karts now have brand new proper 3D dual exhaust pipes on them! 💨
+* In local multiplayer co-op, your friend will now correctly appear on both your screens, assuming you actually have any friends! 😁
+* In singleplayer mode, the CPU player has been edited to be more fair and realistic! 🤖
 
 ---
 
