@@ -47,7 +47,7 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
 }
 .char-btn:hover { background: #fff; }
 .controls-hint {
-  color: #aaa; font-size: 13px; font-family: Arial, sans-serif;
+  color: #aaa; font-size: 13px; font-family: ComicSans, 'Comic Sans MS', cursive; letter-spacing: 1px;
   text-align: center; line-height: 1.6;
 }
 .controls-hint span { color: #FFD700; }
@@ -173,6 +173,7 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
 .hud-name { color: #FFD700; font-size: 16px; }
 .hud-lap { font-size: 22px; }
 .hud-speed { color: #00ff88; }
+.hud-place { font-size: 18px; font-weight: bold; margin-top: 4px; letter-spacing: 1px; }
 #raceTimer {
   position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
   background: rgba(0,0,0,0.7); border: 2px solid #FFD700;
@@ -210,6 +211,25 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
 #canvas2 { left: 50%; }
 
 @keyframes twinkle { from { opacity: 0.2; } to { opacity: 1; } }
+
+/* ── YOUTUBE CREDIT ── */
+#yt-credit {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  color: #FFD700;
+  font-family: 'ComicSans', 'Comic Sans MS', cursive;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-decoration: none;
+  text-shadow: 2px 2px 0 #FF0000, 1px 1px 0 #000;
+  z-index: 200;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+}
+#yt-credit:hover { opacity: 1; text-decoration: underline; }
+#yt-credit.hidden { display: none; }
 
 /* ── HUB BUTTON ── */
 #hub-btn {
@@ -250,7 +270,7 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   flex-direction: column;
   align-items: center;
   gap: 18px;
-  z-index: 2;
+  z-index: 62; /* above confetti-piece (61) */
 }
 #winTrophy {
   font-size: 100px;
@@ -361,14 +381,192 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
 
 /* Confetti particles */
 .confetti-piece {
-  position: absolute;
+  position: fixed;
   width: 10px;
   height: 10px;
   border-radius: 2px;
   animation: confettiFall linear forwards;
-  z-index: 1;
+  z-index: 61; /* above winScreen (60) but pointer-events left as default so clicks pass through */
+  pointer-events: none;
 }
 @keyframes confettiFall {
-  0%   { transform: translateY(-80px) rotate(0deg);   opacity: 1; }
-  100% { transform: translateY(100vh)  rotate(720deg); opacity: 0; }
+  0%   { transform: translateY(-80px) rotate(0deg)    translateX(0px);   opacity: 0; }
+  2%   { opacity: 1; }
+  25%  { transform: translateY(25vh)  rotate(270deg)  translateX(30px);  opacity: 1; }
+  50%  { transform: translateY(50vh)  rotate(540deg)  translateX(-20px); opacity: 0.9; }
+  75%  { transform: translateY(75vh)  rotate(810deg)  translateX(25px);  opacity: 0.6; }
+  100% { transform: translateY(110vh) rotate(1080deg) translateX(-10px); opacity: 0; }
+}
+
+/* ── SETTINGS OPEN BUTTON ── */
+.settings-open-btn {
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,215,0,0.5);
+  color: #FFD700;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 10px 28px;
+  cursor: pointer;
+  border-radius: 8px;
+  letter-spacing: 2px;
+  transition: background 0.15s, border-color 0.15s;
+  margin-top: 4px;
+}
+.settings-open-btn:hover {
+  background: rgba(255,215,0,0.15);
+  border-color: #FFD700;
+}
+
+/* ── SETTINGS PANEL ── */
+.settings-panel {
+  background: rgba(255,255,255,0.07);
+  border: 3px solid #FFD700;
+  border-radius: 14px;
+  padding: 28px 36px;
+  min-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.settings-section-label {
+  color: #FFD700;
+  font-size: 15px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.settings-sub {
+  color: #888;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.settings-row-toggle {
+  justify-content: space-between;
+}
+.settings-icon {
+  font-size: 20px;
+  width: 26px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.settings-val {
+  color: #fff;
+  font-size: 16px;
+  min-width: 32px;
+  text-align: right;
+}
+.settings-divider {
+  border: none;
+  border-top: 1px solid rgba(255,215,0,0.25);
+  margin: 4px 0;
+}
+
+/* Range slider */
+.settings-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #FFD700 0%, #FFD700 var(--pct,35%), rgba(255,255,255,0.15) var(--pct,35%), rgba(255,255,255,0.15) 100%);
+  outline: none;
+  cursor: pointer;
+}
+.settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #FFD700;
+  border: 3px solid #000;
+  box-shadow: 0 0 6px rgba(255,215,0,0.7);
+  cursor: pointer;
+}
+.settings-slider::-moz-range-thumb {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #FFD700;
+  border: 3px solid #000;
+  box-shadow: 0 0 6px rgba(255,215,0,0.7);
+  cursor: pointer;
+}
+
+/* Toggle switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 54px;
+  height: 28px;
+  flex-shrink: 0;
+}
+.toggle-switch input { display: none; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.15);
+  border: 2px solid #555;
+  border-radius: 28px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  left: 3px; top: 2px;
+  background: #aaa;
+  border-radius: 50%;
+  transition: transform 0.2s, background 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: rgba(255,215,0,0.25);
+  border-color: #FFD700;
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(26px);
+  background: #FFD700;
+}
+
+/* ── RESET DEFAULTS BUTTON ── */
+.reset-defaults-btn {
+  background: rgba(255,60,60,0.12);
+  border: 2px solid rgba(255,100,100,0.5);
+  color: #ff8888;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 10px 22px;
+  cursor: pointer;
+  border-radius: 8px;
+  letter-spacing: 1px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.reset-defaults-btn:hover {
+  background: rgba(255,60,60,0.25);
+  border-color: #ff6666;
+  color: #ffbbbb;
+}
+
+/* ── DEV DEBUG OVERLAY ── */
+.dev-debug-overlay {
+  position: fixed;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 300;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  font-family: 'ComicSans', 'Comic Sans MS', cursive;
+  font-size: 14px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  line-height: 1.8;
+  pointer-events: none;
+  min-width: 240px;
+  border: 1px solid rgba(255,255,255,0.15);
 }

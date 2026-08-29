@@ -9,15 +9,149 @@ const CHARACTERS = [
   //   0x228B22 sends R=34 G=139 B=34 to the LED — dim and murky. Rick Astley's 0x363030
   //   is nearly invisible. These are vivid primaries/secondaries so each character is
   //   immediately readable at a glance on the hardware.
-  { name: "Mama Luigi",    img: "assets/Mama-Luigi.png",     color: 0x228B22, lightbarColor: 0x00FF00 }, // vivid green
-  { name: "King Harkinian",img: "assets/King-Harkinian.png", color: 0xDAA520, lightbarColor: 0xFF8C00 }, // bright orange-gold
-  { name: "Doge",          img: "assets/Doge.png",           color: 0xCBB987, lightbarColor: 0xFFDD44 }, // warm yellow
-  { name: "Gwonam",        img: "assets/Gwonam.png",         color: 0x8A45A1, lightbarColor: 0xCC00FF }, // vivid purple
-  { name: "Zelda",         img: "assets/Zelda.png",          color: 0xFF00AA, lightbarColor: 0xFF00CC }, // hot pink
-  { name: "Longcat",       img: "assets/Longcat.png",        color: 0xDEDEDE, lightbarColor: 0xDEDEDE }, // creamy white
-  { name: "Rick Astley",   img: "assets/Rick-Astley.png",    color: 0x363030, lightbarColor: 0x363030 }, // almost black
-  { name: "Weegee",        img: "assets/Weegee.png",         color: 0x4c7e66, lightbarColor: 0x4c7e66 }, // forest green (distinct from Mama Luigi green)
+  { name: "Mama Luigi",    img: "assets/Mama-Luigi.png",     color: 0x228B22, lightbarColor: 0x00FF00, voicelines: ['assets/voicelines/mama-luigi-hit.mp3', 'assets/voicelines/mama-luigi-win.mp3', 'assets/voicelines/mama-luigi-lose.mp3'] }, // vivid green
+  { name: "King Harkinian",img: "assets/King-Harkinian.png", color: 0xDAA520, lightbarColor: 0xFF8C00, voicelines: ['assets/voicelines/king-harkinian-hit.mp3', 'assets/voicelines/king-harkinian-win.mp3', 'assets/voicelines/king-harkinian-lose.mp3'] }, // bright orange-gold
+  { name: "Doge",          img: "assets/Doge.png",           color: 0xCBB987, lightbarColor: 0xFFDD44, voicelines: ['assets/voicelines/doge-hit.mp3', 'assets/voicelines/doge-win.mp3', 'assets/voicelines/doge-lose.mp3'] }, // warm yellow
+  { name: "Gwonam",        img: "assets/Gwonam.png",         color: 0x8A45A1, lightbarColor: 0xCC00FF, voicelines: ['assets/voicelines/gwonam-hit.mp3', 'assets/voicelines/gwonam-win.mp3', 'assets/voicelines/gwonam-lose.mp3'] }, // vivid purple
+  { name: "Zelda",         img: "assets/Zelda.png",          color: 0xFF00AA, lightbarColor: 0xFF00CC, voicelines: ['assets/voicelines/zelda-hit.mp3', 'assets/voicelines/zelda-win.mp3', 'assets/voicelines/zelda-lose.mp3'] }, // hot pink
+  { name: "Longcat",       img: "assets/Longcat.png",        color: 0xDEDEDE, lightbarColor: 0xDEDEDE, voicelines: ['assets/voicelines/longcat-hit.mp3', 'assets/voicelines/longcat-win.mp3', 'assets/voicelines/longcat-lose.mp3'] }, // creamy white
+  { name: "Rick Astley",   img: "assets/Rick-Astley.png",    color: 0x363030, lightbarColor: 0x363030, voicelines: ['assets/voicelines/rick-astley-hit.mp3', 'assets/voicelines/rick-astley-win.mp3', 'assets/voicelines/rick-astley-lose.mp3'] }, // almost black
+  { name: "Weegee",        img: "assets/Weegee.png",         color: 0x4c7e66, lightbarColor: 0x33cc66, voicelines: ['assets/voicelines/weegee-hit.mp3', 'assets/voicelines/weegee-win.mp3', 'assets/voicelines/weegee-lose.mp3'] }, // emerald green (distinct from Mama Luigi green)
+  { name: "Morshu",        img: "assets/Morshu.png",         color: 0xFF8000, lightbarColor: 0xFFA500, voicelines: ['assets/voicelines/morshu-hit.mp3', 'assets/voicelines/morshu-win.mp3', 'assets/voicelines/morshu-lose.mp3'] }, // orange
 ];
+
+// =============================================
+// SETTINGS  (persisted to localStorage)
+// =============================================
+const SETTINGS_KEY = 'gmp_settings_v1';
+const settings = (() => {
+  const defaults = { musicVol: 35, sfxVol: 70, voicelineVol: 100, shadows: false };
+  try {
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+    return Object.assign({}, defaults, saved);
+  } catch { return { ...defaults }; }
+})();
+
+function saveSettings() {
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch {}
+}
+
+// Called whenever a slider / toggle changes
+function onSettingChange() {
+  const musicSlider      = document.getElementById('settingMusicVol');
+  const sfxSlider        = document.getElementById('settingSfxVol');
+  const voicelineSlider  = document.getElementById('settingVoicelineVol');
+  const shadowToggle     = document.getElementById('settingShadows');
+
+  settings.musicVol      = parseInt(musicSlider.value,     10);
+  settings.sfxVol        = parseInt(sfxSlider.value,       10);
+  settings.voicelineVol  = parseInt(voicelineSlider.value, 10);
+  settings.shadows       = shadowToggle.checked;
+
+  // Update slider gradient fill
+  updateSliderFill(musicSlider);
+  updateSliderFill(sfxSlider);
+  updateSliderFill(voicelineSlider);
+  document.getElementById('settingMusicValLabel').textContent     = settings.musicVol;
+  document.getElementById('settingSfxValLabel').textContent       = settings.sfxVol;
+  document.getElementById('settingVoicelineValLabel').textContent = settings.voicelineVol;
+
+  applySettings();
+  saveSettings();
+}
+
+function updateSliderFill(slider) {
+  const pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+  slider.style.setProperty('--pct', pct + '%');
+  // For browsers that don't support CSS vars on range, fall back to background
+  slider.style.background =
+    `linear-gradient(to right, #FFD700 0%, #FFD700 ${pct}%, rgba(255,255,255,0.15) ${pct}%, rgba(255,255,255,0.15) 100%)`;
+}
+
+// Push current settings values into the live game
+function applySettings() {
+  // Music (MP3 background track)
+  if (typeof bgmEl !== 'undefined' && bgmEl) bgmEl.volume = settings.musicVol / 100;
+  // Win sound (MP3)
+  if (typeof winSoundEl !== 'undefined' && winSoundEl) winSoundEl.volume = settings.sfxVol / 100;
+  // One-shot Web Audio SFX (countdown, slip, shell, launch sounds)
+  if (sfxMasterGain) sfxMasterGain.gain.value = settings.sfxVol / 100;
+  // Engine synth — masterGain nodes are stored on each voice
+  if (typeof engineVoices !== 'undefined') {
+    engineVoices.forEach(v => {
+      if (v && v.masterGain) v.masterGain.gain.value = (settings.sfxVol / 100) * 0.12;
+    });
+  }
+  // Shadows — THREE.js does NOT support toggling shadowMap.enabled after first render.
+  // The correct runtime kill-switch is light.castShadow: when false, Three.js skips the
+  // entire shadow-map render pass for that light (zero extra GPU draw calls).
+  // We also sync castShadow/receiveShadow on meshes so no stale shadow artifacts linger.
+  if (typeof scenes !== 'undefined' && scenes.length) {
+    scenes.forEach(scene => {
+      scene.traverse(obj => {
+        if (obj.isDirectionalLight || obj.isSpotLight || obj.isPointLight) {
+          obj.castShadow = settings.shadows;
+        }
+        if (obj.isMesh) {
+          obj.castShadow    = settings.shadows;
+          obj.receiveShadow = settings.shadows;
+        }
+      });
+    });
+  }
+}
+
+function openSettings() {
+  // Sync UI to current settings values
+  const musicSlider     = document.getElementById('settingMusicVol');
+  const sfxSlider       = document.getElementById('settingSfxVol');
+  const voicelineSlider = document.getElementById('settingVoicelineVol');
+  const shadowToggle    = document.getElementById('settingShadows');
+  musicSlider.value     = settings.musicVol;
+  sfxSlider.value       = settings.sfxVol;
+  voicelineSlider.value = settings.voicelineVol;
+  shadowToggle.checked  = settings.shadows;
+  document.getElementById('settingMusicValLabel').textContent     = settings.musicVol;
+  document.getElementById('settingSfxValLabel').textContent       = settings.sfxVol;
+  document.getElementById('settingVoicelineValLabel').textContent = settings.voicelineVol;
+  updateSliderFill(musicSlider);
+  updateSliderFill(sfxSlider);
+  updateSliderFill(voicelineSlider);
+
+  document.getElementById('screenModeSelect').style.display = 'none';
+  document.getElementById('screenSettings').style.display   = 'flex';
+}
+
+function closeSettings() {
+  document.getElementById('screenSettings').style.display   = 'none';
+  document.getElementById('screenModeSelect').style.display = 'flex';
+}
+
+function resetSettings() {
+  settings.musicVol     = 35;
+  settings.sfxVol       = 70;
+  settings.voicelineVol = 100;
+  settings.shadows      = false;
+
+  // Sync UI sliders and toggle to the reset values
+  const musicSlider     = document.getElementById('settingMusicVol');
+  const sfxSlider       = document.getElementById('settingSfxVol');
+  const voicelineSlider = document.getElementById('settingVoicelineVol');
+  const shadowToggle    = document.getElementById('settingShadows');
+  musicSlider.value     = settings.musicVol;
+  sfxSlider.value       = settings.sfxVol;
+  voicelineSlider.value = settings.voicelineVol;
+  shadowToggle.checked  = settings.shadows;
+  document.getElementById('settingMusicValLabel').textContent     = settings.musicVol;
+  document.getElementById('settingSfxValLabel').textContent       = settings.sfxVol;
+  document.getElementById('settingVoicelineValLabel').textContent = settings.voicelineVol;
+  updateSliderFill(musicSlider);
+  updateSliderFill(sfxSlider);
+  updateSliderFill(voicelineSlider);
+
+  applySettings();
+  saveSettings();
+}
 
 // =============================================
 // PLAYER STATE
@@ -68,6 +202,13 @@ let coopInputMethods = ['keyboard', 'gamepad']; // P1, P2
 // In solo gamepad mode, gpAssign[0] = pad index for P1
 // In coop, gpAssign[0] = P1 pad, gpAssign[1] = P2 pad
 const gpAssign = [null, null];
+
+// ── Coop dual-gamepad first-press P1 claim ────────────────────────────────
+// When both players pick gamepad in coop mode, the first pad to fire a button
+// press claims P1. We poll every frame (rAF) until both slots are claimed.
+let _coopGpClaimActive = false;     // true while the polling loop is running
+let _coopGpClaimedP1   = null;      // pad index that claimed P1 (or null)
+let _coopGpClaimRafId  = null;      // rAF handle so we can cancel it
 
 // ── Event-based gamepad registry ──────────────────────────────────────────
 // On Linux (Chrome/Chromium) getGamepads() returns an empty array until the
@@ -340,6 +481,15 @@ function setCoopInput(player, method) {
   }
   // Update PAD button labels to always show which pad slot is assigned
   updateCoopPadLabels();
+
+  // Start/stop first-press P1 claim when both players are on gamepad
+  const bothPad = coopInputMethods[0] === 'gamepad' && coopInputMethods[1] === 'gamepad';
+  if (bothPad) {
+    startCoopGpClaim();
+  } else {
+    stopCoopGpClaim();
+    _coopGpClaimedP1 = null;
+  }
 }
 
 function updateCoopPadLabels() {
@@ -349,14 +499,145 @@ function updateCoopPadLabels() {
   document.getElementById('coopP2GpBtn').textContent = bothPad ? '🎮 PAD2' : '🎮 PAD';
 }
 
+// ── Coop dual-gamepad first-press assignment ──────────────────────────────
+// Starts a rAF polling loop that watches all connected gamepads.
+// The first pad to press any button becomes P1; the remaining pad becomes P2.
+function startCoopGpClaim() {
+  if (_coopGpClaimActive) return; // already running
+  _coopGpClaimActive = true;
+  _coopGpClaimedP1   = null;
+
+  // Snapshot button states so only NEW presses (not held buttons) trigger claim.
+  const _prevPressed = new Map(); // padIndex → Set of button indices pressed last frame
+
+  function _pollClaim() {
+    if (!_coopGpClaimActive) return; // cancelled
+
+    const pads = getConnectedGamepads();
+
+    if (_coopGpClaimedP1 === null) {
+      // Phase 1 — wait for first button press on any pad → that pad claims P1
+      for (const pad of pads) {
+        const prev = _prevPressed.get(pad.index) || new Set();
+        for (let b = 0; b < pad.buttons.length; b++) {
+          const nowPressed = pad.buttons[b].pressed || pad.buttons[b].value > 0.5;
+          if (nowPressed && !prev.has(b)) {
+            // New press detected — this pad claims P1!
+            _coopGpClaimedP1 = pad.index;
+            console.log(`[GMP] Coop claim: pad ${pad.index} pressed button ${b} → P1`);
+            _updateCoopGpClaimUI();
+            break;
+          }
+        }
+        // Update prev state
+        const nowSet = new Set();
+        for (let b = 0; b < pad.buttons.length; b++) {
+          if (pad.buttons[b].pressed || pad.buttons[b].value > 0.5) nowSet.add(b);
+        }
+        _prevPressed.set(pad.index, nowSet);
+        if (_coopGpClaimedP1 !== null) break;
+      }
+    } else {
+      // Phase 2 — P1 is claimed; wait for a DIFFERENT pad to press any button → P2
+      const p2Pads = pads.filter(p => p.index !== _coopGpClaimedP1);
+      let p2Claimed = null;
+      for (const pad of p2Pads) {
+        const prev = _prevPressed.get(pad.index) || new Set();
+        for (let b = 0; b < pad.buttons.length; b++) {
+          const nowPressed = pad.buttons[b].pressed || pad.buttons[b].value > 0.5;
+          if (nowPressed && !prev.has(b)) {
+            p2Claimed = pad.index;
+            console.log(`[GMP] Coop claim: pad ${pad.index} pressed button ${b} → P2`);
+            break;
+          }
+        }
+        const nowSet = new Set();
+        for (let b = 0; b < pad.buttons.length; b++) {
+          if (pad.buttons[b].pressed || pad.buttons[b].value > 0.5) nowSet.add(b);
+        }
+        _prevPressed.set(pad.index, nowSet);
+        if (p2Claimed !== null) break;
+      }
+
+      if (p2Claimed !== null) {
+        // Both assigned — stop polling and lock in
+        stopCoopGpClaim();
+        _coopGpClaimedP1 = _coopGpClaimedP1; // already set
+        _updateCoopGpClaimUI(p2Claimed);
+        return;
+      }
+    }
+
+    _coopGpClaimRafId = requestAnimationFrame(_pollClaim);
+  }
+
+  _coopGpClaimRafId = requestAnimationFrame(_pollClaim);
+  _updateCoopGpClaimUI(); // show initial "press a button" prompt
+}
+
+function stopCoopGpClaim() {
+  _coopGpClaimActive = false;
+  if (_coopGpClaimRafId !== null) {
+    cancelAnimationFrame(_coopGpClaimRafId);
+    _coopGpClaimRafId = null;
+  }
+}
+
+// Update the coop character-select hints to reflect claim status.
+// p2PadIndex is only passed once P2 is also claimed.
+function _updateCoopGpClaimUI(p2PadIndex) {
+  const hint1 = document.getElementById('coopP1ControlsHint');
+  const hint2 = document.getElementById('coopP2ControlsHint');
+
+  if (_coopGpClaimedP1 === null) {
+    // Nobody has claimed yet
+    const msg = '<span style="color:#FFD700;font-size:14px">👉 First to press a button = P1!</span>';
+    if (hint1) hint1.innerHTML = msg;
+    if (hint2) hint2.innerHTML = msg;
+  } else if (p2PadIndex === undefined) {
+    // P1 claimed, waiting for P2
+    if (hint1) hint1.innerHTML =
+      `<span style="color:#00ff88">✅ P1 claimed! (Pad ${_coopGpClaimedP1})</span><br>`
+      + `<span>L-Stick</span> steer &nbsp;<span>R2</span> gas<br>`
+      + `<span>L2</span> brake &nbsp;<span>✕</span> item`;
+    if (hint2) hint2.innerHTML =
+      '<span style="color:#FFD700;font-size:14px">👉 P2: press any button on your pad!</span>';
+  } else {
+    // Both claimed!
+    if (hint1) hint1.innerHTML =
+      `<span style="color:#00ff88">✅ P1 ready! (Pad ${_coopGpClaimedP1})</span><br>`
+      + `<span>L-Stick</span> steer &nbsp;<span>R2</span> gas<br>`
+      + `<span>L2</span> brake &nbsp;<span>✕</span> item`;
+    if (hint2) hint2.innerHTML =
+      `<span style="color:#00ff88">✅ P2 ready! (Pad ${p2PadIndex})</span><br>`
+      + `<span>L-Stick</span> steer &nbsp;<span>R2</span> gas<br>`
+      + `<span>L2</span> brake &nbsp;<span>✕</span> item`;
+  }
+}
+
 function selectMode(mode) {
-  gameMode = mode;
+  gameMode = mode === 'dev' ? 'solo' : mode; // dev uses solo plumbing
+  gameMode_dev = (mode === 'dev');
   document.getElementById('screenModeSelect').style.display = 'none';
-  document.getElementById(mode === 'solo' ? 'screenCharSolo' : 'screenCharCoop').style.display = 'flex';
+  if (mode === 'dev') {
+    // Show the solo char screen but hide the CPU panel
+    document.getElementById('screenCharSolo').style.display = 'flex';
+    const cpuPanel = document.querySelector('.cpu-select');
+    if (cpuPanel) cpuPanel.style.display = 'none';
+  } else {
+    const cpuPanel = document.querySelector('.cpu-select');
+    if (cpuPanel) cpuPanel.style.display = '';
+    document.getElementById(mode === 'solo' ? 'screenCharSolo' : 'screenCharCoop').style.display = 'flex';
+  }
   updateCharUI();
 }
 
 function goBack() {
+  stopCoopGpClaim();
+  _coopGpClaimedP1 = null;
+  gameMode_dev = false;
+  const cpuPanel = document.querySelector('.cpu-select');
+  if (cpuPanel) cpuPanel.style.display = '';
   document.getElementById('screenCharSolo').style.display = 'none';
   document.getElementById('screenCharCoop').style.display = 'none';
   document.getElementById('screenModeSelect').style.display = 'flex';
@@ -585,9 +866,22 @@ function assignGamepads() {
   } else {
     const p1Needs = coopInputMethods[0] === 'gamepad';
     const p2Needs = coopInputMethods[1] === 'gamepad';
-    const padPool = [...pads];
-    if (p1Needs) { gpAssign[0] = padPool.length ? padPool.shift().index : undefined; }
-    if (p2Needs) { gpAssign[1] = padPool.length ? padPool.shift().index : undefined; }
+
+    if (p1Needs && p2Needs && _coopGpClaimedP1 !== null) {
+      // Both players chose gamepad and the first-press claim resolved P1.
+      // P1 gets the pad that pressed first; P2 gets whichever other pad is available.
+      gpAssign[0] = _coopGpClaimedP1;
+      const p2Pad = pads.find(p => p.index !== _coopGpClaimedP1);
+      gpAssign[1] = p2Pad ? p2Pad.index : undefined;
+      stopCoopGpClaim(); // clean up the polling loop if still running
+    } else {
+      // Fallback: one or neither player is on gamepad, or claim hasn't resolved yet.
+      // Assign by sorted pad order (original behaviour).
+      const padPool = [...pads];
+      if (p1Needs) { gpAssign[0] = padPool.length ? padPool.shift().index : undefined; }
+      if (p2Needs) { gpAssign[1] = padPool.length ? padPool.shift().index : undefined; }
+    }
+
     if ((p1Needs && gpAssign[0] === undefined) || (p2Needs && gpAssign[1] === undefined)) {
       console.warn('[GMP] One or more gamepad slots unassigned — not enough pads detected.');
       showGamepadWarning();
@@ -653,6 +947,171 @@ let animId;
 let keys = {};
 let itemBoxes = [];
 
+// =============================================
+// DEV MODE
+// =============================================
+let devModeUnlocked = false;
+let gameMode_dev = false;       // true when the actual race is running in dev mode
+let devFreecam   = false;       // 9 key toggle
+let devDebugMenu = false;       // 8 key toggle
+let devHudHidden = false;       // 7 key toggle
+let devModeTimer = 0;           // seconds spent in dev mode race, counting up
+let devFreecamYaw   = 0;        // freecam look horizontal
+let devFreecamPitch = -0.3;     // freecam look vertical (slight downward default)
+
+// Konami-style unlock: press 3,4,5,2 within 4 seconds on the main menu
+(function setupDevUnlock() {
+  const SEQ = ['Digit3','Digit4','Digit5','Digit2'];
+  let progress = 0;
+  let resetTimer = null;
+
+  document.addEventListener('keydown', (e) => {
+    // Only listen on the main menu (game not running)
+    if (raceRunning || gameMode_dev) return;
+    if (e.code === SEQ[progress]) {
+      progress++;
+      if (resetTimer) clearTimeout(resetTimer);
+      if (progress === SEQ.length) {
+        progress = 0;
+        if (!devModeUnlocked) {
+          devModeUnlocked = true;
+          showDevUnlockFlash();
+        }
+      } else {
+        resetTimer = setTimeout(() => { progress = 0; }, 4000);
+      }
+    } else {
+      progress = 0;
+      if (resetTimer) { clearTimeout(resetTimer); resetTimer = null; }
+    }
+  });
+})();
+
+function showDevUnlockFlash() {
+  // Add the DEV MODE button if not already present
+  const existing = document.getElementById('devModeBtn');
+  if (existing) return;
+
+  // Flash banner
+  const flash = document.createElement('div');
+  flash.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:500;pointer-events:none;';
+  flash.innerHTML = '<div style="font-family:\'Comic Sans MS\',cursive;font-size:52px;color:#00ff88;text-shadow:3px 3px 0 #000,0 0 30px #00ff88;animation:devFlash 1.8s ease-out forwards;padding:20px 40px;background:rgba(0,0,0,0.7);border-radius:12px;border:3px solid #00ff88;">🔧 DEV MODE UNLOCKED</div>';
+  document.body.appendChild(flash);
+  const style = document.createElement('style');
+  style.textContent = '@keyframes devFlash{0%{opacity:0;transform:scale(0.6)}20%{opacity:1;transform:scale(1.05)}80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1)}}';
+  document.head.appendChild(style);
+  setTimeout(() => flash.remove(), 1800);
+
+  // Inject the DEV MODE button into screenModeSelect
+  const modeGroup = document.querySelector('.mode-btn-group');
+  if (modeGroup) {
+    const btn = document.createElement('button');
+    btn.id = 'devModeBtn';
+    btn.className = 'mode-btn';
+    btn.style.cssText = 'border-color:#00ff88;color:#00ff88;background:linear-gradient(180deg,#001a00,#000800);';
+    btn.innerHTML = '🔧 DEV MODE<br><span class="mode-btn-sub" style="color:#aaa">NO CPU</span>';
+    btn.onclick = () => selectMode('dev');
+    modeGroup.appendChild(btn);
+  }
+}
+
+// ── Dev mode freecam state ──
+const _devCamPos   = new THREE.Vector3(0, 10, 0);
+const _devCamSpeed = 30; // units per second
+
+function updateDevFreecam(delta, camera) {
+  // Mouse-look: track pointer lock for yaw/pitch
+  // Movement: WASD + Space (up) + Shift (down)
+  const spd = _devCamSpeed * delta;
+  const fwd = new THREE.Vector3(
+    Math.sin(devFreecamYaw) * Math.cos(devFreecamPitch),
+    Math.sin(devFreecamPitch),
+    Math.cos(devFreecamYaw) * Math.cos(devFreecamPitch)
+  );
+  const right = new THREE.Vector3(-Math.cos(devFreecamYaw), 0, Math.sin(devFreecamYaw));
+
+  if (keys['KeyW']) _devCamPos.addScaledVector(fwd, spd);
+  if (keys['KeyS']) _devCamPos.addScaledVector(fwd, -spd);
+  if (keys['KeyA']) _devCamPos.addScaledVector(right, -spd);
+  if (keys['KeyD']) _devCamPos.addScaledVector(right, spd);
+  if (keys['Space'])      _devCamPos.y += spd;
+  if (keys['ShiftLeft'] || keys['ShiftRight']) _devCamPos.y -= spd;
+
+  camera.position.copy(_devCamPos);
+  camera.rotation.order = 'YXZ';
+  camera.rotation.set(devFreecamPitch, devFreecamYaw, 0, 'YXZ');
+}
+
+// Mouse-move handler for freecam look (requires pointer lock)
+document.addEventListener('mousemove', (e) => {
+  if (!devFreecam) return;
+  const sens = 0.002;
+  devFreecamYaw   -= e.movementX * sens;
+  devFreecamPitch -= e.movementY * sens;
+  devFreecamPitch  = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, devFreecamPitch));
+});
+
+// ── Dev debug overlay ──
+let _devDebugEl = null;
+function getDevDebugEl() {
+  if (_devDebugEl) return _devDebugEl;
+  const el = document.createElement('div');
+  el.id = '_devDebug';
+  el.className = 'dev-debug-overlay';
+  el.style.display = 'none';
+  document.body.appendChild(el);
+  _devDebugEl = el;
+  return el;
+}
+
+function updateDevDebugOverlay() {
+  const el = getDevDebugEl();
+  if (!devDebugMenu || !gameMode_dev) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+
+  const p = players[0];
+  const char = CHARACTERS[playerChars[0]];
+  const spd  = p ? p.speed.toFixed(4) : '—';
+  const input = soloInputMethod;
+  const mins  = Math.floor(devModeTimer / 60).toString().padStart(2, '0');
+  const secs  = (devModeTimer % 60).toFixed(2).padStart(5, '0');
+  const colorHex  = '#' + char.color.toString(16).padStart(6, '0');
+  const lbHex     = '#' + char.lightbarColor.toString(16).padStart(6, '0');
+  const imgFile   = char.img.split('/').pop();
+
+  // Build banana peel list
+  const peelLines = bananaPeels
+    .filter(p => p.active)
+    .map((p, i) => {
+      const pos = p.position;
+      return `<span style="color:#aaa">peel-${i+1}:</span> <b>${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}</b>`;
+    });
+
+  // Build red shell list
+  const shellLines = redShells
+    .filter(s => s.active)
+    .map((s, i) => {
+      const pos = s.mesh1.position;
+      return `<span style="color:#aaa">shell-${i+1}:</span> <b>${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}</b>`;
+    });
+
+  el.innerHTML = [
+    '<b style="color:#00ff88;font-size:16px">🔧 DEV DEBUG</b>',
+    `<span style="color:#aaa">Speed (internal):</span> <b>${spd}</b> u/s`,
+    `<span style="color:#aaa">Character:</span> <b>${imgFile}</b>`,
+    `<span style="color:#aaa">Kart color:</span> <span style="color:${colorHex}">■</span> <b>${colorHex}</b>`,
+    `<span style="color:#aaa">Lightbar:</span> <span style="color:${lbHex}">■</span> <b>${lbHex}</b>`,
+    `<span style="color:#aaa">Input:</span> <b>${input}</b>`,
+    `<span style="color:#aaa">Dev time:</span> <b>${mins}:${secs}</b>`,
+    devFreecam ? '<span style="color:#FFD700">📷 FREECAM (9 to exit)</span>' : '',
+    devHudHidden ? '<span style="color:#ff8888">👁 HUD HIDDEN (7 to restore)</span>' : '',
+    peelLines.length ? '<b style="color:#FFD700;margin-top:4px">🍌 Banana Peels (' + peelLines.length + ')</b>' : '',
+    ...peelLines,
+    shellLines.length ? '<b style="color:#ff4444;margin-top:4px">🔴 Red Shells (' + shellLines.length + ')</b>' : '',
+    ...shellLines,
+  ].filter(Boolean).join('<br>');
+}
+
 // Stadium wall segments for collision (built once, shared — world-space centre + inward normal + half-depth)
 // Each entry: { cx, cz, nx, nz, halfW, halfD, angle }
 const stadiumWalls = [];
@@ -661,11 +1120,17 @@ const stadiumWalls = [];
 // ENGINE AUDIO — Web Audio API, one voice per player
 // =============================================
 let audioCtx = null;
+let sfxMasterGain = null; // master gain for all one-shot Web Audio SFX
 const engineVoices = [null, null]; // one per player
 
 function initAudioContext() {
   if (audioCtx) return;
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  // Single gain node that all one-shot SFX route through — lets the SFX slider
+  // control countdown beeps, slip, shell launch/hit, and launch boost/stall sounds.
+  sfxMasterGain = audioCtx.createGain();
+  sfxMasterGain.gain.value = settings.sfxVol / 100;
+  sfxMasterGain.connect(audioCtx.destination);
 }
 
 // Build one engine voice. Returns an object with an update(speed) method and a stop() method.
@@ -776,7 +1241,7 @@ function startEngineAudio() {
   // P1 engine — left pan, P2 engine — right pan (subtle stereo separation)
   [0, 1].forEach(i => {
     const masterGain = audioCtx.createGain();
-    masterGain.gain.value = 0.12;
+    masterGain.gain.value = (settings.sfxVol / 100) * 0.12;
 
     // Subtle stereo pan per player
     const panner = audioCtx.createStereoPanner
@@ -790,7 +1255,9 @@ function startEngineAudio() {
       masterGain.connect(audioCtx.destination);
     }
 
-    engineVoices[i] = createEngineVoice(audioCtx, masterGain, i === 0 ? 0 : 7 + Math.random() * 6);
+    const voice = createEngineVoice(audioCtx, masterGain, i === 0 ? 0 : 7 + Math.random() * 6);
+    voice.masterGain = masterGain; // expose so applySettings() can reach it
+    engineVoices[i] = voice;
   });
 }
 
@@ -815,7 +1282,7 @@ function playCountdownBeeps() {
     gain.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + offset + 0.01);
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + offset + 0.35);
     osc.connect(gain);
-    gain.connect(audioCtx.destination);
+    gain.connect(sfxMasterGain);
     osc.start(audioCtx.currentTime + offset);
     osc.stop(audioCtx.currentTime + offset + 0.4);
   });
@@ -828,7 +1295,7 @@ function playCountdownBeeps() {
   goGain.gain.linearRampToValueAtTime(0.45, audioCtx.currentTime + 2.71);
   goGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.4);
   goOsc.connect(goGain);
-  goGain.connect(audioCtx.destination);
+  goGain.connect(sfxMasterGain);
   goOsc.start(audioCtx.currentTime + 2.7);
   goOsc.stop(audioCtx.currentTime + 3.5);
 }
@@ -841,7 +1308,7 @@ function startBGM() {
     bgmEl = document.createElement('audio');
     bgmEl.src = 'assets/main-theme.mp3';
     bgmEl.loop = true;
-    bgmEl.volume = 0.35;
+    bgmEl.volume = settings.musicVol / 100;
     document.body.appendChild(bgmEl);
   }
   bgmEl.currentTime = 0;
@@ -853,6 +1320,38 @@ function stopBGM() {
     bgmEl.pause();
     bgmEl.currentTime = 0;
   }
+}
+let winSoundEl = null;
+function playWinSound() {
+  if (!winSoundEl) {
+    winSoundEl = document.createElement('audio');
+    winSoundEl.src = 'assets/win.mp3';
+    winSoundEl.volume = settings.sfxVol / 100;
+    document.body.appendChild(winSoundEl);
+  }
+  winSoundEl.currentTime = 0;
+  winSoundEl.play().catch(() => {});
+}
+
+
+// ── CHARACTER VOICELINES ──
+// Plays the hit or win voiceline for a character if they have one.
+// type: 'hit' | 'win'
+// Runs via a fresh <audio> element each call so voicelines overlap freely
+// with existing Web Audio SFX (engine, shell, slip, etc.) and with each other.
+function playCharacterVoiceline(charIndex, type) {
+  const char = CHARACTERS[charIndex];
+  if (!char || !char.voicelines || char.voicelines.length === 0) return;
+  const line = char.voicelines.find(path => path.includes(type));
+  if (!line) return;
+  const el = document.createElement('audio');
+  el.src = line;
+  el.volume = settings.voicelineVol / 100;
+  // Clean up the element once it finishes (or errors) so we don't leak DOM nodes
+  el.onended = () => el.remove();
+  el.onerror = () => el.remove();
+  document.body.appendChild(el);
+  el.play().catch(() => {});
 }
 
 function updateEngineAudio() {
@@ -872,6 +1371,18 @@ function buildScene(sceneObj) {
   sceneObj.add(new THREE.AmbientLight(0xffffff, 0.7));
   const sun = new THREE.DirectionalLight(0xfff0cc, 1.2);
   sun.position.set(20, 50, 20);
+  sun.castShadow = settings.shadows;
+  // Shadow map resolution — 2048 gives crisp shadows; drop to 1024 if perf is an issue
+  sun.shadow.mapSize.width  = 2048;
+  sun.shadow.mapSize.height = 2048;
+  // Frustum large enough to cover the whole track (~220 units across)
+  sun.shadow.camera.near   =  1;
+  sun.shadow.camera.far    = 400;
+  sun.shadow.camera.left   = -200;
+  sun.shadow.camera.right  =  200;
+  sun.shadow.camera.top    =  200;
+  sun.shadow.camera.bottom = -200;
+  sun.shadow.bias          = -0.001; // prevents shadow acne on flat surfaces
   sceneObj.add(sun);
 
   // Ground plane
@@ -881,6 +1392,7 @@ function buildScene(sceneObj) {
   );
   ground.rotation.x = -Math.PI/2;
   ground.position.set(35, -0.05, 55);
+  ground.receiveShadow = settings.shadows;
   sceneObj.add(ground);
 
   // Stars in sky
@@ -929,7 +1441,9 @@ function buildTrack(sceneObj) {
   geo.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
   geo.setIndex(inds);
   geo.computeVertexNormals();
-  sceneObj.add(new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true })));
+  const trackMesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true }));
+  trackMesh.receiveShadow = settings.shadows;
+  sceneObj.add(trackMesh);
 
   // Kerbs — build N+1 rings where ring N is a copy of ring 0's *positions*.
   // This guarantees the closing quad's far edge lands exactly on ring 0,
@@ -981,6 +1495,7 @@ function buildTrack(sceneObj) {
       polygonOffsetUnits: -1,
     }));
     kerbMesh.renderOrder = 1;
+    kerbMesh.receiveShadow = settings.shadows;
     sceneObj.add(kerbMesh);
   }
 
@@ -1070,6 +1585,7 @@ function addDecorations(sceneObj) {
       const stand = new THREE.Mesh(new THREE.BoxGeometry(STAND_SEGMENT, STAND_H, STAND_D), standMat);
       stand.position.set(ox, STAND_H / 2, oz);
       stand.rotation.y = standAngle;
+      stand.traverse(obj => { if (obj.isMesh) { obj.receiveShadow = settings.shadows; obj.castShadow = settings.shadows; } });
       sceneObj.add(stand);
 
       // Register this stand's OBB for collision (only once, not duplicated per scene)
@@ -1163,6 +1679,7 @@ function makeItemBox() {
   const edgeGeo = new THREE.EdgesGeometry(geo);
   group.add(new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({ color: 0x553300 })));
   group._spin = 1.2; // picked up by the animation loop
+  group.traverse(obj => { if (obj.isMesh) { obj.castShadow = settings.shadows; obj.receiveShadow = settings.shadows; } });
   return group;
 }
 
@@ -1173,12 +1690,148 @@ function buildKart(charIndex, scene) {
   const char = CHARACTERS[charIndex];
   const group = new THREE.Group();
 
-  const bodyMat = new THREE.MeshLambertMaterial({ color: char.color });
-  group.add(new THREE.Mesh(new THREE.BoxGeometry(2, 0.7, 3.5), bodyMat));
+  const bodyMat     = new THREE.MeshLambertMaterial({ color: char.color });
+  const bodyDarkMat = new THREE.MeshLambertMaterial({ color: 0x111111 });  // cockpit surround / sidepod accent
+  const bodyMidMat  = new THREE.MeshLambertMaterial({ color: 0x1a1a1a }); // underbelly / floor
 
-  const noseMesh = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.5, 1), bodyMat);
-  noseMesh.position.set(0, -0.05, 2.2);
-  group.add(noseMesh);
+  // ── MAIN BODY ────────────────────────────────────────────────────────────
+  // Central tub — extended length to cover the wheel axles front and rear
+  const tubGeo = new THREE.BoxGeometry(1.6, 0.72, 3.6);
+  const tub = new THREE.Mesh(tubGeo, bodyMat);
+  tub.position.set(0, 0.06, -0.0);
+  group.add(tub);
+
+  // Floor pan — wide flat slab that gives karts their low-slung look
+  const floorGeo = new THREE.BoxGeometry(2.05, 0.18, 3.4);
+  const floor = new THREE.Mesh(floorGeo, bodyMidMat);
+  floor.position.set(0, -0.31, -0.05);
+  group.add(floor);
+
+  // Left sidepod — flat panel running alongside the tub
+  const podGeoL = new THREE.BoxGeometry(0.22, 0.44, 2.4);
+  const podL = new THREE.Mesh(podGeoL, bodyMat);
+  podL.position.set(-0.91, -0.04, -0.2);
+  group.add(podL);
+
+  // Right sidepod
+  const podR = new THREE.Mesh(podGeoL, bodyMat);
+  podR.position.set( 0.91, -0.04, -0.2);
+  group.add(podR);
+
+  // Sidepod accent strips — dark trim along the outer face of each pod
+  const stripGeo = new THREE.BoxGeometry(0.05, 0.30, 2.3);
+  const stripL = new THREE.Mesh(stripGeo, bodyDarkMat);
+  stripL.position.set(-1.03, -0.04, -0.2);
+  group.add(stripL);
+  const stripR = new THREE.Mesh(stripGeo, bodyDarkMat);
+  stripR.position.set( 1.03, -0.04, -0.2);
+  group.add(stripR);
+
+  // ── NOSE / FRONT WING ────────────────────────────────────────────────────
+  // Nose tip — very narrow wedge that sticks out further and tapers to a point
+  // Tub front face is at z = 0.0 + 3.6/2 = 1.8
+  // noseTip length = 0.85, so center = 1.8 + 0.425 = 2.225 to sit flush
+  // Y matches tub vertical center (0.06) so it doesn't float
+  const noseTipGeo = new THREE.CylinderGeometry(0.01, 0.38, 0.85, 8);
+  const noseTip = new THREE.Mesh(noseTipGeo, bodyMat);
+  noseTip.rotation.x = Math.PI / 2; // flip: wide base at rear blending into cone, point faces forward
+  noseTip.position.set(0, 0.06, 2.225);
+  group.add(noseTip);
+
+  // Front wing main plane — wide flat element beneath the nose
+  // Nose tip point is at z = 2.65, y = 0.06.
+  // Wing is centered at z=2.65 so it sits directly under the tip,
+  // and raised to y=-0.10 so it visually connects to the cone point.
+  const fwMainGeo = new THREE.BoxGeometry(2.1, 0.06, 0.6);
+  const fwMain = new THREE.Mesh(fwMainGeo, bodyMat);
+  fwMain.position.set(0, 0.06, 2.4);
+  group.add(fwMain);
+
+  // Front wing end plates — dedicated material with polygonOffset so the dark faces
+  // always render in front of the main wing surface, properly eliminating z-fighting.
+  const fwEndMat = new THREE.MeshLambertMaterial({
+    color: 0x111111,
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -1,
+  });
+  const fwEndGeo = new THREE.BoxGeometry(0.06, 0.18, 0.64);
+  const fwEndL = new THREE.Mesh(fwEndGeo, fwEndMat);
+  fwEndL.position.set(-1.02, 0.09, 2.4);
+  group.add(fwEndL);
+  const fwEndR = new THREE.Mesh(fwEndGeo, fwEndMat);
+  fwEndR.position.set( 1.02, 0.09, 2.4);
+  group.add(fwEndR);
+
+  // ── COCKPIT SURROUND — F1-style monocoque opening ────────────────────────
+  // Outer rim — the high sides of the cockpit surround (body colour)
+  const rimGeo = new THREE.BoxGeometry(1.62, 0.18, 1.4);
+  const rim = new THREE.Mesh(rimGeo, bodyDarkMat);
+  rim.position.set(0, 0.44, 0.3);
+  group.add(rim);
+
+  // F1 seating hole — black recessed walls forming an open-top cockpit tub.
+  // Wide enough for even the widest sprite characters.
+  const cockpitWallMat = new THREE.MeshLambertMaterial({ color: 0x0a0a0a });
+  // Left wall
+  const cwGeo = new THREE.BoxGeometry(0.14, 0.38, 1.3);
+  const cwL = new THREE.Mesh(cwGeo, cockpitWallMat);
+  cwL.position.set(-0.68, 0.52, 0.25);
+  group.add(cwL);
+  // Right wall
+  const cwR = new THREE.Mesh(cwGeo, cockpitWallMat);
+  cwR.position.set( 0.68, 0.52, 0.25);
+  group.add(cwR);
+  // Rear wall
+  const cwRearGeo = new THREE.BoxGeometry(1.5, 0.38, 0.14);
+  const cwRear = new THREE.Mesh(cwRearGeo, cockpitWallMat);
+  cwRear.position.set(0, 0.52, -0.4);
+  group.add(cwRear);
+  // Front lip (shorter — open at top like F1)
+  const cwFrontGeo = new THREE.BoxGeometry(1.5, 0.18, 0.14);
+  const cwFront = new THREE.Mesh(cwFrontGeo, cockpitWallMat);
+  cwFront.position.set(0, 0.42, 0.9);
+  group.add(cwFront);
+  // Floor of the hole — flat black base
+  const cwFloorGeo = new THREE.BoxGeometry(1.5, 0.06, 1.3);
+  const cwFloor = new THREE.Mesh(cwFloorGeo, cockpitWallMat);
+  cwFloor.position.set(0, 0.34, 0.25);
+  group.add(cwFloor);
+
+  // ── Character initial on tub nose ────────────────────────────────────────
+  // Small Comic Sans letter on a flat canvas plane, sits on top of the tub
+  // near the nose cone.
+  const initialCanvas = document.createElement('canvas');
+  initialCanvas.width  = 128;
+  initialCanvas.height = 128;
+  const ictx = initialCanvas.getContext('2d');
+  ictx.clearRect(0, 0, 128, 128);
+  ictx.font = 'bold 88px "Comic Sans MS", "Comic Sans", cursive';
+  ictx.fillStyle = '#111111';
+  ictx.textAlign = 'center';
+  ictx.textBaseline = 'middle';
+  ictx.fillText(char.name.charAt(0).toUpperCase(), 64, 64);
+  const initialTex = new THREE.CanvasTexture(initialCanvas);
+  const initialMat = new THREE.MeshBasicMaterial({ map: initialTex, transparent: true, depthWrite: false });
+  const initialPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.55), initialMat);
+  initialPlane.rotation.x = -Math.PI / 2; // lay flat on top of tub
+  initialPlane.position.set(0, 0.43, 1.3); // near the nose, on top of tub
+  group.add(initialPlane);
+
+  // Front fairing — slopes up from nose to cockpit (purely visual wedge)
+  const fairingGeo = new THREE.CylinderGeometry(0.25, 0.55, 0.6, 8, 1, false, Math.PI * 0.1, Math.PI * 0.8);
+  const fairing = new THREE.Mesh(fairingGeo, bodyMat);
+  fairing.position.set(0, 0.1, 1.35);
+  group.add(fairing);
+
+  // ── REAR BODYWORK ─────────────────────────────────────────────────────────
+  // Engine cover hump behind the seat
+  const humpGeo = new THREE.CylinderGeometry(0.28, 0.48, 0.7, 10, 1, false, 0, Math.PI);
+  const hump = new THREE.Mesh(humpGeo, bodyMat);
+  hump.rotation.z = Math.PI;    // dome faces upward
+  hump.rotation.y = Math.PI / 2;
+  hump.position.set(0, 0.36, -0.85);
+  group.add(hump);
 
   const wheelMat    = new THREE.MeshLambertMaterial({ color: 0x111111 });
   const hubMat      = new THREE.MeshLambertMaterial({ color: 0xCCCCCC });
@@ -1268,9 +1921,25 @@ function buildKart(charIndex, scene) {
   group.userData.rearWheels     = rearWheels;   // array of spinGroups
   group.userData.steerAngle     = 0;
 
-  const seat = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.8, 1.2), new THREE.MeshLambertMaterial({ color: 0x222222 }));
-  seat.position.set(0, 0.5, 0.4);
+  // Seat — reclined bucket seat inside cockpit surround
+  const seatMat = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+  // Main seat base
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.12, 1.1), seatMat);
+  seat.position.set(0, 0.45, 0.25);
   group.add(seat);
+  // Seat back — angled slightly back for driver comfort (lol)
+  const seatBack = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.7, 0.12), seatMat);
+  seatBack.position.set(0, 0.66, -0.31);
+  seatBack.rotation.x = 0.15; // slight recline
+  group.add(seatBack);
+  // Seat sides / bolsters
+  const bolsterGeo = new THREE.BoxGeometry(0.10, 0.35, 0.9);
+  const bolsterL = new THREE.Mesh(bolsterGeo, seatMat);
+  bolsterL.position.set(-0.56, 0.62, 0.2);
+  group.add(bolsterL);
+  const bolsterR = new THREE.Mesh(bolsterGeo, seatMat);
+  bolsterR.position.set( 0.56, 0.62, 0.2);
+  group.add(bolsterR);
 
   // 3D Spoiler — two uprights + horizontal wing blade at the rear
   const spoilerMat  = new THREE.MeshLambertMaterial({ color: char.color });
@@ -1340,7 +2009,7 @@ function buildKart(charIndex, scene) {
     pipeGroup.add(band);
 
     // Tight cluster, centered, no outward splay — pipes point straight back with a downward droop
-    pipeGroup.position.set(xOffset, -0.25, -1.88);
+    pipeGroup.position.set(xOffset, -0.12, -1.72);
     pipeGroup.rotation.x = 0.18; // more pronounced downward tilt like the reference
 
     group.add(pipeGroup);
@@ -1355,6 +2024,7 @@ function buildKart(charIndex, scene) {
   sprite.scale.set(2.2, 2.2, 1);
   sprite.position.set(0, 1.6, 0.3);
   group.add(sprite);
+  group.userData.charSprite = sprite; // expose for flip logic
 
   const img = new Image();
   img.crossOrigin = '';
@@ -1377,6 +2047,29 @@ function buildKart(charIndex, scene) {
     spriteTex.needsUpdate = true;
   };
   img.src = char.img;
+
+  // Make every mesh in the kart cast and receive shadows (respects settings)
+  group.traverse(obj => {
+    if (obj.isMesh) {
+      obj.castShadow    = settings.shadows;
+      obj.receiveShadow = settings.shadows;
+    }
+  });
+
+  // Blob shadow under the character sprite — a flat dark disc on the ground.
+  // Sprites can't cast shadowmap shadows, so this classic trick fills the gap.
+  const blobGeo = new THREE.CircleGeometry(0.8, 16);
+  const blobMat = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    transparent: true,
+    opacity: 0.35,
+    depthWrite: false,
+  });
+  const blobShadow = new THREE.Mesh(blobGeo, blobMat);
+  blobShadow.rotation.x = -Math.PI / 2;
+  blobShadow.position.set(0, -0.84 + 0.01, 0.3); // just above ground (kart origin is 0.85 up)
+  blobShadow.renderOrder = 2;
+  group.add(blobShadow);
 
   scene.add(group);
   return group;
@@ -1439,6 +2132,12 @@ function updateLaps(player) {
       player.lap++;
       if (player.lap > TOTAL_LAPS && !player.finishTime) {
         player.finishTime = (Date.now() - raceStart) / 1000;
+        // Determine finishing position: if any other player already finished, this is 2nd place
+        const isFirst = !players.some(p => p !== player && p.finishTime !== null);
+        const charIdx = player.charIndex;
+        setTimeout(() => {
+          playCharacterVoiceline(charIdx, isFirst ? 'win' : 'lose');
+        }, 1000);
         checkAllFinished();
       }
     }
@@ -1449,6 +2148,7 @@ function updateLaps(player) {
 let _finishFallbackTimer = null;
 
 function checkAllFinished() {
+  if (gameMode_dev) return; // dev mode has no finish condition
   if (players.every(p => p.finishTime !== null)) {
     showFinish();
   } else if (players.some(p => p.finishTime !== null)) {
@@ -1526,6 +2226,7 @@ function makeBananaPeelMesh() {
 
   // Lay flat on the ground
   group.position.y = 0.08;
+  group.traverse(obj => { if (obj.isMesh) { obj.castShadow = settings.shadows; obj.receiveShadow = settings.shadows; } });
   return group;
 }
 
@@ -1586,6 +2287,7 @@ function updateBananaPeels(delta, p1, p2) {
         player.speed       *= 0.4;
         showSlipEffect(player);
         playSlipSound();
+        playCharacterVoiceline(player.charIndex, 'hit');
       }
     }
   });
@@ -1609,7 +2311,7 @@ function playSlipSound() {
   gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
   osc.connect(gain);
-  gain.connect(audioCtx.destination);
+  gain.connect(sfxMasterGain);
   osc.start();
   osc.stop(audioCtx.currentTime + 0.65);
 }
@@ -1682,6 +2384,7 @@ function makeRedShellMesh() {
 
   // Position shell hovering just above ground
   group.position.y = 0.6;
+  group.traverse(obj => { if (obj.isMesh) { obj.castShadow = settings.shadows; obj.receiveShadow = settings.shadows; } });
   return group;
 }
 
@@ -1729,12 +2432,12 @@ function spawnRedShell(thrower, target) {
     active: true,
     trackT: shellT,
     trackDir,            // which way to travel around the curve
-    speed: 30,           // m/s along curve — comfortably faster than max kart speed
+    speed: 48,           // m/s along curve — noticeably faster than max kart speed
     homingDist: 40,      // large window: switch to direct homing within 40 units
     homingVel: new THREE.Vector3(Math.sin(thrower.angle), 0, Math.cos(thrower.angle)),
     phase: 'track',
     spinAngle: 0,
-    lifeTimer: 15,       // self-destruct after 15s if something goes very wrong
+    lifeTimer: 30,       // self-destruct after 30s if something goes very wrong
   });
 
   playShellLaunchSound();
@@ -1828,6 +2531,7 @@ function updateRedShells(delta) {
       shell.target.stunTimer    = 3.0;
       shell.target.speed       *= 0.3;
       playShellHitSound();
+      playCharacterVoiceline(shell.target.charIndex, 'hit');
       destroyRedShell(shell);
     }
   });
@@ -1853,7 +2557,7 @@ function playShellLaunchSound() {
   gain.gain.setValueAtTime(0.22, audioCtx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
   osc.connect(gain);
-  gain.connect(audioCtx.destination);
+  gain.connect(sfxMasterGain);
   osc.start();
   osc.stop(audioCtx.currentTime + 0.28);
 }
@@ -1870,7 +2574,7 @@ function playShellHitSound() {
     gain.gain.setValueAtTime(0.3, audioCtx.currentTime + offset);
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + offset + 0.4);
     osc.connect(gain);
-    gain.connect(audioCtx.destination);
+    gain.connect(sfxMasterGain);
     osc.start(audioCtx.currentTime + offset);
     osc.stop(audioCtx.currentTime + offset + 0.45);
   });
@@ -1887,7 +2591,7 @@ function playLaunchBoostSound() {
   gain.gain.setValueAtTime(0.28, audioCtx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
   osc.connect(gain);
-  gain.connect(audioCtx.destination);
+  gain.connect(sfxMasterGain);
   osc.start();
   osc.stop(audioCtx.currentTime + 0.55);
 }
@@ -1904,7 +2608,7 @@ function playLaunchStallSound() {
     gain.gain.setValueAtTime(0.22, audioCtx.currentTime + offset);
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + offset + 0.14);
     osc.connect(gain);
-    gain.connect(audioCtx.destination);
+    gain.connect(sfxMasterGain);
     osc.start(audioCtx.currentTime + offset);
     osc.stop(audioCtx.currentTime + offset + 0.18);
   });
@@ -1917,7 +2621,7 @@ function playLaunchStallSound() {
   groanGain.gain.setValueAtTime(0.18, audioCtx.currentTime + 0.35);
   groanGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
   groan.connect(groanGain);
-  groanGain.connect(audioCtx.destination);
+  groanGain.connect(sfxMasterGain);
   groan.start(audioCtx.currentTime + 0.35);
   groan.stop(audioCtx.currentTime + 1.25);
 }
@@ -1966,6 +2670,49 @@ const GAME_KEYS = new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','Ar
 document.addEventListener('keydown', e => {
   keys[e.code] = true;
   if (GAME_KEYS.has(e.code)) e.preventDefault();
+
+  // ── Dev mode hotkeys ──
+  if (gameMode_dev && raceRunning) {
+    if (e.code === 'Digit9') {
+      devFreecam = !devFreecam;
+      if (devFreecam) {
+        // Seed freecam position and orientation from current camera
+        _devCamPos.copy(cameras[0].position);
+        // Derive yaw/pitch from the camera's current world direction
+        const dir = new THREE.Vector3();
+        cameras[0].getWorldDirection(dir);
+        devFreecamYaw   = Math.atan2(dir.x, dir.z);
+        devFreecamPitch = Math.asin(Math.max(-1, Math.min(1, dir.y)));
+        cameras[0].rotation.order = 'YXZ';
+        // Request pointer lock for mouse-look
+        document.body.requestPointerLock();
+      } else {
+        document.exitPointerLock();
+      }
+      e.preventDefault();
+    }
+    if (e.code === 'Digit8') {
+      devDebugMenu = !devDebugMenu;
+      updateDevDebugOverlay();
+      e.preventDefault();
+    }
+    if (e.code === 'Digit7') {
+      devHudHidden = !devHudHidden;
+      const hudEls = [
+        document.getElementById('hud'),
+        document.getElementById('hub-btn'),
+        document.getElementById('divider'),
+      ];
+      hudEls.forEach(el => {
+        if (!el) return;
+        el.style.visibility = devHudHidden ? 'hidden' : '';
+      });
+      // raceTimer is inside #hud so it hides with it; handle separately for safety
+      const rt = document.getElementById('raceTimer');
+      if (rt) rt.style.visibility = devHudHidden ? 'hidden' : '';
+      e.preventDefault();
+    }
+  }
 });
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
@@ -2094,6 +2841,15 @@ function updatePlayer(player, binds, delta, otherPlayer) {
     }
     if (steerInput !== 0) {
       player.angle += -steerInput * STEER * delta * (Math.abs(player.speed) / MAX_SPEED + 0.15);
+      // Mirror sprite via texture repeat.x: THREE.Sprite ignores scale sign, so
+      // we flip the UV instead. repeat.x=-1 + offset.x=1 = horizontal mirror.
+      const spr = player.kart.userData.charSprite;
+      if (spr && spr.material.map) {
+        const facing = steerInput > 0 ? 1 : -1;
+        spr.material.map.repeat.x = facing;
+        spr.material.map.offset.x = facing === -1 ? 1 : 0;
+        spr.material.map.needsUpdate = true;
+      }
     }
     if (wantsItem) useItem(player, otherPlayer);
   }
@@ -2117,18 +2873,21 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   player.kart.rotation.y = player.angle;
 
   // Tilt on turns (suppressed during spinout — the spin is on Y anyway)
-  // Re-derive steer direction for visual tilt (same logic as above but just for sign)
-  let _tiltDir = 0;
+  // For gamepad: use the raw analog stick value so tilt scales with how far the
+  // stick is pushed (gentle nudge = subtle lean, full deflection = full lean).
+  // For keyboard: binary ±1 as before (keys are either on or off).
+  let _tiltAmount = 0;
   if (!stunned) {
     const gpInputsTilt = binds._gpIndex !== undefined ? getGamepadInputs(getGamepad(binds._gpIndex)) : null;
     if (gpInputsTilt) {
       const sx = Math.abs(gpInputsTilt.lx) > GP_DEADZONE ? gpInputsTilt.lx : 0;
-      _tiltDir = sx > 0 ? -1 : sx < 0 ? 1 : 0;
+      // Negate: positive lx = right = tilt left (negative Z rotation)
+      _tiltAmount = -sx;
     } else {
-      _tiltDir = keys[binds.left] ? 1 : keys[binds.right] ? -1 : 0;
+      _tiltAmount = keys[binds.left] ? 1 : keys[binds.right] ? -1 : 0;
     }
   }
-  player.kart.rotation.z = spinning ? 0 : -player.speed * 0.01 * _tiltDir;
+  player.kart.rotation.z = spinning ? 0 : -player.speed * 0.01 * _tiltAmount;
 
   if (player.itemCooldown > 0) player.itemCooldown -= delta;
 
@@ -2326,6 +3085,17 @@ function updateSoloAI(delta) {
   while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
   ai.angle += Math.max(-2.8 * delta, Math.min(2.8 * delta, angleDiff));
 
+  // Mirror AI sprite via texture repeat.x
+  if (Math.abs(angleDiff) > 0.01) {
+    const aiSpr = ai.kart.userData.charSprite;
+    if (aiSpr && aiSpr.material.map) {
+      const facing = angleDiff > 0 ? 1 : -1;
+      aiSpr.material.map.repeat.x = facing;
+      aiSpr.material.map.offset.x = facing === -1 ? 1 : 0;
+      aiSpr.material.map.needsUpdate = true;
+    }
+  }
+
   const onTrack = isOnTrack(ai.kart.position);
   const speedCap = ai.starTimer > 0 ? MAX_SPEED * 1.55
     : ai.launchBoostTimer > 0 ? MAX_SPEED * 1.38
@@ -2479,6 +3249,12 @@ function updateWinnerAI(delta) {
   p.kart.rotation.y  = p.angle;
   p.kart.rotation.z  = 0;
 
+  // Tick effect timers so fire/rainbow effects still expire during the cinematic.
+  // (updatePlayer is skipped for the winner, so we must handle this here.)
+  if (p.starTimer       > 0) p.starTimer       = Math.max(0, p.starTimer       - delta);
+  if (p.boostTimer      > 0) p.boostTimer      = Math.max(0, p.boostTimer      - delta);
+  if (p.launchBoostTimer > 0) p.launchBoostTimer = Math.max(0, p.launchBoostTimer - delta);
+
   // Still track laps so the HUD is accurate
   updateLaps(p);
 
@@ -2590,12 +3366,24 @@ function updateItemBoxes(delta) {
 function startGame() {
   const isSolo = gameMode === 'solo';
   soloAI = null;
-  if (isSolo) {
+  if (isSolo && !gameMode_dev) {
     const available = CHARACTERS.map((_, index) => index).filter(index => index !== playerChars[0]);
     playerChars[1] = available[Math.floor(Math.random() * available.length)];
   }
+  // Reset dev state
+  if (gameMode_dev) {
+    devFreecam   = false;
+    devDebugMenu = false;
+    devModeTimer = 0;
+    _devCamPos.set(0, 10, 0);
+    devFreecamYaw   = 0;
+    devFreecamPitch = -0.3;
+    const dbg = getDevDebugEl();
+    dbg.style.display = 'none';
+  }
 
   document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('yt-credit').classList.add('hidden');
   document.getElementById('hud').style.display = 'block';
   document.getElementById('divider').style.display = isSolo ? 'none' : 'block';
 
@@ -2615,11 +3403,15 @@ function startGame() {
   const r1 = new THREE.WebGLRenderer({ canvas: c1, antialias: true });
   r1.setPixelRatio(dpr);
   r1.setSize(W, H);
+  r1.shadowMap.enabled = true; // always enabled; actual shadow toggle is via light.castShadow
+  r1.shadowMap.type    = THREE.PCFSoftShadowMap;
   renderers = [r1];
   if (!isSolo) {
     const r2 = new THREE.WebGLRenderer({ canvas: c2, antialias: true });
     r2.setPixelRatio(dpr);
     r2.setSize(W, H);
+    r2.shadowMap.enabled = true; // always enabled; actual shadow toggle is via light.castShadow
+    r2.shadowMap.type    = THREE.PCFSoftShadowMap;
     renderers.push(r2);
   }
 
@@ -2662,20 +3454,32 @@ function startGame() {
   const spawnOrigin = TRACK_WAYPOINTS[0].clone();
   const p1Start = spawnOrigin.clone()
     .addScaledVector(spawnPerp, -2)    // left lane
-    .add(new THREE.Vector3(0, 0.5, 0));
+    .add(new THREE.Vector3(0, 0.85, 0));
   const p2Start = spawnOrigin.clone()
     .addScaledVector(spawnPerp,  2)    // right lane
-    .add(new THREE.Vector3(0, 0.5, 0));
+    .add(new THREE.Vector3(0, 0.85, 0));
 
-  players = [
-    createPlayer(playerChars[0], p1Start, spawnAngle, s1),
-    createPlayer(playerChars[1], p2Start, spawnAngle, isSolo ? s1 : s2),
-  ];
+  if (gameMode_dev) {
+    // Dev mode: only one player, no CPU at all
+    players = [
+      createPlayer(playerChars[0], p1Start, spawnAngle, s1),
+      // Dummy ghost P2 so array indexing doesn't crash (never rendered/updated)
+      createPlayer(playerChars[0], new THREE.Vector3(-9999, -9999, -9999), spawnAngle, s1),
+    ];
+    players[1].kart.visible = false;
+    document.getElementById('hud1name').textContent = '🔧 ' + CHARACTERS[playerChars[0]].name;
+    document.getElementById('hud2').style.display = 'none';
+  } else {
+    players = [
+      createPlayer(playerChars[0], p1Start, spawnAngle, s1),
+      createPlayer(playerChars[1], p2Start, spawnAngle, isSolo ? s1 : s2),
+    ];
+    document.getElementById('hud1name').textContent = '🏎️ ' + CHARACTERS[playerChars[0]].name;
+    document.getElementById('hud2name').textContent = (isSolo ? '🤖 ' : '🏎️ ') + CHARACTERS[playerChars[1]].name;
+    document.getElementById('hud2').style.display = '';
+  }
 
-  document.getElementById('hud1name').textContent = '🏎️ ' + CHARACTERS[playerChars[0]].name;
-  document.getElementById('hud2name').textContent = (isSolo ? '🤖 ' : '🏎️ ') + CHARACTERS[playerChars[1]].name;
-
-  if (isSolo) soloAI = { itemDecisionTimer: 0 };
+  if (isSolo && !gameMode_dev) soloAI = { itemDecisionTimer: 0 };
 
   // ── Countdown + Launch Boost detection ──
   //
@@ -2875,12 +3679,18 @@ function startGame() {
     if (raceRunning) {
       const aiIdx = winnerAI ? winnerAI.playerIdx : -1;
 
+      // Dev mode: count up the dev timer
+      if (gameMode_dev) devModeTimer += delta;
+
       // Normal player update — skip the AI-controlled winner
-      if (aiIdx !== 0) updatePlayer(players[0], p1Binds, delta, players[1]);
-      if (isSolo) {
-        if (aiIdx !== 1) updateSoloAI(delta);
-      } else if (aiIdx !== 1) {
-        updatePlayer(players[1], p2Binds, delta, players[0]);
+      // In dev freecam mode, don't update the player's driving inputs (kart stays put)
+      if (aiIdx !== 0 && !(gameMode_dev && devFreecam)) updatePlayer(players[0], p1Binds, delta, players[1]);
+      if (!gameMode_dev) {
+        if (isSolo) {
+          if (aiIdx !== 1) updateSoloAI(delta);
+        } else if (aiIdx !== 1) {
+          updatePlayer(players[1], p2Binds, delta, players[0]);
+        }
       }
 
       // AI drives the winner's kart (also updates that kart's laps)
@@ -2893,10 +3703,14 @@ function startGame() {
 
       raceTimer = (Date.now() - raceStart) / 1000;
 
-      // Camera: cinematic for AI player (handled inside updateWinnerAI),
-      //         normal chase for the human still racing
-      if (aiIdx !== 0) updateCamera(cameras[0], players[0]);
-      if (!isSolo && aiIdx !== 1) updateCamera(cameras[1], players[1]);
+      // Camera
+      if (gameMode_dev && devFreecam) {
+        // Freecam: WASD/Space/Shift move camera, mouse-look
+        updateDevFreecam(delta, cameras[0]);
+      } else {
+        if (aiIdx !== 0) updateCamera(cameras[0], players[0]);
+        if (!isSolo && aiIdx !== 1) updateCamera(cameras[1], players[1]);
+      }
 
       if (!isSolo) updateMirrorKarts();
       updateStarEffects(delta);
@@ -2905,6 +3719,9 @@ function startGame() {
       updateWheels(delta);
       updateHUD();
       updateEngineAudio();
+
+      // Dev overlays
+      if (gameMode_dev) updateDevDebugOverlay();
     }
 
     scenes.forEach(s => {
@@ -3138,16 +3955,12 @@ function updateStarEffects(delta) {
     const active = player.starTimer > 0;
 
     if (active) {
-      // Lazily snapshot original colors on first frame of star activation
+      // Lazily snapshot original colors on first frame of star activation.
+      // Use traverse so nested parts (wheels, axle rods, exhaust pipes, etc.) are included.
       if (!_starOrigColors[pi]) {
         _starOrigColors[pi] = [];
-        player.kart.children.forEach(child => {
-          // Kart body / wheel meshes
-          if (child.isMesh && child.material && child.material.color) {
-            _starOrigColors[pi].push({ target: child.material, origColor: child.material.color.clone() });
-          }
-          // Sprite (character portrait) — SpriteMaterial has a .color too
-          if (child.isSprite && child.material && child.material.color) {
+        player.kart.traverse(child => {
+          if ((child.isMesh || child.isSprite) && child.material && child.material.color) {
             _starOrigColors[pi].push({ target: child.material, origColor: child.material.color.clone() });
           }
         });
@@ -3157,11 +3970,8 @@ function updateStarEffects(delta) {
       const hue = (Date.now() * 0.003 + pi * 0.5) % 1;
       const rainbowColor = new THREE.Color().setHSL(hue, 1.0, 0.62);
 
-      player.kart.children.forEach(child => {
-        if (child.isMesh && child.material && child.material.color) {
-          child.material.color.copy(rainbowColor);
-        }
-        if (child.isSprite && child.material && child.material.color) {
+      player.kart.traverse(child => {
+        if ((child.isMesh || child.isSprite) && child.material && child.material.color) {
           child.material.color.copy(rainbowColor);
         }
       });
@@ -3282,11 +4092,32 @@ function updateHUD() {
   const secs = Math.floor(t%60).toString().padStart(2,'0');
   document.getElementById('raceTimer').textContent = mins+':'+secs;
 
+  // Determine race position for each player.
+  // Already-finished players rank above unfinished ones (by finishTime ascending).
+  // Among unfinished players, rank by lap desc then checkpoint desc.
+  const ranked = [0, 1].slice().sort((a, b) => {
+    const pa = players[a], pb = players[b];
+    if (pa.finishTime !== null && pb.finishTime !== null) return pa.finishTime - pb.finishTime;
+    if (pa.finishTime !== null) return -1;
+    if (pb.finishTime !== null) return  1;
+    if (pa.lap !== pb.lap) return pb.lap - pa.lap;
+    return pb.checkpoint - pa.checkpoint;
+  });
+  // ranked[0] = index of the player in 1st, ranked[1] = index in 2nd
+  const placeOf = [0, 0];
+  placeOf[ranked[0]] = 1;
+  placeOf[ranked[1]] = 2;
+
+  const placeLabel = ['🥇 1st', '🥈 2nd'];
+  const placeFinish = '✅ Finished!';
+
   [0,1].forEach(i => {
     const p = players[i];
     document.getElementById(`hud${i+1}lap`).textContent = Math.min(p.lap, TOTAL_LAPS);
     document.getElementById(`hud${i+1}speed`).textContent = Math.abs(Math.round(p.speed * 3.6));
     document.getElementById(`hud${i+1}item`).textContent = p.item || '';
+    document.getElementById(`hud${i+1}place`).textContent =
+      p.finishTime !== null ? placeFinish : placeLabel[placeOf[i] - 1];
   });
 }
 
@@ -3299,10 +4130,11 @@ function showFinish() {
   stopBGM();
 
   const times = players.map((p, i) => ({
-    name:     CHARACTERS[p.charIndex].name,
-    img:      CHARACTERS[p.charIndex].img,
-    time:     p.finishTime || raceTimer,
-    player:   i + 1,
+    name:      CHARACTERS[p.charIndex].name,
+    img:       CHARACTERS[p.charIndex].img,
+    time:      p.finishTime || raceTimer,
+    player:    i + 1,
+    charIndex: p.charIndex,
   }));
   times.sort((a, b) => a.time - b.time);
 
@@ -3322,35 +4154,78 @@ function showFinish() {
   // Confetti burst
   spawnConfetti();
 
+  // Win sound — HYPE! 🎉
+  playWinSound();
+
   // Show the screen
   const ws = document.getElementById('winScreen');
   ws.style.display = 'flex';
 }
 
 function spawnConfetti() {
-  const container = document.getElementById('winConfetti');
-  container.innerHTML = '';
-  const colors = ['#FFD700','#FF0000','#00FF88','#00AEEF','#FF69B4','#FF8C00','#AA00FF','#ffffff'];
-  for (let i = 0; i < 120; i++) {
-    const p = document.createElement('div');
-    p.className = 'confetti-piece';
-    p.style.left     = Math.random() * 100 + 'vw';
-    p.style.top      = '-20px';
-    p.style.background = colors[Math.floor(Math.random() * colors.length)];
-    p.style.width    = (8 + Math.random() * 10) + 'px';
-    p.style.height   = (8 + Math.random() * 10) + 'px';
-    p.style.animationDuration = (2 + Math.random() * 3) + 's';
-    p.style.animationDelay   = (Math.random() * 1.5) + 's';
-    container.appendChild(p);
+  // Remove any leftover confetti pieces from previous races
+  document.querySelectorAll('.confetti-piece').forEach(el => el.remove());
+
+  // Attach confetti directly to #winScreen which is position:fixed inset:0
+  // so vw/vh coords map to the full viewport — no clipping from parent containers.
+  const container = document.getElementById('winScreen');
+  const colors = ['#FFD700','#FF0000','#00FF88','#00AEEF','#FF69B4','#FF8C00','#AA00FF','#ffffff','#FF4500','#7FFF00','#FF1493','#00FFFF','#FF6347','#ADFF2F'];
+
+  function spawnBatch(count, delayOffset) {
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'confetti-piece';
+      // Vary shapes: squares, rectangles, thin streamers
+      const shapeRoll = Math.random();
+      const w = shapeRoll < 0.33 ? (6 + Math.random() * 12)
+              : shapeRoll < 0.66 ? (4 + Math.random() * 6)
+              :                    (3 + Math.random() * 4);
+      const h = shapeRoll < 0.33 ? w
+              : shapeRoll < 0.66 ? (12 + Math.random() * 16)
+              :                    (18 + Math.random() * 24);
+      p.style.left              = Math.random() * 105 + 'vw'; // slight overshoot so edges get hit too
+      p.style.top               = '-30px';
+      p.style.background        = colors[Math.floor(Math.random() * colors.length)];
+      p.style.width             = w + 'px';
+      p.style.height            = h + 'px';
+      p.style.borderRadius      = shapeRoll < 0.33 ? '2px' : '1px';
+      p.style.opacity           = (0.75 + Math.random() * 0.25).toFixed(2);
+      p.style.animationDuration = (4 + Math.random() * 5) + 's';  // 4-9 s, nice and slow
+      p.style.animationDelay    = (delayOffset + Math.random() * 3) + 's';
+      container.appendChild(p);
+    }
   }
+
+  // Wave 1 - instant burst (800 pieces)
+  spawnBatch(800, 0);
+  // Wave 2 - 3 s later so the sky keeps raining long after the first wave clears
+  setTimeout(() => spawnBatch(600, 0), 3000);
+  // Wave 3 - keep it going!
+  setTimeout(() => spawnBatch(500, 0), 7000);
 }
 
 function backToMenu() {
   document.getElementById('winScreen').style.display = 'none';
   document.getElementById('hud').style.display = 'none';
+  document.getElementById('hud2').style.display = ''; // restore in case dev mode hid it
   ds4Lightbar.resetAll(); // restore DS4 default blue
   document.getElementById('divider').style.display = 'none';
   document.getElementById('mainMenu').style.display = 'flex';
+  document.getElementById('yt-credit').classList.remove('hidden');
+  // Clean up dev overlays
+  if (_devDebugEl) _devDebugEl.style.display = 'none';
+  if (devFreecam) { try { document.exitPointerLock(); } catch(_) {} }
+  devFreecam   = false;
+  devDebugMenu = false;
+  gameMode_dev = false;
+  // Restore HUD visibility in case 7 was toggled
+  if (devHudHidden) {
+    ["hud","hub-btn","divider","raceTimer"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.visibility = '';
+    });
+    devHudHidden = false;
+  }
   stopEngineAudio();
   stopBGM();
   ghostKarts = null;
