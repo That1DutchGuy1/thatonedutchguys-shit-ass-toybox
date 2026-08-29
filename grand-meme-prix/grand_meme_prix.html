@@ -40,8 +40,15 @@
           <button class="char-btn" onclick="changeChar(0,-1)">◀</button>
           <button class="char-btn" onclick="changeChar(0,1)">▶</button>
         </div>
-        <div class="controls-hint" style="margin-top:10px">
-          <span>WASD</span> to drive<br><span>SPACE</span> = item
+        <div class="input-selector" id="soloInputSelector">
+          <div class="input-selector-label">🎮 INPUT</div>
+          <div class="input-btn-group">
+            <button class="input-btn active" id="soloKbBtn" onclick="setSoloInput('keyboard')">⌨️ KB</button>
+            <button class="input-btn" id="soloGpBtn" onclick="setSoloInput('gamepad')">🎮 PAD</button>
+          </div>
+          <div class="controls-hint" id="soloControlsHint" style="margin-top:6px">
+            <span>WASD</span> to drive<br><span>SPACE</span> = item
+          </div>
         </div>
       </div>
       <div class="player-select cpu-select">
@@ -73,8 +80,15 @@
           <button class="char-btn" onclick="changeChar(0,-1)">◀</button>
           <button class="char-btn" onclick="changeChar(0,1)">▶</button>
         </div>
-        <div class="controls-hint" style="margin-top:10px">
-          <span>WASD</span> to drive<br><span>SPACE</span> = item
+        <div class="input-selector" id="coopP1InputSelector">
+          <div class="input-selector-label">🎮 P1 INPUT</div>
+          <div class="input-btn-group">
+            <button class="input-btn active" id="coopP1KbBtn" onclick="setCoopInput(0,'keyboard')">⌨️ KB</button>
+            <button class="input-btn" id="coopP1GpBtn" onclick="setCoopInput(0,'gamepad')">🎮 PAD1</button>
+          </div>
+          <div class="controls-hint" id="coopP1ControlsHint" style="margin-top:6px">
+            <span>WASD</span> to drive<br><span>SPACE</span> = item
+          </div>
         </div>
       </div>
       <div class="player-select">
@@ -85,8 +99,15 @@
           <button class="char-btn" onclick="changeChar(1,-1)">◀</button>
           <button class="char-btn" onclick="changeChar(1,1)">▶</button>
         </div>
-        <div class="controls-hint" style="margin-top:10px">
-          <span>↑↓←→</span> to drive<br><span>ENTER</span> = item
+        <div class="input-selector" id="coopP2InputSelector">
+          <div class="input-selector-label">🎮 P2 INPUT</div>
+          <div class="input-btn-group">
+            <button class="input-btn" id="coopP2KbBtn" onclick="setCoopInput(1,'keyboard')">⌨️ KB</button>
+            <button class="input-btn active" id="coopP2GpBtn" onclick="setCoopInput(1,'gamepad')">🎮 PAD2</button>
+          </div>
+          <div class="controls-hint" id="coopP2ControlsHint" style="margin-top:6px">
+            <span>↑↓←→</span> to drive<br><span>ENTER</span> = item
+          </div>
         </div>
       </div>
     </div>

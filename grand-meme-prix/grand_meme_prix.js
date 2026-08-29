@@ -3,14 +3,20 @@
 // Just drop PNG files next to the HTML and add entries here.
 // =============================================
 const CHARACTERS = [
-  { name: "Mama Luigi",    img: "assets/Mama-Luigi.png",     color: 0x228B22 },
-  { name: "King Harkinian",img: "assets/King-Harkinian.png", color: 0xDAA520 },
-  { name: "Doge",          img: "assets/Doge.png",           color: 0xCBB987 },
-  { name: "Gwonam",        img: "assets/Gwonam.png",         color: 0x8A45A1 },
-  { name: "Zelda",         img: "assets/Zelda.png",          color: 0xFF00AA },
-  { name: "Longcat",       img: "assets/Longcat.png",        color: 0xDEDEDE },
-  { name: "Rick Astley",   img: "assets/Rick-Astley.png",    color: 0x363030 },
-  { name: "Weegee",        img: "assets/Weegee.png",         color: 0x4c7e66 },
+  // color      = kart body colour in the 3D scene (Three.js hex, lit by scene lighting)
+  // lightbarColor = DS4 lightbar LED colour, separate from the kart colour because kart
+  //   colours are tuned for a lit 3D scene and look wrong on the bar: Mama Luigi's
+  //   0x228B22 sends R=34 G=139 B=34 to the LED — dim and murky. Rick Astley's 0x363030
+  //   is nearly invisible. These are vivid primaries/secondaries so each character is
+  //   immediately readable at a glance on the hardware.
+  { name: "Mama Luigi",    img: "assets/Mama-Luigi.png",     color: 0x228B22, lightbarColor: 0x00FF00 }, // vivid green
+  { name: "King Harkinian",img: "assets/King-Harkinian.png", color: 0xDAA520, lightbarColor: 0xFF8C00 }, // bright orange-gold
+  { name: "Doge",          img: "assets/Doge.png",           color: 0xCBB987, lightbarColor: 0xFFDD44 }, // warm yellow
+  { name: "Gwonam",        img: "assets/Gwonam.png",         color: 0x8A45A1, lightbarColor: 0xCC00FF }, // vivid purple
+  { name: "Zelda",         img: "assets/Zelda.png",          color: 0xFF00AA, lightbarColor: 0xFF00CC }, // hot pink
+  { name: "Longcat",       img: "assets/Longcat.png",        color: 0xDEDEDE, lightbarColor: 0xDEDEDE }, // creamy white
+  { name: "Rick Astley",   img: "assets/Rick-Astley.png",    color: 0x363030, lightbarColor: 0x363030 }, // almost black
+  { name: "Weegee",        img: "assets/Weegee.png",         color: 0x4c7e66, lightbarColor: 0x4c7e66 }, // forest green (distinct from Mama Luigi green)
 ];
 
 // =============================================
@@ -23,6 +29,10 @@ let soloAI = null;
 function changeChar(player, dir) {
   playerChars[player] = (playerChars[player] + dir + CHARACTERS.length) % CHARACTERS.length;
   updateCharUI();
+  // Update lightbar live if this player is using a gamepad
+  const usingGp = (gameMode === 'solo' && player === 0 && soloInputMethod === 'gamepad')
+               || (gameMode === 'coop' && coopInputMethods[player] === 'gamepad');
+  if (usingGp) menuLightbarUpdate(player);
 }
 
 function updateCharUI() {
@@ -46,6 +56,299 @@ function updateCharUI() {
   if (p2nameCoop) p2nameCoop.textContent = c1.name;
 }
 
+// =============================================
+// INPUT METHOD STATE
+// =============================================
+// Solo: 'keyboard' | 'gamepad'
+// Coop: each player independently 'keyboard' | 'gamepad'
+let soloInputMethod = 'keyboard';
+let coopInputMethods = ['keyboard', 'gamepad']; // P1, P2
+
+// Gamepad index assignments: null = unassigned
+// In solo gamepad mode, gpAssign[0] = pad index for P1
+// In coop, gpAssign[0] = P1 pad, gpAssign[1] = P2 pad
+const gpAssign = [null, null];
+
+// ── Event-based gamepad registry ──────────────────────────────────────────
+// On Linux (Chrome/Chromium) getGamepads() returns an empty array until the
+// browser fires a 'gamepadconnected' event — which only happens after the
+// user presses a physical button. Polling at race-start therefore always sees
+// zero pads if the player hasn't wiggled the stick yet.
+//
+// Fix: maintain a live Set of known-connected pad indices updated by the two
+// browser events. assignGamepads() reads from here instead of cold-polling.
+const _connectedPadIndices = new Set();
+
+window.addEventListener('gamepadconnected', (e) => {
+  _connectedPadIndices.add(e.gamepad.index);
+  console.log(`[GMP] gamepadconnected — index=${e.gamepad.index} id="${e.gamepad.id}" mapping="${e.gamepad.mapping}"`);
+  updateGamepadReadyUI(); // live-update hint to "Controller ready ✓"
+});
+
+window.addEventListener('gamepaddisconnected', (e) => {
+  _connectedPadIndices.delete(e.gamepad.index);
+  console.log(`[GMP] gamepaddisconnected — index=${e.gamepad.index}`);
+});
+
+// ── DS4 Lightbar via WebHID ───────────────────────────────────────────────
+//
+// The Web Gamepad API has no lightbar method. WebHID is the only browser API
+// that lets us send HID output reports to the DS4 to control the light bar.
+//
+// HOW IT WORKS:
+//   1. When the player picks gamepad mode, we call ds4Lightbar.request() which
+//      calls navigator.hid.requestDevice() — this shows Chrome's one-time
+//      permission picker. The user selects their DS4 and we cache the HIDDevice.
+//      The permission persists across reloads for this origin.
+//   2. ds4Lightbar.setColor(r, g, b) sends a 32-byte wired USB output report
+//      (report ID 0x05) or 79-byte BT report (0x11), with R/G/B at the right
+//      offsets. We auto-detect USB vs BT from the HIDDevice.collections info.
+//   3. ds4Lightbar.reset() sets the bar back to the DS4's default blue.
+//   4. If WebHID is absent (Firefox, Safari) or the user denies, we silently
+//      skip — the game works fine without it.
+//
+// DS4 USB output report 0x05 (32 bytes):
+//   [0]=0x05  [1]=0xff (enable rumble+lightbar)  [2-3]=0x00
+//   [4]=rightRumble  [5]=leftRumble
+//   [6]=R  [7]=G  [8]=B
+//   [9]=flashOn  [10]=flashOff  [11-31]=0x00
+//
+// DS4 BT output report 0x11 (79 bytes):
+//   [0]=0x11  [1]=0xc0  [2]=0x20  [3]=0xf3  [4]=0x04
+//   [5]=rightRumble  [6]=leftRumble
+//   [7]=0x00  [8]=R  [9]=G  [10]=B  [rest]=0x00
+//
+// Sony VID 0x054C, DS4 PIDs: 0x05C4 (original) and 0x09CC (v2/slim).
+
+const ds4Lightbar = (() => {
+  const SONY_VID  = 0x054C;
+  const DS4_PIDS  = new Set([0x05C4, 0x09CC]);
+
+  // Map from gamepad index → { device: HIDDevice, isBT: boolean }
+  const _devices = new Map();
+
+  // Parse "Vendor: 054c Product: 09cc" out of a gamepad.id string.
+  function _parseVidPid(gpId) {
+    const m = gpId.match(/Vendor:\s*([0-9a-f]+)\s+Product:\s*([0-9a-f]+)/i);
+    if (!m) return null;
+    return { vid: parseInt(m[1], 16), pid: parseInt(m[2], 16) };
+  }
+
+  // Is this HIDDevice a DS4?
+  function _isDS4(dev) {
+    return dev.vendorId === SONY_VID && DS4_PIDS.has(dev.productId);
+  }
+
+  // Detect USB vs BT: USB exposes report ID 0x05 in its collections.
+  function _isBluetooth(dev) {
+    for (const col of dev.collections) {
+      for (const out of (col.outputReports || [])) {
+        if (out.reportId === 0x05) return false; // USB report present
+      }
+    }
+    return true; // assume BT
+  }
+
+  // Build the output buffer and send it.
+  async function _send(dev, isBT, r, g, b) {
+    let reportId, data;
+    if (!isBT) {
+      // Wired USB — 32 bytes (excluding the report ID byte Chrome prepends)
+      data = new Uint8Array(31);
+      data[0] = 0xff; // enable rumble + lightbar flags
+      data[5] = r;
+      data[6] = g;
+      data[7] = b;
+      reportId = 0x05;
+    } else {
+      // Bluetooth — 78 bytes (excluding report ID)
+      data = new Uint8Array(78);
+      data[0] = 0xc0;
+      data[1] = 0x20;
+      data[2] = 0xf3;
+      data[3] = 0x04;
+      data[7] = r;
+      data[8] = g;
+      data[9] = b;
+      reportId = 0x11;
+    }
+    try {
+      await dev.sendReport(reportId, data);
+    } catch (e) {
+      console.warn('[GMP] lightbar sendReport failed:', e);
+    }
+  }
+
+  // ── Public API ────────────────────────────────────────────────────────
+
+  // Ensure the HIDDevice for the DS4 at gpIndex is open and cached.
+  // Separated from setColorHex so the early-exit only skips the open/request
+  // steps — NOT the colour update — when the device is already known.
+  // Must be called from a user-gesture context (startGame click qualifies).
+  async function _ensureDevice(gpIndex) {
+    if (!navigator.hid) return false;
+    if (gpIndex === null || gpIndex === undefined) return false;
+
+    // If already cached, nothing to do — device stays open across races.
+    if (_devices.has(gpIndex)) return true;
+
+    // Try to confirm this is a DS4 via the Gamepad API. On Linux (Chrome/Chromium)
+    // getGamepads() returns an empty array after a page reload until the user presses
+    // a physical button — so gp may be null here even though the pad is connected.
+    // In that case we skip the VID/PID pre-check and let hid.getDevices() decide;
+    // if a DS4 HID permission was granted in a prior session it will appear there.
+    const gp = (navigator.getGamepads ? navigator.getGamepads() : [])[gpIndex];
+    if (gp) {
+      const ids = _parseVidPid(gp.id);
+      if (!ids || ids.vid !== SONY_VID || !DS4_PIDS.has(ids.pid)) {
+        console.log('[GMP] Lightbar: pad is not a DS4, skipping WebHID request.');
+        return false;
+      }
+    }
+    // If gp is null (Linux reload before first button press) we fall through and
+    // try the HID permission path — worst case requestDevice shows the picker and
+    // the user can dismiss it; we catch that below.
+
+    // Check if we already have permission for this device from a prior session.
+    let devices = await navigator.hid.getDevices();
+    let dev = devices.find(_isDS4);
+
+    if (!dev) {
+      // Ask the user to pick their DS4 — one-time permission prompt.
+      try {
+        const granted = await navigator.hid.requestDevice({
+          filters: [{ vendorId: SONY_VID }]
+        });
+        dev = granted.find(_isDS4);
+      } catch (e) {
+        console.log('[GMP] Lightbar: WebHID permission denied or dismissed.', e);
+        return false;
+      }
+    }
+
+    if (!dev) return false;
+
+    if (!dev.opened) {
+      try { await dev.open(); }
+      catch (e) {
+        console.warn('[GMP] Lightbar: could not open HID device:', e);
+        return false;
+      }
+    }
+
+    const isBT = _isBluetooth(dev);
+    _devices.set(gpIndex, { dev, isBT });
+    console.log(`[GMP] Lightbar ready — gpIndex=${gpIndex} BT=${isBT} pid=0x${dev.productId.toString(16)}`);
+    return true;
+  }
+
+  // Request WebHID access for the DS4 at gpIndex, then immediately set its colour.
+  // Keeps _ensureDevice (open/cache) separate from the colour update so that
+  // subsequent races always apply the new character colour even when the device
+  // is already cached from a prior race.
+  async function request(gpIndex, colorHex) {
+    const ready = await _ensureDevice(gpIndex);
+    if (ready && colorHex !== undefined) await setColorHex(gpIndex, colorHex);
+  }
+
+  // Set the lightbar colour for the pad at gpIndex. r/g/b are 0-255.
+  async function setColor(gpIndex, r, g, b) {
+    const entry = _devices.get(gpIndex);
+    if (!entry) return;
+    await _send(entry.dev, entry.isBT, r, g, b);
+  }
+
+  // Set the lightbar from a Three.js / hex colour integer (e.g. 0xFF00AA).
+  async function setColorHex(gpIndex, hex) {
+    await setColor(gpIndex, (hex >> 16) & 0xff, (hex >> 8) & 0xff, hex & 0xff);
+  }
+
+  // Reset to DS4 default blue.
+  async function reset(gpIndex) {
+    await setColor(gpIndex, 0, 0, 64);
+  }
+
+  // Reset all known pads (call on backToMenu).
+  async function resetAll() {
+    for (const [idx] of _devices) await reset(idx);
+  }
+
+  return { request, setColor, setColorHex, reset, resetAll };
+})();
+
+// Reset the DS4 lightbar to default blue whenever the page is left — covers
+// F5 refresh, tab close, and navigating away mid-race (cases where backToMenu()
+// is never called). pagehide is preferred over beforeunload because it fires
+// reliably on mobile and bfcache-eligible pages; beforeunload is the fallback
+// for browsers that don't support pagehide.
+// NOTE: async/await won't finish inside these handlers — sendReport is called
+// synchronously-as-possible and we just let the browser flush what it can.
+function _resetLightbarOnExit() {
+  ds4Lightbar.resetAll();
+}
+window.addEventListener('pagehide',     _resetLightbarOnExit);
+window.addEventListener('beforeunload', _resetLightbarOnExit);
+
+
+// ── Menu lightbar: request HID permission (first time) and set character colour.
+// Must be called from a user-gesture handler (button click) so the WebHID picker
+// can show. Subsequent calls with the device already open just update the colour.
+// playerSlot: 0 = P1, 1 = P2.
+function menuLightbarUpdate(playerSlot) {
+  if (!navigator.hid) return; // WebHID not available (Firefox/Safari)
+
+  // Resolve the best pad index for this player slot using the same scoring logic
+  // as assignGamepads(), without locking gpAssign[] (that happens at race start).
+  const pads = getConnectedGamepads();
+  const padIndex = pads[playerSlot] ? pads[playerSlot].index
+                 : pads[0]          ? pads[0].index
+                 : undefined;
+  if (padIndex === undefined) return;
+
+  const charColor = CHARACTERS[playerChars[playerSlot]].lightbarColor;
+  ds4Lightbar.request(padIndex, charColor);
+}
+
+function setSoloInput(method) {
+  soloInputMethod = method;
+  document.getElementById('soloKbBtn').classList.toggle('active', method === 'keyboard');
+  document.getElementById('soloGpBtn').classList.toggle('active', method === 'gamepad');
+  const hint = document.getElementById('soloControlsHint');
+  if (method === 'keyboard') {
+    hint.innerHTML = '<span>WASD</span> to drive<br><span>SPACE</span> = item';
+  } else {
+    hint.innerHTML = '<span>L-Stick</span> steer &nbsp;<span>R2</span> gas<br><span>L2</span> brake &nbsp;<span>✕</span> item';
+    updateGamepadReadyUI();
+    menuLightbarUpdate(0); // request HID permission + set P1 character colour
+  }
+}
+
+function setCoopInput(player, method) {
+  coopInputMethods[player] = method;
+  const prefix = player === 0 ? 'coopP1' : 'coopP2';
+  document.getElementById(prefix + 'KbBtn').classList.toggle('active', method === 'keyboard');
+  document.getElementById(prefix + 'GpBtn').classList.toggle('active', method === 'gamepad');
+  const hint = document.getElementById(prefix + 'ControlsHint');
+  if (method === 'keyboard') {
+    if (player === 0) hint.innerHTML = '<span>WASD</span> to drive<br><span>SPACE</span> = item';
+    else hint.innerHTML = '<span>↑↓←→</span> to drive<br><span>ENTER</span> = item';
+  } else {
+    const padNum = player === 0 ? '1' : '2';
+    hint.innerHTML = `<span>L-Stick</span> steer &nbsp;<span>R2</span> gas<br><span>L2</span> brake &nbsp;<span>✕</span> item (Pad ${padNum})`;
+    updateGamepadReadyUI();
+    menuLightbarUpdate(player); // request HID permission + set character colour
+  }
+  // Update PAD button labels to always show which pad slot is assigned
+  updateCoopPadLabels();
+}
+
+function updateCoopPadLabels() {
+  // Clarify to user: if both are gamepad, P1=pad1, P2=pad2; if only one is gamepad it's pad1
+  const bothPad = coopInputMethods[0] === 'gamepad' && coopInputMethods[1] === 'gamepad';
+  document.getElementById('coopP1GpBtn').textContent = bothPad ? '🎮 PAD1' : '🎮 PAD';
+  document.getElementById('coopP2GpBtn').textContent = bothPad ? '🎮 PAD2' : '🎮 PAD';
+}
+
 function selectMode(mode) {
   gameMode = mode;
   document.getElementById('screenModeSelect').style.display = 'none';
@@ -57,6 +360,242 @@ function goBack() {
   document.getElementById('screenCharSolo').style.display = 'none';
   document.getElementById('screenCharCoop').style.display = 'none';
   document.getElementById('screenModeSelect').style.display = 'flex';
+}
+
+// =============================================
+// GAMEPAD HELPERS — DS4 aware (standard + raw Linux mapping)
+// =============================================
+//
+// DS4 STANDARD mapping (Windows / Mac / some Linux with xpad):
+//   buttons[0]=Cross  buttons[1]=Circle  buttons[2]=Square  buttons[3]=Triangle
+//   buttons[4]=L1     buttons[5]=R1
+//   buttons[6]=L2 (value 0..1)   buttons[7]=R2 (value 0..1)
+//   buttons[8]=Share  buttons[9]=Options
+//   buttons[12]=DUp   buttons[13]=DDown  buttons[14]=DLeft  buttons[15]=DRight
+//   axes[0]=LX  axes[1]=LY  axes[2]=RX  axes[3]=RY
+//
+// DS4 RAW mapping (Linux Chrome/Chromium wired USB, gp.mapping === ""):
+//   buttons[0]=Square    buttons[1]=Cross(✕)  buttons[2]=Circle  buttons[3]=Triangle
+//   buttons[4]=L1        buttons[5]=R1
+//   buttons[6]=L2        buttons[7]=R2        ← buttons exist BUT .value is always 0 on many kernels!
+//   buttons[8]=Share     buttons[9]=Options
+//   buttons[10]=L3       buttons[11]=R3
+//   buttons[12]=PS       buttons[13]=Touchpad
+//   axes[0]=LX  axes[1]=LY  axes[2]=RX  axes[3]=RY
+//   axes[4]=L2  axes[5]=R2  ← THESE are the real analog trigger axes (range: -1 released → +1 fully pressed)
+//   axes[6]=DPad-X (-1/0/+1 hat)   axes[7]=DPad-Y (-1/0/+1 hat)
+//
+// CRITICAL: On wired USB DS4 on Linux the trigger VALUES live in axes[4/5].
+// buttons[6/7] exist in the array but their .value stays 0 — they are useless.
+// gp.axes is a Float32Array; every slot up to length-1 exists (never undefined),
+// so check axes.length, not typeof/undefined.
+
+const GP_DEADZONE = 0.12;  // stick deadzone
+
+function isRawMapping(gp) {
+  // Empty string = raw Linux mapping. 'standard' = Windows/Mac/some Linux.
+  return gp.mapping !== 'standard';
+}
+
+function getGamepadInputs(gp) {
+  if (!gp) return null;
+  const raw = isRawMapping(gp);
+
+  let r2, l2;
+  if (raw) {
+    // Raw Linux DS4: triggers MUST come from axes[4] (L2) and axes[5] (R2).
+    // Range is -1 (released) → +1 (fully pressed). Remap to 0..1.
+    // buttons[6/7].value is unreliable on wired USB — ignore it entirely.
+    if (gp.axes.length > 5) {
+      // axes[4/5] range: -1 (released) → +1 (fully pressed).
+      // HOWEVER: on Linux the triggers report 0 (not -1) until physically moved
+      // for the first time, making (0+1)/2 = 0.5 at rest — falsely half-pressed.
+      // Apply a threshold: only register input once the axis clearly exceeds its
+      // resting noise floor. -1 = fully released, so anything ≤ -0.5 is "at rest".
+      const rawL2 = gp.axes[4];
+      const rawR2 = gp.axes[5];
+      l2 = rawL2 > -0.5 ? (rawL2 + 1) / 2 : 0;
+      r2 = rawR2 > -0.5 ? (rawR2 + 1) / 2 : 0;
+    } else {
+      // Fallback for unusual kernel/driver combos that don't expose trigger axes
+      l2 = gp.buttons[6] ? gp.buttons[6].value : 0;
+      r2 = gp.buttons[7] ? gp.buttons[7].value : 0;
+    }
+    // Clamp to 0..1 in case of slight driver noise below -1
+    l2 = Math.max(0, Math.min(1, l2));
+    r2 = Math.max(0, Math.min(1, r2));
+  } else {
+    // Standard mapping: triggers are proper button values 0..1
+    r2 = gp.buttons[7] ? gp.buttons[7].value : 0;
+    l2 = gp.buttons[6] ? gp.buttons[6].value : 0;
+  }
+
+  // ── Left stick X — same axis index in both mappings ──
+  const lx = gp.axes[0] || 0;
+
+  // ── Cross / ✕ button ──
+  // Standard: buttons[0] = Cross
+  // Raw Linux: buttons[1] = Cross  (buttons[0] = Square)
+  let cross;
+  if (raw) {
+    const btn = gp.buttons[1];
+    cross = btn ? (btn.pressed || btn.value > 0.5) : false;
+  } else {
+    const btn = gp.buttons[0];
+    cross = btn ? (btn.pressed || btn.value > 0.5) : false;
+  }
+
+  return { r2, l2, lx, cross };
+}
+
+// Returns fresh gamepad object (must re-poll each frame — Gamepad API snapshots)
+function getGamepad(index) {
+  if (index === null || index === undefined) return null;
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  return pads[index] || null;
+}
+
+// Find all connected gamepads with enough axes/buttons to be a real controller,
+// sorted so genuine game controllers come first.
+//
+// Problem: non-game HID devices (RGB lighting controllers, ASRock LED strips, etc.)
+// sometimes enumerate as gamepads with index 0, pushing the real controller to
+// index 1. The old code just took whatever was first.
+//
+// Fix: score each pad and sort higher-quality controllers to the front:
+//   +2  mapping === 'standard'  (browser positively identified it as a gamepad)
+//   +1  buttons.length >= 10    (real controllers have lots of buttons)
+//   +1  axes.length >= 4        (real controllers have two sticks)
+//   -10 id contains known non-game keywords
+//
+// This keeps the logic generic — no hardcoded VIDs — while reliably demoting
+// LED/lighting/audio controllers that masquerade as gamepads.
+const _FAKE_PAD_KEYWORDS = [
+  'led', 'lighting', 'rgb', 'asrock', 'asus aura', 'corsair', 'razer chroma',
+  'audio', 'capture', 'virtual', 'xinput compatible hid device',
+];
+function _padScore(gp) {
+  let score = 0;
+  if (gp.mapping === 'standard') score += 2;
+  if (gp.buttons.length >= 10)   score += 1;
+  if (gp.axes.length >= 4)       score += 1;
+  const idLower = gp.id.toLowerCase();
+  if (_FAKE_PAD_KEYWORDS.some(kw => idLower.includes(kw))) score -= 10;
+  return score;
+}
+
+function getConnectedGamepads() {
+  const rawPads = navigator.getGamepads ? navigator.getGamepads() : [];
+  return Array.from(rawPads)
+    .filter(gp => gp && gp.buttons.length >= 4 && gp.axes.length >= 2)
+    .sort((a, b) => _padScore(b) - _padScore(a)); // highest score first
+}
+
+// Check whether getGamepads() can already see a pad (gamepadconnected has fired).
+// Updates the controls hint inline so the user knows they need to press a button.
+// Called when: (a) gamepad input mode is selected, (b) gamepadconnected fires.
+function updateGamepadReadyUI() {
+  const pads = navigator.getGamepads ? Array.from(navigator.getGamepads()).filter(Boolean) : [];
+  const ready = pads.length > 0;
+
+  // Solo hint
+  const soloHint = document.getElementById('soloControlsHint');
+  if (soloHint && soloInputMethod === 'gamepad') {
+    if (ready) {
+      soloHint.innerHTML = '<span style="color:#00ff88">✓ Controller ready!</span><br>'
+        + '<span>L-Stick</span> steer &nbsp;<span>R2</span> gas<br>'
+        + '<span>L2</span> brake &nbsp;<span>✕</span> item';
+    } else {
+      soloHint.innerHTML = '<span style="color:#FFD700">👉 Press any button on your controller</span><br>'
+        + '<span style="color:#aaa;font-size:12px">Chrome needs one button press to activate it</span>';
+    }
+  }
+
+  // Coop hints
+  ['coopP1', 'coopP2'].forEach((prefix, i) => {
+    const hint = document.getElementById(prefix + 'ControlsHint');
+    if (hint && coopInputMethods[i] === 'gamepad') {
+      const padNum = i === 0 ? '1' : '2';
+      if (ready) {
+        hint.innerHTML = `<span style="color:#00ff88">✓ Controller ready!</span><br>`
+          + `<span>L-Stick</span> steer &nbsp;<span>R2</span> gas<br>`
+          + `<span>L2</span> brake &nbsp;<span>✕</span> item (Pad ${padNum})`;
+      } else {
+        hint.innerHTML = '<span style="color:#FFD700">👉 Press any button on your controller</span><br>'
+          + '<span style="color:#aaa;font-size:12px">Chrome needs one button press to activate it</span>';
+      }
+    }
+  });
+}
+
+// Kept for assignGamepads() to call if Start is clicked before the controller wakes up.
+function showGamepadWarning() {
+  let warn = document.getElementById('_gpWarn');
+  if (!warn) {
+    warn = document.createElement('div');
+    warn.id = '_gpWarn';
+    warn.style.cssText = [
+      'position:fixed', 'top:50%', 'left:50%',
+      'transform:translate(-50%,-50%)',
+      'background:rgba(0,0,0,0.88)', 'border:3px solid #FF4444',
+      'color:#fff', 'font-family:inherit', 'font-size:18px',
+      'padding:20px 32px', 'border-radius:10px', 'z-index:999',
+      'text-align:center', 'pointer-events:none', 'max-width:420px',
+      'line-height:1.6',
+    ].join(';');
+    document.body.appendChild(warn);
+  }
+  warn.innerHTML = '⚠️ <b style="color:#FF4444">Gamepad not detected</b><br>'
+    + '<span style="color:#FFD700">Press any button on your controller</span><br>'
+    + 'then click <b>START RACE</b> again.';
+  warn.style.display = 'block';
+  clearTimeout(warn._t);
+  warn._t = setTimeout(() => { warn.style.display = 'none'; }, 5000);
+}
+
+// Assign gamepad indices before the race starts.
+// On Linux a wired DS4 requires the user to have pressed at least one button
+// since page load before the browser exposes it via getGamepads(). Pressing the
+// Options button on the character-select screen is enough. We snapshot
+// whatever is connected at race start time and lock those indices in.
+function assignGamepads() {
+  // getConnectedGamepads() polls getGamepads() directly. On the rare chance it
+  // returns empty (some Linux kernels need one extra tick after a user gesture),
+  // we do one immediate re-poll here as a second attempt before giving up.
+  let pads = getConnectedGamepads();
+  if (pads.length === 0) {
+    const retry = navigator.getGamepads ? navigator.getGamepads() : [];
+    pads = Array.from(retry).filter(gp => gp && gp.buttons.length >= 4 && gp.axes.length >= 2);
+  }
+  gpAssign[0] = undefined;
+  gpAssign[1] = undefined;
+
+  const isSolo = gameMode === 'solo';
+  if (isSolo) {
+    if (soloInputMethod === 'gamepad') {
+      // Use undefined (not null) for undetected pads: binds._gpIndex checks !== undefined,
+      // so null would silently enter the gamepad path with no inputs rather than
+      // falling back to keyboard. undefined correctly skips the gamepad branch.
+      gpAssign[0] = pads[0] ? pads[0].index : undefined;
+      if (gpAssign[0] === undefined) {
+        console.warn('[GMP] Gamepad mode selected but no pad detected. On Linux the browser only exposes the pad after a gamepadconnected event fires — press any button on your controller BEFORE clicking Start Race.');
+        showGamepadWarning();
+      }
+    }
+  } else {
+    const p1Needs = coopInputMethods[0] === 'gamepad';
+    const p2Needs = coopInputMethods[1] === 'gamepad';
+    const padPool = [...pads];
+    if (p1Needs) { gpAssign[0] = padPool.length ? padPool.shift().index : undefined; }
+    if (p2Needs) { gpAssign[1] = padPool.length ? padPool.shift().index : undefined; }
+    if ((p1Needs && gpAssign[0] === undefined) || (p2Needs && gpAssign[1] === undefined)) {
+      console.warn('[GMP] One or more gamepad slots unassigned — not enough pads detected.');
+      showGamepadWarning();
+    }
+  }
+  // Debug: log what we found (visible in browser console)
+  console.log('[GMP] gpAssign:', gpAssign, '| pads found:',
+    pads.map(p => '[' + p.index + '] "' + p.id + '" mapping="' + p.mapping + '" btns=' + p.buttons.length + ' axes=' + p.axes.length));
 }
 
 // Stars background
@@ -1433,6 +1972,9 @@ document.addEventListener('keyup', e => { keys[e.code] = false; });
 const P1_KEYS = { forward:'KeyW', back:'KeyS', left:'KeyA', right:'KeyD', item:'Space' };
 const P2_KEYS = { forward:'ArrowUp', back:'ArrowDown', left:'ArrowLeft', right:'ArrowRight', item:'Enter' };
 
+// Per-player gamepad button edge detection (for item use — we want press, not hold)
+const _gpItemWasPressed = [false, false];
+
 // =============================================
 // UPDATE PLAYER
 // Physics values:
@@ -1510,12 +2052,50 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   const stalled = player.launchStallTimer > 0;
 
   if (!stunned) {
+    // ── Gather analog gamepad inputs if this player uses a pad ──
+    const gpInputs = binds._gpIndex !== undefined ? getGamepadInputs(getGamepad(binds._gpIndex)) : null;
+    const playerIdx = binds._playerIdx !== undefined ? binds._playerIdx : 0;
+
+    let accelInput = 0, brakeInput = 0, steerInput = 0;
+    let wantsItem = false;
+
+    if (gpInputs) {
+      // Gamepad: R2 = gas (analog), L2 = brake/reverse (analog), L-stick X = steer
+      accelInput = gpInputs.r2;  // 0..1
+      brakeInput = gpInputs.l2;  // 0..1
+      // Steer: apply deadzone, then full rate * stick axis
+      const sx = Math.abs(gpInputs.lx) > GP_DEADZONE ? gpInputs.lx : 0;
+      steerInput = sx; // −1..+1, negative = left, positive = right
+
+      // Cross = item: edge detect (press, not hold)
+      if (gpInputs.cross && !_gpItemWasPressed[playerIdx]) wantsItem = true;
+      _gpItemWasPressed[playerIdx] = gpInputs.cross;
+    } else {
+      // Keyboard: digital
+      if (keys[binds.forward]) accelInput = 1;
+      if (keys[binds.back])    brakeInput = 1;
+      if (keys[binds.left])    steerInput = -1;
+      if (keys[binds.right])   steerInput =  1;
+      wantsItem = !!keys[binds.item];
+    }
+
     // Forward blocked during stall — can steer and brake but not accelerate
-    if (keys[binds.forward] && !stalled) player.speed += ACCEL * delta * speedMult;
-    if (keys[binds.back])    player.speed -= BRAKE * delta * speedMult;
-    if (keys[binds.left])    player.angle += STEER * delta * (player.speed / MAX_SPEED);
-    if (keys[binds.right])   player.angle -= STEER * delta * (player.speed / MAX_SPEED);
-    if (keys[binds.item])    useItem(player, otherPlayer);
+    if (accelInput > 0 && !stalled) player.speed += ACCEL * accelInput * delta * speedMult;
+    if (brakeInput > 0) {
+      if (player.speed > 0) {
+        // Braking
+        player.speed -= BRAKE * brakeInput * delta * speedMult;
+        if (player.speed < 0) player.speed = 0;
+      } else if (!stalled) {
+        // Reversing — L2 analog controls reverse speed (max 6 m/s)
+        // Blocked during stall so the engine backfire can't be escaped by reversing
+        player.speed -= (BRAKE * 0.5) * brakeInput * delta * speedMult;
+      }
+    }
+    if (steerInput !== 0) {
+      player.angle += -steerInput * STEER * delta * (Math.abs(player.speed) / MAX_SPEED + 0.15);
+    }
+    if (wantsItem) useItem(player, otherPlayer);
   }
 
   // Stall: clamp forward speed to 0 (can't drive forward) and decay to 0
@@ -1537,8 +2117,18 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   player.kart.rotation.y = player.angle;
 
   // Tilt on turns (suppressed during spinout — the spin is on Y anyway)
-  player.kart.rotation.z = spinning ? 0 :
-    -player.speed * 0.01 * (keys[binds.left] ? 1 : keys[binds.right] ? -1 : 0);
+  // Re-derive steer direction for visual tilt (same logic as above but just for sign)
+  let _tiltDir = 0;
+  if (!stunned) {
+    const gpInputsTilt = binds._gpIndex !== undefined ? getGamepadInputs(getGamepad(binds._gpIndex)) : null;
+    if (gpInputsTilt) {
+      const sx = Math.abs(gpInputsTilt.lx) > GP_DEADZONE ? gpInputsTilt.lx : 0;
+      _tiltDir = sx > 0 ? -1 : sx < 0 ? 1 : 0;
+    } else {
+      _tiltDir = keys[binds.left] ? 1 : keys[binds.right] ? -1 : 0;
+    }
+  }
+  player.kart.rotation.z = spinning ? 0 : -player.speed * 0.01 * _tiltDir;
 
   if (player.itemCooldown > 0) player.itemCooldown -= delta;
 
@@ -2110,16 +2700,32 @@ function startGame() {
 
   const cdStart = performance.now();
 
-  // Track the moment each human player first presses forward
+  // Track the moment each human player first presses forward (keyboard or gamepad R2)
   const launchHoldKeydown = (e) => {
-    if (e.code === P1_KEYS.forward && players[0].launchHoldStart === null) {
+    const p1UsesKb = isSolo ? soloInputMethod === 'keyboard' : coopInputMethods[0] === 'keyboard';
+    const p2UsesKb = !isSolo && coopInputMethods[1] === 'keyboard';
+    if (p1UsesKb && e.code === P1_KEYS.forward && players[0].launchHoldStart === null) {
       players[0].launchHoldStart = performance.now();
     }
-    if (!isSolo && e.code === P2_KEYS.forward && players[1].launchHoldStart === null) {
+    if (p2UsesKb && e.code === P2_KEYS.forward && players[1].launchHoldStart === null) {
       players[1].launchHoldStart = performance.now();
     }
   };
   document.addEventListener('keydown', launchHoldKeydown);
+
+  // Gamepad launch polling interval (checks R2 during countdown)
+  const launchGpInterval = setInterval(() => {
+    const p1UsesGp = isSolo ? soloInputMethod === 'gamepad' : coopInputMethods[0] === 'gamepad';
+    const p2UsesGp = !isSolo && coopInputMethods[1] === 'gamepad';
+    if (p1UsesGp && players[0].launchHoldStart === null) {
+      const gpi = getGamepadInputs(getGamepad(gpAssign[0]));
+      if (gpi && gpi.r2 > 0.15) players[0].launchHoldStart = performance.now();
+    }
+    if (p2UsesGp && players[1] && players[1].launchHoldStart === null) {
+      const gpi = getGamepadInputs(getGamepad(gpAssign[1]));
+      if (gpi && gpi.r2 > 0.15) players[1].launchHoldStart = performance.now();
+    }
+  }, 16);
 
   const cdInterval = setInterval(() => {
     count--;
@@ -2130,6 +2736,7 @@ function startGame() {
       cdEl.style.color = '#00ff00';
 
       // ── Resolve launch results for human players at GO ──
+      clearInterval(launchGpInterval);
       const now = performance.now();
 
       function resolveHumanLaunch(player) {
@@ -2173,6 +2780,7 @@ function startGame() {
     } else {
       // Race starts
       document.removeEventListener('keydown', launchHoldKeydown);
+      clearInterval(launchGpInterval);
       cdEl.style.display = 'none';
       cdEl.style.color = '';
       clearInterval(cdInterval);
@@ -2201,6 +2809,60 @@ function startGame() {
     }
   }, 900);
 
+  // Assign gamepads before the race starts
+  assignGamepads();
+  // Reset gamepad item press state
+  _gpItemWasPressed[0] = false;
+  _gpItemWasPressed[1] = false;
+
+  // Build binds objects with gamepad metadata embedded
+  const isSoloGp = isSolo && soloInputMethod === 'gamepad';
+  const isCoopP1Gp = !isSolo && coopInputMethods[0] === 'gamepad';
+  const isCoopP2Gp = !isSolo && coopInputMethods[1] === 'gamepad';
+
+  // If assignGamepads() couldn't find the pad via polling (it lagged behind the
+  // gamepadconnected event), patch gpAssign from _connectedPadIndices NOW — before
+  // the lightbar IIFE captures the indices — so both the lightbar and the race loop
+  // always get the correct index. On Linux Chrome the gamepadconnected event fires
+  // reliably when the user presses a button; getGamepads() may still lag at this
+  // point, so _connectedPadIndices is the authoritative source.
+  const _sortedPadIndices = Array.from(_connectedPadIndices).sort((a,b) => a-b);
+  if (gpAssign[0] === undefined && _sortedPadIndices.length > 0) {
+    gpAssign[0] = _sortedPadIndices[0];
+  }
+  if (gpAssign[1] === undefined && _sortedPadIndices.length > 1) {
+    gpAssign[1] = _sortedPadIndices[1];
+  }
+
+  // ── DS4 Lightbar: confirm correct character colour at race start ──
+  // The WebHID permission was already requested (and device opened) when the player
+  // clicked the gamepad button or scrolled through characters on the menu.
+  // Here we just do a final colour refresh using the already-cached device — no
+  // permission picker will appear. ds4Lightbar.request() is safe to call even if
+  // the device isn't cached yet (graceful no-op if permission was never granted).
+  (async () => {
+    const p1GpIdx = gpAssign[0];
+    const p2GpIdx = gpAssign[1];
+    if (isSoloGp && p1GpIdx !== undefined) {
+      await ds4Lightbar.request(p1GpIdx, CHARACTERS[playerChars[0]].lightbarColor);
+    }
+    if (isCoopP1Gp && p1GpIdx !== undefined) {
+      await ds4Lightbar.request(p1GpIdx, CHARACTERS[playerChars[0]].lightbarColor);
+    }
+    if (isCoopP2Gp && p2GpIdx !== undefined) {
+      await ds4Lightbar.request(p2GpIdx, CHARACTERS[playerChars[1]].lightbarColor);
+    }
+  })();
+
+  const p1Binds = Object.assign({}, P1_KEYS, {
+    _playerIdx: 0,
+    _gpIndex: isSoloGp || isCoopP1Gp ? gpAssign[0] : undefined,
+  });
+  const p2Binds = Object.assign({}, P2_KEYS, {
+    _playerIdx: 1,
+    _gpIndex: isCoopP2Gp ? gpAssign[1] : undefined,
+  });
+
   if (animId) cancelAnimationFrame(animId);
   let lastTime = performance.now();
 
@@ -2214,11 +2876,11 @@ function startGame() {
       const aiIdx = winnerAI ? winnerAI.playerIdx : -1;
 
       // Normal player update — skip the AI-controlled winner
-      if (aiIdx !== 0) updatePlayer(players[0], P1_KEYS, delta, players[1]);
+      if (aiIdx !== 0) updatePlayer(players[0], p1Binds, delta, players[1]);
       if (isSolo) {
         if (aiIdx !== 1) updateSoloAI(delta);
       } else if (aiIdx !== 1) {
-        updatePlayer(players[1], P2_KEYS, delta, players[0]);
+        updatePlayer(players[1], p2Binds, delta, players[0]);
       }
 
       // AI drives the winner's kart (also updates that kart's laps)
@@ -2566,14 +3228,33 @@ function updateWheels(delta) {
     });
 
     // ── Steering: smooth the target steer angle and apply to front axle pivot ──
-    // Determine raw steer input: check keys for human players, or derive from angle delta for AI
+    // Determine raw steer input: check keys/gamepad for human players, or derive from angle delta for AI
     let steerTarget = 0;
     if (pi === 0) {
-      if (keys[P1_KEYS.left])  steerTarget =  0.45;
-      if (keys[P1_KEYS.right]) steerTarget = -0.45;
+      const useGp = (gameMode === 'solo' && soloInputMethod === 'gamepad') ||
+                    (gameMode === 'coop' && coopInputMethods[0] === 'gamepad');
+      if (useGp) {
+        const gpi = getGamepadInputs(getGamepad(gpAssign[0]));
+        if (gpi) {
+          const sx = Math.abs(gpi.lx) > GP_DEADZONE ? gpi.lx : 0;
+          steerTarget = -sx * 0.45;
+        }
+      } else {
+        if (keys[P1_KEYS.left])  steerTarget =  0.45;
+        if (keys[P1_KEYS.right]) steerTarget = -0.45;
+      }
     } else if (pi === 1 && gameMode === 'coop') {
-      if (keys[P2_KEYS.left])  steerTarget =  0.45;
-      if (keys[P2_KEYS.right]) steerTarget = -0.45;
+      const useGp = coopInputMethods[1] === 'gamepad';
+      if (useGp) {
+        const gpi = getGamepadInputs(getGamepad(gpAssign[1]));
+        if (gpi) {
+          const sx = Math.abs(gpi.lx) > GP_DEADZONE ? gpi.lx : 0;
+          steerTarget = -sx * 0.45;
+        }
+      } else {
+        if (keys[P2_KEYS.left])  steerTarget =  0.45;
+        if (keys[P2_KEYS.right]) steerTarget = -0.45;
+      }
     } else {
       // AI / solo player 2 — derive from how fast the kart angle is changing
       // We store last angle in userData to compute delta
@@ -2667,6 +3348,7 @@ function spawnConfetti() {
 function backToMenu() {
   document.getElementById('winScreen').style.display = 'none';
   document.getElementById('hud').style.display = 'none';
+  ds4Lightbar.resetAll(); // restore DS4 default blue
   document.getElementById('divider').style.display = 'none';
   document.getElementById('mainMenu').style.display = 'flex';
   stopEngineAudio();

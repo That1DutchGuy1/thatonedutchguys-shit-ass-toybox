@@ -95,18 +95,31 @@
 * The wheel models have been redesigned! 🛞
 * Just like in Mario Kart, the rocket boosts and engine stalls have been added to the countdown sequence depending on your timing! 🚀
 * The karts now have brand new proper 3D dual exhaust pipes on them! 💨
-* In local multiplayer co-op, your friend will now correctly appear on both your screens, assuming you actually have any friends! 😁
+* In local multiplayer co-op, your friend will now correctly appear on both your screens, assuming you actually have any friends, lol! 😁
 * In singleplayer mode, the CPU player has been edited to be more fair and realistic! 🤖
+* Controller support! 🎮️
+* If you have a DualShock 4, the lightbar changes color depending on your selected character! FUCKING RAVE WHEN YOU CYCLE THROUGH THE CHARACTERS! 🕺🏻
 
 ---
 
-<p><strong><font size="3">⏮️ THE PREVIOUS UPDATE!</font></strong></p>
+<p><strong><font size="4">ℹ️ WHAT'S COMING NEXT FOR GRAND MEME PRIX 3D BEFORE 1.0!</font></strong></p>
+
+* Drifting mechanics! 🏎️
+* Voice lines for the character when they win, lose, get hit, etc! 🎙️
+* More characters in the roster! 🧑🏻
+* Support for Xbox One and Xbox Series X/S controllers! Also coming for the other games that already have DS4 support! 🎮️
+* CPU player improvements so that they don't suck ass too much nor are too pro! 🤖
+* Maybe some more 3D kart model improvements to make them look cooler! 😎
+
+---
+
+<p><strong><font size="3">⏮️ THE PREVIOUS HUB UPDATE!</font></strong></p>
 
 > Fuck, I don't remember! 😂
 
 ---
 
-> 👉🏻 [Go check it out live!](https://that1dutchguy1.github.io/thatonedutchguys-shit-ass-toybox/)
+> 👉🏻 [Go check it out live, OR ELSE! 🔫](https://that1dutchguy1.github.io/thatonedutchguys-shit-ass-toybox/)
 
 ---
 
