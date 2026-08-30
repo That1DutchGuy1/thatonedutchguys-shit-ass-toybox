@@ -971,9 +971,9 @@ function initJudgement() {
             outcomeMeh.classList.remove("hidden");
             replayGifsInContainer(outcomeMeh); // Reset GIF
             
-            // Re-added dialogue for the Meh outcome
-            document.getElementById("meh-speech").textContent = "Hmm. I suppose this is edible...";
-            // ASSET: playAudio("king-shrug.mp3")
+            
+            document.getElementById("meh-speech").textContent = "Hmm. I suppose this is edible... but it could have been better!";
+            
             
             btnAfter.textContent = "...Play Again";
             btnAfter.onclick = () => initMainMenu(true);
@@ -1001,63 +1001,322 @@ function initJudgement() {
 }
 
 /* ─────────────────────────────────────────────
-   SCRUB MINIGAME
+   SCRUB MINIGAME — Canvas-based, sponge cursor,
+   sweep-to-clean litter, alpha-tested sprites
 ───────────────────────────────────────────── */
-const TOTAL_DIRT = 12;
+const TOTAL_DIRT = 17; // 17 pieces spread all over — no more easy wins!
+
+const LITTER_SPRITES = [
+    "assets/litter/shit.png",
+    "assets/litter/wine-stain.png",
+    "assets/litter/dirt-stain.png",
+    "assets/litter/milk-spill.png",
+    "assets/litter/crumbs.png",
+];
+
+// Each litter piece on the canvas
+let litterPieces = [];
+// Loaded Image objects keyed by src
+const litterImageCache = {};
+let spongeImage = null;
+let scrubCanvas = null;
+let scrubCtx = null;
+let scrubAnimFrame = null;
+let spongePos = { x: -200, y: -200 }; // off-screen until mouse enters
+let scrubTimerInterval = null;
+
+// Scrub sound state
+let scrubSoundAudio = null;
+let scrubSoundTimeout = null;
+const SCRUB_SOUND_SRC = "./assets/sounds/sponge-scrub.mp3";
+const SCRUB_STOP_DELAY_MS = 180; // brief grace period so it doesn't cut on every tiny gap
+
+function startScrubSound() {
+    if (scrubSoundTimeout) { clearTimeout(scrubSoundTimeout); scrubSoundTimeout = null; }
+    if (!scrubSoundAudio) {
+        scrubSoundAudio = new Audio(SCRUB_SOUND_SRC);
+        scrubSoundAudio.loop = true;
+        scrubSoundAudio.play().catch(() => {});
+    }
+}
+
+function scheduleScrubSoundStop() {
+    if (scrubSoundTimeout) clearTimeout(scrubSoundTimeout);
+    scrubSoundTimeout = setTimeout(stopScrubSound, SCRUB_STOP_DELAY_MS);
+}
+
+function stopScrubSound() {
+    if (scrubSoundTimeout) { clearTimeout(scrubSoundTimeout); scrubSoundTimeout = null; }
+    if (scrubSoundAudio) {
+        scrubSoundAudio.pause();
+        scrubSoundAudio.currentTime = 0;
+        scrubSoundAudio = null;
+    }
+}
+
+// Per-piece sweep tracking
+// A "sweep" = cursor enters one side of the bounding box and exits the other
+const SWEEPS_REQUIRED = 4;
+const LITTER_DRAW_SIZE = 90; // display size in canvas pixels (source is 512x512)
 
 function initScrubMinigame() {
     showScreen("screen-scrub");
     state.scrubProgress = 0;
+    litterPieces = [];
+
     let timeLeft = 30;
-    let scrubbed = 0;
+    let cleaned  = 0;
 
     document.getElementById("scrub-timer").textContent    = timeLeft;
     document.getElementById("scrub-progress").textContent = "0";
     document.getElementById("scrub-complete-msg").classList.add("hidden");
 
-    const floor = document.getElementById("scrub-floor");
-    floor.innerHTML = "";
+    // ── Build / size the canvas ──────────────────────────────
+    const floorEl = document.getElementById("scrub-floor");
+    floorEl.innerHTML = "";
+    floorEl.style.cursor = "none"; // hide native cursor — sponge replaces it
 
-    // Place dirt patches randomly
-    for (let i = 0; i < TOTAL_DIRT; i++) {
-        const patch = document.createElement("div");
-        patch.className = "dirt-patch";
-        patch.style.left = (5 + Math.random() * 80) + "%";
-        patch.style.top  = (5 + Math.random() * 75) + "%";
-        patch.textContent = "💩";
+    scrubCanvas = document.createElement("canvas");
+    scrubCanvas.id = "scrub-canvas";
+    // Canvas fills the floor container
+    scrubCanvas.style.display  = "block";
+    scrubCanvas.style.width    = "100%";
+    scrubCanvas.style.height   = "100%";
+    floorEl.appendChild(scrubCanvas);
 
-        patch.onclick = () => {
-            if (patch.classList.contains("scrubbed")) return;
-            patch.classList.add("scrubbed");
-            scrubbed++;
-            const pct = Math.round(scrubbed / TOTAL_DIRT * 100);
-            document.getElementById("scrub-progress").textContent = pct;
+    // Size canvas to actual pixel dimensions of the container
+    function resizeCanvas() {
+        scrubCanvas.width  = floorEl.offsetWidth;
+        scrubCanvas.height = floorEl.offsetHeight;
+    }
+    resizeCanvas();
 
-            if (scrubbed >= TOTAL_DIRT) {
-                clearInterval(state.scrubTimer);
-                stopScrubBgm();
-                document.getElementById("scrub-complete-msg").classList.remove("hidden");
-                setTimeout(initDefeat, 2000);
-            }
-        };
+    scrubCtx = scrubCanvas.getContext("2d");
 
-        floor.appendChild(patch);
+    // ── Load sponge cursor image ─────────────────────────────
+    if (!spongeImage) {
+        spongeImage = new Image();
+        spongeImage.src = "assets/cursors/Sponge.png";
     }
 
-    // Countdown
-    state.scrubTimer = setInterval(() => {
+    // ── Preload all litter images ────────────────────────────
+    let imagesLoaded = 0;
+    const allSrcs = [...new Set(LITTER_SPRITES)];
+    allSrcs.forEach(src => {
+        if (!litterImageCache[src]) {
+            const img = new Image();
+            img.onload = () => { litterImageCache[src] = img; imagesLoaded++; if (imagesLoaded >= allSrcs.length) placeLitter(); };
+            img.onerror = () => { litterImageCache[src] = null; imagesLoaded++; if (imagesLoaded >= allSrcs.length) placeLitter(); };
+            img.src = src;
+        } else {
+            imagesLoaded++;
+            if (imagesLoaded >= allSrcs.length) placeLitter();
+        }
+    });
+
+    // ── Place litter randomly, no overlaps ──────────────────
+    function placeLitter() {
+        const W = scrubCanvas.width;
+        const H = scrubCanvas.height;
+        const pad = 10;
+        const sz  = LITTER_DRAW_SIZE;
+        const maxAttempts = 60;
+
+        for (let i = 0; i < TOTAL_DIRT; i++) {
+            const spriteSrc = LITTER_SPRITES[Math.floor(Math.random() * LITTER_SPRITES.length)];
+            // random size variation: 70–110px so it feels organic
+            const drawSize = sz * (0.78 + Math.random() * 0.44);
+
+            let x, y, attempts = 0, ok;
+            do {
+                x = pad + Math.random() * (W - drawSize - pad * 2);
+                y = pad + Math.random() * (H - drawSize - pad * 2);
+                ok = litterPieces.every(p => {
+                    const dx = x - p.x, dy = y - p.y;
+                    return Math.sqrt(dx*dx + dy*dy) > (drawSize + p.size) * 0.65;
+                });
+                attempts++;
+            } while (!ok && attempts < maxAttempts);
+
+            litterPieces.push({
+                x, y,
+                size: drawSize,
+                spriteSrc,
+                rotation: Math.random() * Math.PI * 2, // random rotation 0–360°
+                alpha: 1,             // fades 0→1 cleaned
+                sweeps: 0,            // completed sweeps
+                // Sweep state machine: track entry side
+                sweepState: "idle",   // 'idle' | 'entered'
+                entryX: null,
+                entryY: null,
+            });
+        }
+
+        startScrubLoop();
+    }
+
+    // ── Mouse / pointer tracking ─────────────────────────────
+    function getCanvasPos(e) {
+        const rect = scrubCanvas.getBoundingClientRect();
+        const scaleX = scrubCanvas.width  / rect.width;
+        const scaleY = scrubCanvas.height / rect.height;
+        const cx = e.clientX ?? (e.touches && e.touches[0].clientX);
+        const cy = e.clientY ?? (e.touches && e.touches[0].clientY);
+        return {
+            x: (cx - rect.left) * scaleX,
+            y: (cy - rect.top)  * scaleY,
+        };
+    }
+
+    function onMove(e) {
+        e.preventDefault();
+        const pos = getCanvasPos(e);
+        const prevX = spongePos.x;
+        const prevY = spongePos.y;
+        spongePos = pos;
+
+        let isOverAnyStain = false;
+
+        // Check sweeps for each unfinished litter piece
+        litterPieces.forEach(p => {
+            if (p.alpha <= 0) return; // already cleaned
+
+            const inBounds = (px, py) =>
+                px >= p.x && px <= p.x + p.size &&
+                py >= p.y && py <= p.y + p.size;
+
+            const wasIn = inBounds(prevX, prevY);
+            const nowIn = inBounds(pos.x,  pos.y);
+
+            if (nowIn) isOverAnyStain = true;
+
+            if (p.sweepState === "idle" && nowIn && !wasIn) {
+                // Entered the bounding box — record entry side
+                p.sweepState = "entered";
+                p.entryX = pos.x;
+                p.entryY = pos.y;
+            } else if (p.sweepState === "entered" && wasIn && !nowIn) {
+                // Exited the bounding box — check if we truly crossed it
+                const dx = pos.x - p.entryX;
+                const dy = pos.y - p.entryY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                // Only count if traversal distance >= 40% of the sprite size
+                if (dist >= p.size * 0.4) {
+                    p.sweeps++;
+                    // Fade proportionally
+                    p.alpha = Math.max(0, 1 - p.sweeps / SWEEPS_REQUIRED);
+                    if (p.sweeps >= SWEEPS_REQUIRED) {
+                        p.alpha = 0;
+                        cleaned++;
+                        const pct = Math.round(cleaned / TOTAL_DIRT * 100);
+                        document.getElementById("scrub-progress").textContent = pct;
+
+                        // Stain fully cleaned — cut the sound immediately
+                        stopScrubSound();
+
+                        if (cleaned >= TOTAL_DIRT) {
+                            endScrubSuccess();
+                        }
+                    }
+                }
+                p.sweepState = "idle";
+            } else if (p.sweepState === "entered" && !nowIn && !wasIn) {
+                // Lost track (fast movement) — reset
+                p.sweepState = "idle";
+            }
+        });
+
+        // Drive the scrub sound: play while the sponge is over a live stain,
+        // schedule a short stop if it moves off (so slow back-and-forth loops cleanly).
+        if (isOverAnyStain) {
+            startScrubSound();
+        } else {
+            scheduleScrubSoundStop();
+        }
+    }
+
+    scrubCanvas.addEventListener("mousemove",  onMove, { passive: false });
+    scrubCanvas.addEventListener("touchmove",  onMove, { passive: false });
+    scrubCanvas.addEventListener("mouseleave", () => { spongePos = { x: -300, y: -300 }; stopScrubSound(); });
+    scrubCanvas.addEventListener("touchend",   () => { stopScrubSound(); });
+
+    // ── Render loop ─────────────────────────────────────────
+    function startScrubLoop() {
+        if (scrubAnimFrame) cancelAnimationFrame(scrubAnimFrame);
+
+        function draw() {
+            const W = scrubCanvas.width;
+            const H = scrubCanvas.height;
+            scrubCtx.clearRect(0, 0, W, H);
+
+            // Draw litter pieces (alpha-tested via globalAlpha, rotated around their centre)
+            litterPieces.forEach(p => {
+                if (p.alpha <= 0) return;
+                const img = litterImageCache[p.spriteSrc];
+                if (!img) return;
+
+                const cx = p.x + p.size / 2;
+                const cy = p.y + p.size / 2;
+                scrubCtx.save();
+                scrubCtx.globalAlpha = p.alpha;
+                scrubCtx.translate(cx, cy);
+                scrubCtx.rotate(p.rotation);
+                scrubCtx.drawImage(img, -p.size / 2, -p.size / 2, p.size, p.size);
+                scrubCtx.restore();
+            });
+
+            // Draw sponge cursor (alpha-tested — it's a PNG with transparent bg)
+            if (spongeImage && spongeImage.complete) {
+                const SW = 64; // display size of the 128x128 sponge at 1:1 feel
+                const SH = 64;
+                scrubCtx.save();
+                scrubCtx.globalAlpha = 1;
+                scrubCtx.drawImage(spongeImage, spongePos.x - SW / 2, spongePos.y - SH / 2, SW, SH);
+                scrubCtx.restore();
+            }
+
+            scrubAnimFrame = requestAnimationFrame(draw);
+        }
+        draw();
+    }
+
+    // ── Countdown timer ──────────────────────────────────────
+    if (scrubTimerInterval) clearInterval(scrubTimerInterval);
+    scrubTimerInterval = setInterval(() => {
         timeLeft--;
         document.getElementById("scrub-timer").textContent = timeLeft;
-
         if (timeLeft <= 0) {
-            clearInterval(state.scrubTimer);
-            if (scrubbed < TOTAL_DIRT) {
+            clearInterval(scrubTimerInterval);
+            scrubTimerInterval = null;
+            if (cleaned < TOTAL_DIRT) {
+                stopScrubSound();
+                cleanupScrubCanvas();
                 initJumpscare();
             }
         }
     }, 1000);
 
     state.scrubBgm = playAudio("./assets/music/scrubbing-bg-music.wav", { loop: true });
+
+    function endScrubSuccess() {
+        clearInterval(scrubTimerInterval);
+        scrubTimerInterval = null;
+        stopScrubSound();
+        stopScrubBgm();
+        cleanupScrubCanvas();
+        document.getElementById("scrub-complete-msg").classList.remove("hidden");
+        setTimeout(initDefeat, 2000);
+    }
+}
+
+function cleanupScrubCanvas() {
+    if (scrubAnimFrame) {
+        cancelAnimationFrame(scrubAnimFrame);
+        scrubAnimFrame = null;
+    }
+    // Restore normal cursor on the floor element
+    const floorEl = document.getElementById("scrub-floor");
+    if (floorEl) floorEl.style.cursor = "";
 }
 
 function stopScrubBgm() {
@@ -1073,8 +1332,15 @@ function initJumpscare() {
     stopScrubBgm();
     playAudio("./assets/sounds/jumpscare.mp3");
 
-    // After ~2 seconds, go to scrub-fail screen
-    setTimeout(initScrubFail, 2000);
+    // After ~2 seconds the jumpscare animation is done and the king angry image is at full size —
+    // play the insult voice line at exactly that moment.
+    const JUMPSCARE_ANIM_DURATION_MS = 2000;
+    setTimeout(() => {
+        playAudio("./assets/sounds/king-jumpscare-insult.mp3");
+    }, JUMPSCARE_ANIM_DURATION_MS);
+
+    // Go to scrub-fail screen after the voice line has had time to play (~1.5 extra seconds)
+    setTimeout(initScrubFail, JUMPSCARE_ANIM_DURATION_MS + 1500);
 }
 
 /* ─────────────────────────────────────────────
@@ -1101,10 +1367,12 @@ function initDefeat() {
 
     const meal = MEALS[state.chosenMeal];
     const defeatMessages = [
-        `The King is furious. Your ${meal.label} was an insult to Hyrule, and you couldn't even clean up the mess!`,
+        `The King is furious. Your ${meal.label} was an insult to Hyrule, and you couldn't even clean up every single floor in Hyrule!`,
         `You have shamed the Royal Kitchen! Not even Ganon would eat that ${meal.label}!`,
         `The King has fired you on the spot for the blunder that was your ${meal.label}!\nEven Link wouldn't eat that!`,
         `The floors remain filthy! The King demands you to never set foot in the kitchen again!`,
+        `The King is so disappointed in your ${meal.label} that he has revoked your chef's license!`,
+        `The King says you were supposed to scrub ALL THE FLOORS IN HYRULE! Not just the ones in the kitchen!`,
     ];
     document.getElementById("defeat-text").textContent =
         defeatMessages[Math.floor(Math.random() * defeatMessages.length)];
@@ -1149,9 +1417,10 @@ function initDeathPunishment() {
         `The King choked out his last "Mah Boi" thanks to your ${meal.label}. Now it's your turn to feel the heat. Literally.`,
         `The royal kitchen is now a crime scene. Your ${meal.label} has made you the most infamous chef in Hyrule's history.`,
         `Somewhere, Ganon is taking notes. Nobody has ever ended a royal dinner service quite like this before.`,
-        `Duke Onkled would be proud of that epic betrayal. At least you don't have to scrub all they floors in Hyrule anymore — you're too busy being roasted alive.`,
-        `Well, now that the King is dead, Princess Zelda took over the reigns and ordered your immediate execution. She is not happy with the death of her father.`,
+        `Duke Onkled would be proud of that epic betrayal. At least you don't have to scrub all the floors in Hyrule anymore — you're too busy being roasted alive.`,
+        `Well, now that the King is dead, Princess Zelda took over the reins and ordered your immediate execution. She is not happy with the death of her father.`,
         `SQUEAL! The royal food taster has failed. The King is dead, and the royal family members are not happy with your ${meal.label}.`,
+        `Zelda is now queen. Her first royal decree was to have your portrait painted and hung in the palace — as a warning to all future chefs. You are now famous for all the wrong reasons.`,
     ];
     document.getElementById("death-punishment-text").textContent =
         deathPunishmentMessages[Math.floor(Math.random() * deathPunishmentMessages.length)];
@@ -1201,6 +1470,15 @@ const PRELOAD_IMAGES = [
     "./assets/GIFs/mayor-cravendish.gif",
     "./assets/GIFs/player-burning.gif",
     // Sprites
+    // Litter sprites (scrub minigame)
+    "./assets/litter/shit.png",
+    "./assets/litter/wine-stain.png",
+    "./assets/litter/dirt-stain.png",
+    "./assets/litter/milk-spill.png",
+    "./assets/litter/crumbs.png",
+    // Sponge cursor
+    "./assets/cursors/Sponge.png",
+    // Sprites
     "./assets/sprites/Zelda-CD-i.png",
     "./assets/sprites/Link-CD-i.png",
     "./assets/sprites/plate.png",
@@ -1240,11 +1518,13 @@ const PRELOAD_AUDIO = [
     "./assets/sounds/crowd-gasp.mp3",
     "./assets/sounds/scrub-all-the-floors-in-hyrule.mp3",
     "./assets/sounds/jumpscare.mp3",
+    "./assets/sounds/king-jumpscare-insult.mp3",
     "./assets/sounds/mayor-cravendish-this-is-illegal.mp3",
     "./assets/sounds/defeat-sting.mp3",
     "./assets/sounds/victory-fanfare.mp3",
     "./assets/sounds/player-death-scream.mp3",
     "./assets/sounds/fire.mp3",
+    "./assets/sounds/sponge-scrub.mp3",
 ];
 
 const PRELOAD_FONTS = [

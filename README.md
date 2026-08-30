@@ -83,6 +83,7 @@
 * Meme Claw Machine's claw now has NEON LIGHTS for absolutely no fucking reason! 🤩
 * three.min.js, three.module.js, and cannon-es.js are now sitting in the root of the repo so no more shitty lazy duplicates! 😎
 * Grand Meme Prix 3D got a huge update! We're getting close to a 1.0! 🤯
+* King Harkinian's Personal Chef Simulator's "Scrub All The Floors In Hyrule" minigame has been improved! 🧽
 
 ---
 
