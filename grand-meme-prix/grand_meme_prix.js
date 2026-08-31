@@ -19,8 +19,7 @@ const CHARACTERS = [
 
 // =============================================
 // HALL OF MEMES — floating space background sprites on the main menu
-// Drop your meme image paths here. Each entry just needs an { img } field.
-// Example: { img: "assets/memes/trollface.png" }
+// Just use various assets from across all game folders to avoid duplicating assets.
 // =============================================
 const HALL_OF_MEMES = [
   { img: "../meme-claw-machine/memes/Doge.png" },
@@ -40,6 +39,13 @@ const HALL_OF_MEMES = [
   { img: "../meme-claw-machine/memes/Trollface.png" },
   { img: "../meme-claw-machine/memes/NyanCat.png" },
   { img: "../meme-claw-machine/memes/Link-CD-i.png" },
+  { img: "../meme-claw-machine/memes/Ganon-CD-i.png" },
+  { img: "../meme-claw-machine/memes/Sanic.png" },
+  { img: "../meme-claw-machine/memes/HotelMarioMario.png" },
+  { img: "../meme-claw-machine/memes/HotelMarioLuigi.png" },
+  { img: "../big-meme-quiz/assets/memes/leeroy-jenkins.png" },
+  { img: "../big-meme-quiz/assets/memes/peanut-butter-jelly-time.png" },
+  { img: "../meme-claw-machine/memes/Bad-Luck-Brian.png"}
 ];
 
 // =============================================
@@ -1075,7 +1081,17 @@ updateCharUI();
     img.style.left = '0';
 
     activeIndices.add(charIdx);
-    activeEls.push({ el: img, charIdx, deadline: Date.now() + duration * 1000 });
+    const entry = { el: img, charIdx };
+    activeEls.push(entry);
+    // Remove only when the CSS animation actually ends — i.e. the meme is
+    // genuinely off-screen. Never rely on a wall-clock timer which can fire
+    // while the sprite is still visible on large/unexpected screen sizes.
+    img.addEventListener('animationend', () => {
+      img.remove();
+      activeIndices.delete(charIdx);
+      const idx = activeEls.indexOf(entry);
+      if (idx !== -1) activeEls.splice(idx, 1);
+    }, { once: true });
     container.appendChild(img);
   }
 
@@ -1303,17 +1319,8 @@ updateCharUI();
     requestAnimationFrame(step);
   }
 
-  // ── CSS floater tick (prune + top-up) ────────────────────────────────────
+  // ── CSS floater tick (top-up only — cleanup is handled by animationend) ──
   function tick() {
-    const now = Date.now();
-    for (let i = activeEls.length - 1; i >= 0; i--) {
-      const entry = activeEls[i];
-      if (now >= entry.deadline) {
-        entry.el.remove();
-        activeIndices.delete(entry.charIdx);
-        activeEls.splice(i, 1);
-      }
-    }
     const target = TARGET_MIN + Math.floor(Math.random() * (TARGET_MAX - TARGET_MIN + 1));
     const needed = target - activeEls.length - physicsMemes.length;
     for (let n = 0; n < needed; n++) spawnOne();
