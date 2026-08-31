@@ -6,6 +6,137 @@
 "use strict";
 
 /* ─────────────────────────────────────────────
+   SETTINGS  — persisted to localStorage
+───────────────────────────────────────────── */
+const SETTINGS_KEY = "khpcs_settings";
+
+const DEFAULT_SETTINGS = {
+    sfxVolume:   100,
+    musicVolume: 100,
+    units:       "metric",   // "metric" | "imperial"
+};
+
+let settings = loadSettings();
+
+function loadSettings() {
+    try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (raw) return Object.assign({}, DEFAULT_SETTINGS, JSON.parse(raw));
+    } catch (e) { /* storage unavailable */ }
+    return Object.assign({}, DEFAULT_SETTINGS);
+}
+
+function saveSettings() {
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {}
+}
+
+function resetSettings() {
+    settings = Object.assign({}, DEFAULT_SETTINGS);
+    saveSettings();
+    applySettingsToUI();
+    applyVolumeToAllAudio();
+}
+
+/* Volume helpers — all audio goes through these */
+function getSfxVolume()   { return settings.sfxVolume   / 100; }
+function getMusicVolume() { return settings.musicVolume / 100; }
+
+/* Apply music volume to currently-playing BGM elements */
+function applyVolumeToAllAudio() {
+    const menuBgm = document.getElementById("audio-menu-bgm");
+    if (menuBgm) menuBgm.volume = getMusicVolume();
+    if (gameBgm)  gameBgm.volume = getMusicVolume();
+    if (typeof scrubSoundAudio !== "undefined" && scrubSoundAudio) {
+        scrubSoundAudio.volume = getSfxVolume();
+    }
+    if (state && state.scrubBgm)  state.scrubBgm.volume = getMusicVolume();
+    if (state && state.fireAudio) state.fireAudio.volume = getSfxVolume();
+}
+
+/* Convert °F to °C and format */
+function formatTemp(fahrenheit) {
+    if (settings.units === "metric") {
+        const c = Math.round((fahrenheit - 32) * 5 / 9);
+        return `${c}°C`;
+    }
+    return `${fahrenheit}°F`;
+}
+
+/* Re-label all temp buttons on the kitchen screen to match current unit setting */
+function updateTempButtonLabels() {
+    document.querySelectorAll(".temp-btn").forEach(btn => {
+        const f = parseInt(btn.dataset.temp);
+        btn.textContent = formatTemp(f);
+    });
+}
+
+/* Sync the settings UI controls to current settings values */
+function applySettingsToUI() {
+    const sfxSlider   = document.getElementById("sfx-volume-slider");
+    const musicSlider = document.getElementById("music-volume-slider");
+    const sfxVal      = document.getElementById("sfx-volume-value");
+    const musicVal    = document.getElementById("music-volume-value");
+    const btnMetric   = document.getElementById("btn-unit-metric");
+    const btnImperial = document.getElementById("btn-unit-imperial");
+
+    if (sfxSlider)   sfxSlider.value   = settings.sfxVolume;
+    if (musicSlider) musicSlider.value = settings.musicVolume;
+    if (sfxVal)      sfxVal.textContent   = settings.sfxVolume;
+    if (musicVal)    musicVal.textContent = settings.musicVolume;
+
+    if (btnMetric && btnImperial) {
+        btnMetric.classList.toggle("active",   settings.units === "metric");
+        btnImperial.classList.toggle("active", settings.units === "imperial");
+    }
+}
+
+function initSettingsScreen() {
+    applySettingsToUI();
+
+    const sfxSlider   = document.getElementById("sfx-volume-slider");
+    const musicSlider = document.getElementById("music-volume-slider");
+    const sfxVal      = document.getElementById("sfx-volume-value");
+    const musicVal    = document.getElementById("music-volume-value");
+
+    sfxSlider.oninput = () => {
+        settings.sfxVolume = parseInt(sfxSlider.value);
+        sfxVal.textContent = settings.sfxVolume;
+        saveSettings();
+        applyVolumeToAllAudio();
+    };
+
+    musicSlider.oninput = () => {
+        settings.musicVolume = parseInt(musicSlider.value);
+        musicVal.textContent = settings.musicVolume;
+        saveSettings();
+        applyVolumeToAllAudio();
+    };
+
+    document.getElementById("btn-unit-metric").onclick = () => {
+        settings.units = "metric";
+        saveSettings();
+        applySettingsToUI();
+        updateTempButtonLabels();
+    };
+
+    document.getElementById("btn-unit-imperial").onclick = () => {
+        settings.units = "imperial";
+        saveSettings();
+        applySettingsToUI();
+        updateTempButtonLabels();
+    };
+
+    document.getElementById("btn-settings-back").onclick = () => {
+        initMainMenu(true);
+    };
+
+    document.getElementById("btn-settings-reset").onclick = () => {
+        resetSettings();
+        updateTempButtonLabels();
+    };
+}
+
+/* ─────────────────────────────────────────────
    GAME STATE
 ───────────────────────────────────────────── */
 const state = {
@@ -244,7 +375,9 @@ seafood: {
 function playAudio(src, options = {}) {
     const a = new Audio(src);
     if (options.loop) a.loop = true;
-    a.volume = options.volume ?? 1;
+    // Music tracks use music volume; everything else uses SFX volume
+    const isMusic = options.music === true;
+    a.volume = options.volume ?? (isMusic ? getMusicVolume() : getSfxVolume());
     a.play().catch(() => {});
     return a;
 }
@@ -267,6 +400,7 @@ function startMenuBgm() {
 
     const bgm = getMenuBgmEl();
     bgm.currentTime = 0;
+    bgm.volume = getMusicVolume();
     bgm.play().catch(() => {
         // Autoplay blocked — not a problem, interaction already happened
     });
@@ -296,6 +430,7 @@ function startGameBgm() {
     }
     gameBgm = new Audio("./assets/music/prep-theme.wav");
     gameBgm.loop = true;
+    gameBgm.volume = getMusicVolume();
     gameBgm.play().catch(() => {});
 }
 
@@ -345,11 +480,16 @@ function initMainMenu(returning = false) {
 
     if (returning) {
         // Coming back via a button — autoplay is already unblocked, start BGM immediately
-        // and hide the click hint since it's no longer needed
-        state.bgmStarted = false;
+        // and hide the click hint since it's no longer needed.
+        // If the BGM is already playing (e.g. returning from settings), leave it running
+        // so it doesn't restart from the beginning.
         if (hint) { hint.style.opacity = "0"; hint.style.animation = "none"; }
         menuScreen.removeEventListener("pointerdown", startMenuBgm);
-        startMenuBgm();
+        const bgm = getMenuBgmEl();
+        if (bgm.paused) {
+            state.bgmStarted = false;
+            startMenuBgm();
+        }
     } else {
         // First load — autoplay may be blocked, wait for user interaction
         state.bgmStarted = false;
@@ -361,6 +501,11 @@ function initMainMenu(returning = false) {
     document.getElementById("btn-start").onclick = () => {
         stopMenuBgm();
         startIntro();
+    };
+
+    document.getElementById("btn-settings").onclick = () => {
+        showScreen("screen-settings");
+        initSettingsScreen();
     };
 
     document.getElementById("btn-hub").onclick = () => {
@@ -641,7 +786,8 @@ function initKitchen() {
         btn.onclick = () => selectAppliance(btn.dataset.appliance);
     });
 
-    // Temp selection
+    // Temp selection — update labels to current unit setting first
+    updateTempButtonLabels();
     document.querySelectorAll(".temp-btn").forEach(btn => {
         btn.onclick = () => selectOvenTemp(parseInt(btn.dataset.temp), btn);
     });
@@ -717,7 +863,7 @@ function showCookingPanel() {
     applianceVisual.innerHTML = `<img src="${applianceImgMap[state.cookingMethod]}" alt="${state.cookingMethod}" class="appliance-visual-img">`;
     document.getElementById("cooking-status-label").textContent =
         state.cookingMethod === "oven"
-            ? `Oven set to ${state.ovenTemp}°F — put your ingredients in!`
+            ? `Oven set to ${formatTemp(state.ovenTemp)} — put your ingredients in!`
             : "Add your ingredients to the vessel!";
 }
 
@@ -752,7 +898,7 @@ function startCooking() {
 
     document.getElementById("cooking-status-label").textContent =
         state.cookingMethod === "oven"
-            ? `Cooking at ${state.ovenTemp}°F...`
+            ? `Cooking at ${formatTemp(state.ovenTemp)}...`
             : "Cooking...";
 
     startCookingTimer();
@@ -1036,6 +1182,7 @@ function startScrubSound() {
     if (!scrubSoundAudio) {
         scrubSoundAudio = new Audio(SCRUB_SOUND_SRC);
         scrubSoundAudio.loop = true;
+        scrubSoundAudio.volume = getSfxVolume();
         scrubSoundAudio.play().catch(() => {});
     }
 }
@@ -1296,7 +1443,7 @@ function initScrubMinigame() {
         }
     }, 1000);
 
-    state.scrubBgm = playAudio("./assets/music/scrubbing-bg-music.wav", { loop: true });
+    state.scrubBgm = playAudio("./assets/music/scrubbing-bg-music.wav", { loop: true, music: true });
 
     function endScrubSuccess() {
         clearInterval(scrubTimerInterval);
@@ -1428,7 +1575,7 @@ function initDeathPunishment() {
     replayGifsInContainer(document.getElementById("screen-death-punishment"));
 
     playAudio("./assets/sounds/player-death-scream.mp3");
-    state.fireAudio = playAudio("./assets/sounds/fire.mp3", { loop: true });
+    state.fireAudio = playAudio("./assets/sounds/fire.mp3", { loop: true, music: false });
 
     document.getElementById("btn-death-punishment-again").onclick = () => {
         stopAudio(state.fireAudio);

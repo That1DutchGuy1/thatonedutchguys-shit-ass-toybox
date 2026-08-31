@@ -40,6 +40,7 @@
         <div class="menu-buttons">
             <h2 class="menu-subtitle">Starring <br> King Harkinian <br> Morshu <br> Princess Zelda <br> Link <br> Mayor Cravendish</h2>
             <button class="btn-cdi" id="btn-start">▶ START</button>
+            <button class="btn-cdi" id="btn-settings">⚙ SETTINGS</button>
             <button class="btn-cdi" id="btn-hub">⚑ HUB</button>
         </div>
     </div>
@@ -47,6 +48,55 @@
     <!-- ASSET: looping background music starts on first interaction -->
     <audio id="audio-menu-bgm" src="./assets/music/main-menu-theme.wav" loop></audio>
     <p id="bgm-hint" class="bgm-hint">♪ Click anywhere on the screen except for the buttons to start the menu theme ♪</p>
+</div>
+
+
+<!-- ============================================================
+     SCREEN: SETTINGS MENU
+     ============================================================ -->
+<div id="screen-settings" class="screen">
+    <div class="bg-layer" style="background-color:#1a0a00;"></div>
+    <img src="./assets/backdrops/menu-background.png" alt="Menu Background" class="bg-layer main-bg">
+
+    <div class="menu-overlay settings-overlay">
+        <h1 class="game-title settings-title">⚙ Settings</h1>
+
+        <div class="settings-content">
+
+            <!-- SFX VOLUME -->
+            <div class="settings-row">
+                <label class="settings-label" for="sfx-volume-slider">🔊 SFX Volume</label>
+                <div class="settings-control">
+                    <input type="range" id="sfx-volume-slider" class="settings-slider" min="0" max="100" value="100">
+                    <span class="settings-value" id="sfx-volume-value">100</span>
+                </div>
+            </div>
+
+            <!-- MUSIC VOLUME -->
+            <div class="settings-row">
+                <label class="settings-label" for="music-volume-slider">🎵 Music Volume</label>
+                <div class="settings-control">
+                    <input type="range" id="music-volume-slider" class="settings-slider" min="0" max="100" value="100">
+                    <span class="settings-value" id="music-volume-value">100</span>
+                </div>
+            </div>
+
+            <!-- UNITS -->
+            <div class="settings-row">
+                <label class="settings-label">🌡️ Temperature Units</label>
+                <div class="settings-control settings-toggle-wrap">
+                    <button class="settings-unit-btn active" id="btn-unit-metric">Metric (°C)</button>
+                    <button class="settings-unit-btn" id="btn-unit-imperial">Imperial (°F)</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="settings-actions">
+            <button class="btn-cdi" id="btn-settings-back">◀ BACK</button>
+            <button class="btn-cdi" id="btn-settings-reset">↺ RESET TO DEFAULT</button>
+        </div>
+    </div>
 </div>
 
 
