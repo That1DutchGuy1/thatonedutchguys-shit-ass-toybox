@@ -914,63 +914,130 @@ updateCharUI();
   const DURATION_MIN = 18; // seconds to cross the screen (slow drift)
   const DURATION_MAX = 32;
 
-  // Tracks which character indices are currently alive on-screen
-  const activeIndices = new Set();
-  // All live floater elements (we prune finished ones on each tick)
-  const activeEls = [];
+  // ── Alpha-test collision canvas (shared, off-screen) ──────────────────────
+  // We sample a tiny region of a pre-drawn alpha map to do pixel-perfect
+  // collision checks between two physics memes without touching the DOM.
+  // Each character image is rendered once into _alphaCache at ALPHA_RES²
+  // resolution. At collision time we look up ~SAMPLE_N random pixel pairs
+  // from the overlapping rectangle and call it a hit if any alpha pair both
+  // exceed ALPHA_THRESH. Classic Mario-Kart-style "one opaque pixel is enough".
+  const _alphaCache   = new Map(); // img.src → Uint8ClampedArray (ALPHA_RES²)
+  const ALPHA_RES     = 32;        // resolution of each character's alpha map
+  const ALPHA_THRESH  = 30;        // 0-255 — pixels below this are "transparent"
+  const SAMPLE_N      = 12;        // number of random pixel pairs to test
 
-  // Pick a random edge spawn point and a destination on the opposite side.
-  // Returns { x0, y0, x1, y1 } in viewport-relative pixels.
+  const _alphaCtx = (() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = ALPHA_RES;
+    return c.getContext('2d', { willReadFrequently: true });
+  })();
+
+  // Returns a Uint8ClampedArray of alpha values (one per pixel, row-major)
+  // for the given <img> element. Cached after first call.
+  function getAlphaMap(img) {
+    if (_alphaCache.has(img.src)) return _alphaCache.get(img.src);
+    _alphaCtx.clearRect(0, 0, ALPHA_RES, ALPHA_RES);
+    try {
+      _alphaCtx.drawImage(img, 0, 0, ALPHA_RES, ALPHA_RES);
+      const raw = _alphaCtx.getImageData(0, 0, ALPHA_RES, ALPHA_RES).data;
+      // Extract just the alpha channel
+      const alphas = new Uint8ClampedArray(ALPHA_RES * ALPHA_RES);
+      for (let i = 0; i < alphas.length; i++) alphas[i] = raw[i * 4 + 3];
+      _alphaCache.set(img.src, alphas);
+      return alphas;
+    } catch (_) {
+      // Cross-origin / not-yet-loaded: return a filled map (treat as solid)
+      const fallback = new Uint8ClampedArray(ALPHA_RES * ALPHA_RES).fill(255);
+      _alphaCache.set(img.src, fallback);
+      return fallback;
+    }
+  }
+
+  // Sample alpha at (u, v) in [0,1]² from a pre-built alpha map
+  function sampleAlpha(alphaMap, u, v) {
+    const px = Math.min(ALPHA_RES - 1, Math.max(0, Math.floor(u * ALPHA_RES)));
+    const py = Math.min(ALPHA_RES - 1, Math.max(0, Math.floor(v * ALPHA_RES)));
+    return alphaMap[py * ALPHA_RES + px];
+  }
+
+  // Alpha-test overlap check for two axis-aligned squares (no rotation for
+  // simplicity — the physics bounce is already chaotic enough lol).
+  // Returns true if the two memes have at least one overlapping opaque pixel.
+  function alphaTestCollision(a, b) {
+    const aSize = CHAR_SIZE * a.scale;
+    const bSize = CHAR_SIZE * b.scale;
+    // AABB overlap rect in screen-space
+    const left   = Math.max(a.x, b.x);
+    const right  = Math.min(a.x + aSize, b.x + bSize);
+    const top    = Math.max(a.y, b.y);
+    const bottom = Math.min(a.y + aSize, b.y + bSize);
+    if (right <= left || bottom <= top) return false; // no overlap at all
+
+    const alphaA = getAlphaMap(a.el);
+    const alphaB = getAlphaMap(b.el);
+
+    // Test SAMPLE_N random points inside the overlap rect
+    for (let s = 0; s < SAMPLE_N; s++) {
+      const sx = left  + Math.random() * (right  - left);
+      const sy = top   + Math.random() * (bottom - top);
+
+      // UV coords inside each sprite's own bounding box
+      const uA = (sx - a.x) / aSize;
+      const vA = (sy - a.y) / aSize;
+      const uB = (sx - b.x) / bSize;
+      const vB = (sy - b.y) / bSize;
+
+      if (sampleAlpha(alphaA, uA, vA) > ALPHA_THRESH &&
+          sampleAlpha(alphaB, uB, vB) > ALPHA_THRESH) {
+        return true; // found a solid pixel overlap!
+      }
+    }
+    return false;
+  }
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  const activeIndices = new Set();
+  // CSS-animated floaters (the normal 90%)
+  const activeEls = [];
+  // Physics floaters (the chaotic 10%) — tracked separately
+  // Each entry: { el, charIdx, x, y, vx, vy, rot, rotV, scale, dead }
+  const physicsMemes = [];
+
+  // ── Trajectory helpers ────────────────────────────────────────────────────
   function randomTrajectory() {
     const W = window.innerWidth;
     const H = window.innerHeight;
-    const edge = Math.floor(Math.random() * 4); // 0=top 1=right 2=bottom 3=left
+    const edge = Math.floor(Math.random() * 4);
     let x0, y0, x1, y1;
 
-    if (edge === 0) {          // enter from top
-      x0 = Math.random() * W;
-      y0 = -CHAR_SIZE - 20;
-      x1 = (Math.random() * 1.4 - 0.2) * W;  // exit anywhere, slightly drifted
-      y1 = H + CHAR_SIZE + 20;
-    } else if (edge === 1) {   // enter from right
-      x0 = W + CHAR_SIZE + 20;
-      y0 = Math.random() * H;
-      x1 = -CHAR_SIZE - 20;
-      y1 = (Math.random() * 1.4 - 0.2) * H;
-    } else if (edge === 2) {   // enter from bottom
-      x0 = Math.random() * W;
-      y0 = H + CHAR_SIZE + 20;
-      x1 = (Math.random() * 1.4 - 0.2) * W;
-      y1 = -CHAR_SIZE - 20;
-    } else {                   // enter from left
-      x0 = -CHAR_SIZE - 20;
-      y0 = Math.random() * H;
-      x1 = W + CHAR_SIZE + 20;
-      y1 = (Math.random() * 1.4 - 0.2) * H;
+    if (edge === 0) {
+      x0 = Math.random() * W; y0 = -CHAR_SIZE - 20;
+      x1 = (Math.random() * 1.4 - 0.2) * W; y1 = H + CHAR_SIZE + 20;
+    } else if (edge === 1) {
+      x0 = W + CHAR_SIZE + 20; y0 = Math.random() * H;
+      x1 = -CHAR_SIZE - 20; y1 = (Math.random() * 1.4 - 0.2) * H;
+    } else if (edge === 2) {
+      x0 = Math.random() * W; y0 = H + CHAR_SIZE + 20;
+      x1 = (Math.random() * 1.4 - 0.2) * W; y1 = -CHAR_SIZE - 20;
+    } else {
+      x0 = -CHAR_SIZE - 20; y0 = Math.random() * H;
+      x1 = W + CHAR_SIZE + 20; y1 = (Math.random() * 1.4 - 0.2) * H;
     }
-
     return { x0, y0, x1, y1 };
   }
 
-  function spawnOne() {
-    // How many unique chars can still be added?
-    const available = CHARACTERS.filter((_, i) => !activeIndices.has(i));
-    if (available.length === 0) return;
-
-    // Pick a random available character
-    const pick     = available[Math.floor(Math.random() * available.length)];
-    const charIdx  = CHARACTERS.indexOf(pick);
+  // ── CSS floater spawn (unchanged 90%) ────────────────────────────────────
+  function spawnCssFloater(pick, charIdx) {
     const traj     = randomTrajectory();
     const duration = DURATION_MIN + Math.random() * (DURATION_MAX - DURATION_MIN);
-    const spinDeg  = (Math.random() < 0.5 ? 1 : -1) * (120 + Math.random() * 300); // rotation delta
+    const spinDeg  = (Math.random() < 0.5 ? 1 : -1) * (120 + Math.random() * 300);
     const startRot = Math.random() * 360;
-    const scale    = 0.7 + Math.random() * 0.7; // 0.7 → 1.4×
+    const scale    = 0.7 + Math.random() * 0.7;
 
     const img = document.createElement('img');
     img.className = 'meme-floater';
     img.src       = pick.img;
     img.alt       = '';
-    // CSS custom properties drive the @keyframes
     img.style.setProperty('--mx0', traj.x0 + 'px');
     img.style.setProperty('--my0', traj.y0 + 'px');
     img.style.setProperty('--mx1', traj.x1 + 'px');
@@ -979,7 +1046,6 @@ updateCharUI();
     img.style.setProperty('--mr1', (startRot + spinDeg) + 'deg');
     img.style.setProperty('--ms',  scale);
     img.style.animationDuration = duration + 's';
-    // Anchor at top-left; the CSS transform moves it to position
     img.style.top  = '0';
     img.style.left = '0';
 
@@ -988,10 +1054,233 @@ updateCharUI();
     container.appendChild(img);
   }
 
+  // ── Physics floater spawn (10%) ───────────────────────────────────────────
+  // Physics memes don't use CSS animations — they're positioned by JS every
+  // rAF tick. They enter from a random edge on a collision-course trajectory
+  // and are specifically paired so they're heading toward each other.
+  function spawnPhysicsMeme(pick, charIdx, x, y, vx, vy) {
+    const scale = 0.9 + Math.random() * 0.6;  // slightly bigger so they're easy to see
+    const img   = document.createElement('img');
+    img.className = 'meme-floater meme-floater--physics'; // extra class kills CSS anim
+    img.src       = pick.img;
+    img.alt       = '';
+    // Kill the CSS animation entirely; we drive transform directly
+    img.style.animation = 'none';
+    img.style.position  = 'fixed';
+    img.style.top       = '0';
+    img.style.left      = '0';
+    img.style.width     = CHAR_SIZE + 'px';
+    img.style.height    = CHAR_SIZE + 'px';
+    img.style.transformOrigin = 'center center';
+    img.style.willChange      = 'transform';
+    img.style.zIndex          = '2'; // above CSS floaters (z:0) but below #mainMenu (z:100)
+
+    const entry = {
+      el: img, charIdx,
+      x, y, vx, vy,
+      rot: Math.random() * 360,
+      rotV: (Math.random() < 0.5 ? 1 : -1) * (60 + Math.random() * 180), // deg/s
+      scale,
+      dead: false,
+      collided: false,  // prevent double-bounce same frame
+    };
+
+    activeIndices.add(charIdx);
+    physicsMemes.push(entry);
+    container.appendChild(img);
+    return entry;
+  }
+
+  // Spawn a collision-course pair: two memes aimed to cross each other's path
+  function spawnCollisionPair() {
+    const available = CHARACTERS.filter((_, i) => !activeIndices.has(i));
+    if (available.length < 2) return;
+
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+
+    // Pick two characters
+    const idxA = Math.floor(Math.random() * available.length);
+    const pickA = available[idxA];
+    const availB = available.filter((_, i) => i !== idxA);
+    const pickB = availB[Math.floor(Math.random() * availB.length)];
+    const charA = CHARACTERS.indexOf(pickA);
+    const charB = CHARACTERS.indexOf(pickB);
+
+    // Speed: pixels per second — faster than normal drifters for drama
+    const speed = 80 + Math.random() * 60;
+
+    // Choose a random meeting point somewhere near the centre of the screen
+    const meetX = W * (0.3 + Math.random() * 0.4);
+    const meetY = H * (0.3 + Math.random() * 0.4);
+
+    // Spawn A from a random edge, aimed at the meeting point
+    const edgeA = Math.floor(Math.random() * 4);
+    let ax, ay;
+    if (edgeA === 0)      { ax = Math.random() * W; ay = -CHAR_SIZE - 20; }
+    else if (edgeA === 1) { ax = W + CHAR_SIZE + 20; ay = Math.random() * H; }
+    else if (edgeA === 2) { ax = Math.random() * W; ay = H + CHAR_SIZE + 20; }
+    else                  { ax = -CHAR_SIZE - 20; ay = Math.random() * H; }
+
+    const dxA = meetX - ax, dyA = meetY - ay;
+    const lenA = Math.hypot(dxA, dyA) || 1;
+    const vxA = (dxA / lenA) * speed;
+    const vyA = (dyA / lenA) * speed;
+
+    // Spawn B from roughly the opposite direction
+    const edgeB = (edgeA + 2) % 4;
+    let bx, by;
+    if (edgeB === 0)      { bx = Math.random() * W; by = -CHAR_SIZE - 20; }
+    else if (edgeB === 1) { bx = W + CHAR_SIZE + 20; by = Math.random() * H; }
+    else if (edgeB === 2) { bx = Math.random() * W; by = H + CHAR_SIZE + 20; }
+    else                  { bx = -CHAR_SIZE - 20; by = Math.random() * H; }
+
+    const dxB = meetX - bx, dyB = meetY - by;
+    const lenB = Math.hypot(dxB, dyB) || 1;
+    const vxB = (dxB / lenB) * speed;
+    const vyB = (dyB / lenB) * speed;
+
+    spawnPhysicsMeme(pickA, charA, ax, ay, vxA, vyA);
+    spawnPhysicsMeme(pickB, charB, bx, by, vxB, vyB);
+  }
+
+  // ── Normal spawn (CSS floater or collision pair) ──────────────────────────
+  function spawnOne() {
+    const available = CHARACTERS.filter((_, i) => !activeIndices.has(i));
+    if (available.length === 0) return;
+
+    // 10% chance → spawn a collision-course physics pair instead
+    if (Math.random() < 0.10 && available.length >= 2) {
+      spawnCollisionPair();
+      return;
+    }
+
+    const pick    = available[Math.floor(Math.random() * available.length)];
+    const charIdx = CHARACTERS.indexOf(pick);
+    spawnCssFloater(pick, charIdx);
+  }
+
+  // ── Physics simulation loop ───────────────────────────────────────────────
+  let _lastPhysicsTime = null;
+
+  function physicsStep(now) {
+    if (_lastPhysicsTime === null) { _lastPhysicsTime = now; return; }
+    const dt = Math.min((now - _lastPhysicsTime) / 1000, 0.1); // cap at 100ms
+    _lastPhysicsTime = now;
+
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const MARGIN = CHAR_SIZE * 2;
+
+    // Integrate positions
+    for (const m of physicsMemes) {
+      if (m.dead) continue;
+      m.x   += m.vx * dt;
+      m.y   += m.vy * dt;
+      m.rot += m.rotV * dt;
+
+      const size = CHAR_SIZE * m.scale;
+      // Mark dead when fully off-screen
+      if (m.x > W + MARGIN || m.x < -MARGIN - size ||
+          m.y > H + MARGIN || m.y < -MARGIN - size) {
+        m.dead = true;
+        m.el.remove();
+        activeIndices.delete(m.charIdx);
+      }
+    }
+
+    // ── Alpha-test collision detection between all physics meme pairs ─────
+    for (let i = 0; i < physicsMemes.length; i++) {
+      const a = physicsMemes[i];
+      if (a.dead || a.collided) continue;
+      for (let j = i + 1; j < physicsMemes.length; j++) {
+        const b = physicsMemes[j];
+        if (b.dead || b.collided) continue;
+
+        if (alphaTestCollision(a, b)) {
+          // ── Elastic-ish asteroid collision ────────────────────────────
+          // Decompose velocities along the collision normal (centre-to-centre)
+          const aCx = a.x + (CHAR_SIZE * a.scale) / 2;
+          const aCy = a.y + (CHAR_SIZE * a.scale) / 2;
+          const bCx = b.x + (CHAR_SIZE * b.scale) / 2;
+          const bCy = b.y + (CHAR_SIZE * b.scale) / 2;
+
+          let nx = bCx - aCx;
+          let ny = bCy - aCy;
+          const nl = Math.hypot(nx, ny) || 1;
+          nx /= nl; ny /= nl;
+
+          // Project velocities onto normal
+          const dvA = a.vx * nx + a.vy * ny;
+          const dvB = b.vx * nx + b.vy * ny;
+
+          // Only resolve if they're actually approaching each other
+          if (dvA - dvB > 0) {
+            // Equal-mass elastic: exchange normal components
+            a.vx += (dvB - dvA) * nx;
+            a.vy += (dvB - dvA) * ny;
+            b.vx += (dvA - dvB) * nx;
+            b.vy += (dvA - dvB) * ny;
+
+            // Add a little spin kick for comedy value
+            a.rotV = (Math.random() < 0.5 ? 1 : -1) * (200 + Math.random() * 400);
+            b.rotV = (Math.random() < 0.5 ? 1 : -1) * (200 + Math.random() * 400);
+
+            // Brief collision-flash scale pulse — squish → stretch
+            flashCollider(a);
+            flashCollider(b);
+
+            // Lock out further collision checks this frame to avoid jitter
+            a.collided = true;
+            b.collided = true;
+          }
+        }
+      }
+    }
+
+    // Clear collided flags for next frame
+    for (const m of physicsMemes) m.collided = false;
+
+    // Apply transforms
+    for (const m of physicsMemes) {
+      if (m.dead) continue;
+      const size = CHAR_SIZE * m.scale;
+      m.el.style.transform =
+        `translate(${m.x}px, ${m.y}px) rotate(${m.rot}deg) scale(${m.scale})`;
+      // width/height remain CHAR_SIZE; scale is handled in the transform
+    }
+
+    // Prune dead entries
+    for (let i = physicsMemes.length - 1; i >= 0; i--) {
+      if (physicsMemes[i].dead) physicsMemes.splice(i, 1);
+    }
+  }
+
+  // Quick visual flash on collision — scale bump then back
+  function flashCollider(m) {
+    const orig = m.scale;
+    let t = 0;
+    const FLASH_DUR = 0.25; // seconds
+    let last = performance.now();
+    function step(now) {
+      const dt2 = (now - last) / 1000;
+      last = now;
+      t += dt2;
+      const progress = Math.min(t / FLASH_DUR, 1);
+      // Squish: scale drops then bounces back
+      const bump = 1 + 0.35 * Math.sin(progress * Math.PI);
+      m.el.style.filter = progress < 1
+        ? `brightness(${1 + (1 - progress) * 3}) drop-shadow(0 0 8px #FFD700)`
+        : '';
+      if (progress < 1) requestAnimationFrame(step);
+      else m.el.style.filter = '';
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ── CSS floater tick (prune + top-up) ────────────────────────────────────
   function tick() {
     const now = Date.now();
-
-    // Prune finished floaters
     for (let i = activeEls.length - 1; i >= 0; i--) {
       const entry = activeEls[i];
       if (now >= entry.deadline) {
@@ -1000,21 +1289,26 @@ updateCharUI();
         activeEls.splice(i, 1);
       }
     }
-
-    // Spawn until we hit a random target count in [TARGET_MIN, TARGET_MAX]
     const target = TARGET_MIN + Math.floor(Math.random() * (TARGET_MAX - TARGET_MIN + 1));
-    const needed = target - activeEls.length;
-    for (let n = 0; n < needed; n++) {
-      spawnOne();
-    }
+    const needed = target - activeEls.length - physicsMemes.length;
+    for (let n = 0; n < needed; n++) spawnOne();
   }
 
-  // Initial burst: fill to max so the menu isn't empty on first load
+  // ── rAF loop for physics memes ────────────────────────────────────────────
+  function physicsLoop(now) {
+    // Only run while the main menu is visible
+    if (document.getElementById('mainMenu').style.display !== 'none') {
+      physicsStep(now);
+    }
+    requestAnimationFrame(physicsLoop);
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
   const initialCount = TARGET_MIN + Math.floor(Math.random() * (TARGET_MAX - TARGET_MIN + 1));
   for (let i = 0; i < initialCount; i++) spawnOne();
 
-  // Check every 3 seconds whether we need to top up
   setInterval(tick, 3000);
+  requestAnimationFrame(physicsLoop);
 })();
 
 // =============================================

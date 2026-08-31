@@ -37,7 +37,7 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   display: flex; align-items: center; justify-content: center;
   background: rgba(0,0,0,0.4); border-radius: 8px; overflow: hidden;
 }
-.player-select .char-display img { max-width: 90px; max-height: 90px; image-rendering: pixelated; }
+.player-select .char-display img { max-width: 90px; max-height: 90px; }
 .player-select .char-name { color: #fff; font-size: 16px; margin-bottom: 10px; }
 .player-select .char-controls { display: flex; gap: 8px; justify-content: center; }
 .char-btn {
@@ -63,6 +63,7 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
 .stars {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   pointer-events: none; overflow: hidden;
+  z-index: 0;
 }
 .star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle 2s infinite alternate; }
 
@@ -72,7 +73,7 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   width: 80px;
   height: 80px;
   object-fit: contain;
-  image-rendering: pixelated;
+  image-rendering: auto;
   pointer-events: none;
   opacity: 0.55;
   filter: drop-shadow(0 0 8px rgba(255,215,0,0.35));
@@ -175,8 +176,9 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
 .cpu-select h3 { color: #aaa; }
 
 /* Screen sub-divs inside mainMenu */
-#screenModeSelect, #screenCharSolo, #screenCharCoop {
+#screenModeSelect, #screenCharSolo, #screenCharCoop, #screenSettings {
   display: flex; flex-direction: column; align-items: center; gap: 20px;
+  position: relative; z-index: 1;
 }
 
 /* HUD */
@@ -590,4 +592,16 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   pointer-events: none;
   min-width: 240px;
   border: 1px solid rgba(255,255,255,0.15);
+}
+/* ── Physics-driven collision memes — kill the CSS animation entirely ──── */
+.meme-floater--physics {
+  animation: none !important;
+  opacity: 0.75;           /* slightly more visible than drifters — these are STARS */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 80px;
+  height: 80px;
+  transform-origin: center center;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.55));
 }

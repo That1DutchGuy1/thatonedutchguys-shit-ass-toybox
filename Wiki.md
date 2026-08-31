@@ -68,10 +68,38 @@ He ultimately made only three Mario and Bowser bloopers videos and four regular 
 
 His main inspiration to make his SM64 Bloopers'' videos was the Australian SM64 machinimist <a href="https://www.youtube.com/@SMG4" target="_blank">SMG4</a>, being also a fan of the legacy version of this same machinimist from around 2013 to 2015.
 
+He has also made videos of random memes, greenscreen meme videos, a library of frequently used meme soundeffects by legacy SMG4, Garry's Mod videos, YouTube Poop videos, and much more during his time active on YouTube.
+
+He also made various Shorts during his time active. One of his major hits was a small brainrot series made in Garry's Mod regarding the Freddy Fazbear Trash Bin meme trend, which he later said he regrets making them because of a supposed "Gen Alpha vibe" hanging around those videos in his own words.
+
+He also made a 5 episode series specifically for his Dutch subscribers where he did funny vulgar text to speech voiceovers of the Pat & Mat series (known as Buurman & Buurman in the Netherlands). These were uploaded randomly, with the first episode <a href="https://www.youtube.com/watch?v=Lg3hoCzE9rA" target="_blank">Buurman & Buurman Pat&Mat Nederlandse Voice Over Deel 1: Verdomde Picknick</a> uploaded on May 30, 2023. The first four episodes were all made in 2023. The final episode <a href="https://www.youtube.com/watch?v=IyTrraIhkJE" target="_blank">Buurman & Buurman Pat&Mat Nederlandse Voice Over Deel 5: Tyfus Doos</a> was uploaded on Dec 4, 2024.
+
+His last real video before Goodbye was uploaded was called <a href="https://www.youtube.com/watch?v=p4OJEOwDysM" target="_blank">Explosion... but different</a>, which was just a stutter loop of the explosion meme video. It was uploaded on May 22, 2025.
+
 ## Retirement & Side Projects
 That One Dutch Guy announced his retirement on the 31st of December 2025, by uploading a video named Goodbye and making a <a href="http://youtube.com/post/Ugkx7uhushY1tWwVH9pb23c1iWe_cJ06paO6?si=97Ze5M2G7c6Nfsvb" target="_blank">community post.</a> He said he was turning 18 years old soon and that his new responsibilities were leaving less time for YouTube. He also said that he was completely out of ideas for new videos for the channel and that he felt like it became more of a chore to maintain the channel. He simply wasn't enjoying making videos anymore.
 
-After That One Dutch Guy retired and turned 18, he started rouding up his MBO IT study, which he recently finished. He seems to have a passion for making web-based games now. A few months after his retirement post, he <a href="http://youtube.com/post/UgkxMrpm7OGKsekgNmMW_9_0nRt-eRSLkZhV?si=cRVrHNx5xjvPoZTK" target="_blank">posted</a> a new community post, letting people know about his own new website. It has very recently been moved to a new repository and rebranded. It's hosted on GitHub Pages and it's called <a href="https://that1dutchguy1.github.io/thatonedutchguys-shit-ass-toybox/">That One Dutch Guy's Shit Ass Toybox</a>. He maintains the <a href="https://github.com/That1DutchGuy1/thatonedutchguys-shit-ass-toybox" target="_blank">repository</a> still actively. It's still work in progress, but more web-games keep getting added and is in active development. More than 10 games are currently already available to play on his website! 
+After That One Dutch Guy retired and turned 18, he started rouding up his MBO IT study, which he recently finished. He seems to have a passion for making web-based games now. A few months after his retirement post, he <a href="http://youtube.com/post/UgkxMrpm7OGKsekgNmMW_9_0nRt-eRSLkZhV?si=cRVrHNx5xjvPoZTK" target="_blank">posted</a> a new community post, letting people know about his own new website. It has very recently been moved to a new repository and rebranded. It's hosted on GitHub Pages and it's called <a href="https://that1dutchguy1.github.io/thatonedutchguys-shit-ass-toybox/">That One Dutch Guy's Shit Ass Toybox</a>. He maintains the <a href="https://github.com/That1DutchGuy1/thatonedutchguys-shit-ass-toybox" target="_blank">repository</a> still actively. It's still work in progress, but more web-games keep getting added and is in active development. More than 10 games are currently already available to play on his website!
+
+Here is a list of the currently listed games on his website.
+
+<ul>
+  <li>Whack A Meme</li>
+  <li>Bup The Super Awesome Clicker Game</li>
+  <li>Rick Roller 2D Deluxe Edition</li>
+  <li>Philips CD-i Soundboard</li>
+  <li>Weegee Memory Match</li>
+  <li>Weegee's Mansion 3D</li>
+  <li>Weegee Town XP</li>
+  <li>King Harkinian's Personal Chef Simulator</li>
+  <li>CD-i Tinder</li>
+  <li>Meme Claw Machine</li>
+  <li>The Big Meme Quiz</li>
+  <li>Meme Mafia</li>
+  <li>Grand Meme Prix 3D</li>
+</ul>
+
+He has also made a <a href="https://github.com/That1DutchGuy1/King-Harkinian-Desktop-Pet" target="_blank">King Harkinian Desktop Pet</a> for Linux Mint 22 in Python, a harmless <a href="https://github.com/That1DutchGuy1/The-Weegee-Virus-Prank" target="_blank">Weegee Virus Prank App</a> Debian package for Linux Mint 22, a <a href="https://github.com/That1DutchGuy1/soundbuttons.github.io" target="_blank">soundbutton collection website</a>, and a <a href="https://github.com/That1DutchGuy1/Funny-CD-i-Themed-WhatsApp-Sticker-Pack" target="_blank">CD-i themed WhatsApp sticker pack</a> as well. They're all available publicly on his <a href="https://github.com/That1DutchGuy1" target="_blank">GitHub profile</a> publicly.
 
 That One Dutch Guy also has a <a href="https://www.gta5-mods.com/users/That1DutchGuy" target="_blank">Gta 5 Mods</a> profile where he made a few Grand Theft Auto 5 mods. It seems like it's currently inactive though.
 
