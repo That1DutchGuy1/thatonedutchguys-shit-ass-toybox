@@ -904,6 +904,120 @@ function assignGamepads() {
 updateCharUI();
 
 // =============================================
+// FLOATING MEME CHARACTERS — space background ambience
+// =============================================
+(function initFloatingMemes() {
+  const container  = document.getElementById('starsContainer');
+  const TARGET_MIN = 2;   // minimum characters on-screen at once
+  const TARGET_MAX = 4;   // maximum characters on-screen at once
+  const CHAR_SIZE  = 80;  // px — matches CSS .meme-floater width/height
+  const DURATION_MIN = 18; // seconds to cross the screen (slow drift)
+  const DURATION_MAX = 32;
+
+  // Tracks which character indices are currently alive on-screen
+  const activeIndices = new Set();
+  // All live floater elements (we prune finished ones on each tick)
+  const activeEls = [];
+
+  // Pick a random edge spawn point and a destination on the opposite side.
+  // Returns { x0, y0, x1, y1 } in viewport-relative pixels.
+  function randomTrajectory() {
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const edge = Math.floor(Math.random() * 4); // 0=top 1=right 2=bottom 3=left
+    let x0, y0, x1, y1;
+
+    if (edge === 0) {          // enter from top
+      x0 = Math.random() * W;
+      y0 = -CHAR_SIZE - 20;
+      x1 = (Math.random() * 1.4 - 0.2) * W;  // exit anywhere, slightly drifted
+      y1 = H + CHAR_SIZE + 20;
+    } else if (edge === 1) {   // enter from right
+      x0 = W + CHAR_SIZE + 20;
+      y0 = Math.random() * H;
+      x1 = -CHAR_SIZE - 20;
+      y1 = (Math.random() * 1.4 - 0.2) * H;
+    } else if (edge === 2) {   // enter from bottom
+      x0 = Math.random() * W;
+      y0 = H + CHAR_SIZE + 20;
+      x1 = (Math.random() * 1.4 - 0.2) * W;
+      y1 = -CHAR_SIZE - 20;
+    } else {                   // enter from left
+      x0 = -CHAR_SIZE - 20;
+      y0 = Math.random() * H;
+      x1 = W + CHAR_SIZE + 20;
+      y1 = (Math.random() * 1.4 - 0.2) * H;
+    }
+
+    return { x0, y0, x1, y1 };
+  }
+
+  function spawnOne() {
+    // How many unique chars can still be added?
+    const available = CHARACTERS.filter((_, i) => !activeIndices.has(i));
+    if (available.length === 0) return;
+
+    // Pick a random available character
+    const pick     = available[Math.floor(Math.random() * available.length)];
+    const charIdx  = CHARACTERS.indexOf(pick);
+    const traj     = randomTrajectory();
+    const duration = DURATION_MIN + Math.random() * (DURATION_MAX - DURATION_MIN);
+    const spinDeg  = (Math.random() < 0.5 ? 1 : -1) * (120 + Math.random() * 300); // rotation delta
+    const startRot = Math.random() * 360;
+    const scale    = 0.7 + Math.random() * 0.7; // 0.7 → 1.4×
+
+    const img = document.createElement('img');
+    img.className = 'meme-floater';
+    img.src       = pick.img;
+    img.alt       = '';
+    // CSS custom properties drive the @keyframes
+    img.style.setProperty('--mx0', traj.x0 + 'px');
+    img.style.setProperty('--my0', traj.y0 + 'px');
+    img.style.setProperty('--mx1', traj.x1 + 'px');
+    img.style.setProperty('--my1', traj.y1 + 'px');
+    img.style.setProperty('--mr0', startRot + 'deg');
+    img.style.setProperty('--mr1', (startRot + spinDeg) + 'deg');
+    img.style.setProperty('--ms',  scale);
+    img.style.animationDuration = duration + 's';
+    // Anchor at top-left; the CSS transform moves it to position
+    img.style.top  = '0';
+    img.style.left = '0';
+
+    activeIndices.add(charIdx);
+    activeEls.push({ el: img, charIdx, deadline: Date.now() + duration * 1000 });
+    container.appendChild(img);
+  }
+
+  function tick() {
+    const now = Date.now();
+
+    // Prune finished floaters
+    for (let i = activeEls.length - 1; i >= 0; i--) {
+      const entry = activeEls[i];
+      if (now >= entry.deadline) {
+        entry.el.remove();
+        activeIndices.delete(entry.charIdx);
+        activeEls.splice(i, 1);
+      }
+    }
+
+    // Spawn until we hit a random target count in [TARGET_MIN, TARGET_MAX]
+    const target = TARGET_MIN + Math.floor(Math.random() * (TARGET_MAX - TARGET_MIN + 1));
+    const needed = target - activeEls.length;
+    for (let n = 0; n < needed; n++) {
+      spawnOne();
+    }
+  }
+
+  // Initial burst: fill to max so the menu isn't empty on first load
+  const initialCount = TARGET_MIN + Math.floor(Math.random() * (TARGET_MAX - TARGET_MIN + 1));
+  for (let i = 0; i < initialCount; i++) spawnOne();
+
+  // Check every 3 seconds whether we need to top up
+  setInterval(tick, 3000);
+})();
+
+// =============================================
 // TRACK DEFINITION — smooth closed CatmullRom circuit
 // =============================================
 const TRACK_CONTROL_PTS = [

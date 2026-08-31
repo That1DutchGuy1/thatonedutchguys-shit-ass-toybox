@@ -66,6 +66,27 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
 }
 .star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle 2s infinite alternate; }
 
+/* FLOATING MEME CHARACTERS IN SPACE BACKGROUND */
+.meme-floater {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+  opacity: 0.55;
+  filter: drop-shadow(0 0 8px rgba(255,215,0,0.35));
+  will-change: transform;
+  animation: memeFloat linear forwards;
+}
+
+@keyframes memeFloat {
+  0%   { transform: translate(var(--mx0), var(--my0)) rotate(var(--mr0)) scale(var(--ms)); opacity: 0; }
+  8%   { opacity: 0.55; }
+  90%  { opacity: 0.55; }
+  100% { transform: translate(var(--mx1), var(--my1)) rotate(var(--mr1)) scale(var(--ms)); opacity: 0; }
+}
+
 /* MODE SELECT BUTTONS */
 .mode-btn-group {
   display: flex; gap: 24px; margin: 10px 0;
