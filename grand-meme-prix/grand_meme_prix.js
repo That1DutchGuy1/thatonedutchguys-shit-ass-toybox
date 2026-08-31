@@ -18,6 +18,31 @@ const CHARACTERS = [
 ];
 
 // =============================================
+// HALL OF MEMES — floating space background sprites on the main menu
+// Drop your meme image paths here. Each entry just needs an { img } field.
+// Example: { img: "assets/memes/trollface.png" }
+// =============================================
+const HALL_OF_MEMES = [
+  { img: "../meme-claw-machine/memes/Doge.png" },
+  { img: "../weegees-mansion/Weegee-Sprites/Weegee_Left.png" },
+  { img: "../meme-claw-machine/memes/Rickroll.png" },
+  { img: "../meme-claw-machine/memes/Longcat.png" },
+  { img: "../meme-claw-machine/memes/Morshu-CD-i.png" },
+  { img: "../meme-claw-machine/memes/Malleo.png" },
+  { img: "../meme-claw-machine/memes/Mama-Luigi.png" },
+  { img: "../meme-claw-machine/memes/King-Harkinian-CD-i.png" },
+  { img: "../meme-claw-machine/memes/Zelda-CD-i.png" },
+  { img: "../meme-claw-machine/memes/Gwonam-CD-i.png" },
+  { img: "../meme-claw-machine/memes/Michael-Rosen.png" },
+  { img: "../meme-claw-machine/memes/Mayor-Cravendish.png" },
+  { img: "../meme-claw-machine/memes/Pingas.png" },
+  { img: "../meme-claw-machine/memes/Shoop-Da-Whoop.png" },
+  { img: "../meme-claw-machine/memes/Trollface.png" },
+  { img: "../meme-claw-machine/memes/NyanCat.png" },
+  { img: "../meme-claw-machine/memes/Link-CD-i.png" },
+];
+
+// =============================================
 // SETTINGS  (persisted to localStorage)
 // =============================================
 const SETTINGS_KEY = 'gmp_settings_v1';
@@ -909,7 +934,7 @@ updateCharUI();
 (function initFloatingMemes() {
   const container  = document.getElementById('starsContainer');
   const TARGET_MIN = 2;   // minimum characters on-screen at once
-  const TARGET_MAX = 4;   // maximum characters on-screen at once
+  const TARGET_MAX = 6;   // maximum characters on-screen at once
   const CHAR_SIZE  = 80;  // px — matches CSS .meme-floater width/height
   const DURATION_MIN = 18; // seconds to cross the screen (slow drift)
   const DURATION_MAX = 32;
@@ -1093,7 +1118,7 @@ updateCharUI();
 
   // Spawn a collision-course pair: two memes aimed to cross each other's path
   function spawnCollisionPair() {
-    const available = CHARACTERS.filter((_, i) => !activeIndices.has(i));
+    const available = HALL_OF_MEMES.filter((_, i) => !activeIndices.has(i));
     if (available.length < 2) return;
 
     const W = window.innerWidth;
@@ -1104,8 +1129,8 @@ updateCharUI();
     const pickA = available[idxA];
     const availB = available.filter((_, i) => i !== idxA);
     const pickB = availB[Math.floor(Math.random() * availB.length)];
-    const charA = CHARACTERS.indexOf(pickA);
-    const charB = CHARACTERS.indexOf(pickB);
+    const charA = HALL_OF_MEMES.indexOf(pickA);
+    const charB = HALL_OF_MEMES.indexOf(pickB);
 
     // Speed: pixels per second — faster than normal drifters for drama
     const speed = 80 + Math.random() * 60;
@@ -1146,7 +1171,7 @@ updateCharUI();
 
   // ── Normal spawn (CSS floater or collision pair) ──────────────────────────
   function spawnOne() {
-    const available = CHARACTERS.filter((_, i) => !activeIndices.has(i));
+    const available = HALL_OF_MEMES.filter((_, i) => !activeIndices.has(i));
     if (available.length === 0) return;
 
     // 10% chance → spawn a collision-course physics pair instead
@@ -1156,7 +1181,7 @@ updateCharUI();
     }
 
     const pick    = available[Math.floor(Math.random() * available.length)];
-    const charIdx = CHARACTERS.indexOf(pick);
+    const charIdx = HALL_OF_MEMES.indexOf(pick);
     spawnCssFloater(pick, charIdx);
   }
 
