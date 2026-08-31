@@ -3342,6 +3342,8 @@ function updatePlayer(player, binds, delta, otherPlayer) {
         otherPlayer.stunTimer    = 3.0;
         otherPlayer.speed       *= 0.4;
         playSlipSound();
+        // Play a hit voiceline for the player who got smashed
+        playCharacterVoiceline(otherPlayer.charIndex, 'hit');
       }
       // Star player barely slows down
       player.speed *= 0.92;
@@ -3792,7 +3794,7 @@ function updateItemBoxes(delta) {
     }
     if (box.active) {
       box.mesh.rotation.y += delta * 2;
-      box.mesh.position.y = 0.5 + Math.sin(Date.now() * 0.003) * 0.15;
+      box.mesh.position.y = 0.8 + Math.sin(Date.now() * 0.003) * 0.15;
     }
   });
 }
@@ -3868,11 +3870,11 @@ function startGame() {
   BOX_T_OFFSETS.forEach(t => {
     const pt = TRACK_CURVE.getPoint(t);
     const b1 = makeItemBox();
-    b1.position.set(pt.x, 0.5, pt.z); s1.add(b1);
+    b1.position.set(pt.x, 0.8, pt.z); s1.add(b1);
     let b2 = null;
     if (!isSolo) {
       b2 = makeItemBox();
-      b2.position.set(pt.x, 0.5, pt.z); s2.add(b2);
+      b2.position.set(pt.x, 0.8, pt.z); s2.add(b2);
     }
     itemBoxes.push({ mesh: b1, mesh2: b2, active: true, respawnTimer: 0 });
   });
