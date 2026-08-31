@@ -4,11 +4,7 @@
 // =============================================
 const CHARACTERS = [
   // color      = kart body colour in the 3D scene (Three.js hex, lit by scene lighting)
-  // lightbarColor = DS4 lightbar LED colour, separate from the kart colour because kart
-  //   colours are tuned for a lit 3D scene and look wrong on the bar: Mama Luigi's
-  //   0x228B22 sends R=34 G=139 B=34 to the LED — dim and murky. Rick Astley's 0x363030
-  //   is nearly invisible. These are vivid primaries/secondaries so each character is
-  //   immediately readable at a glance on the hardware.
+  // lightbarColor = DS4 lightbar LED colour, separate from the kart colour.
   { name: "Mama Luigi",    img: "assets/Mama-Luigi.png",     color: 0x228B22, lightbarColor: 0x00FF00, voicelines: ['assets/voicelines/mama-luigi-hit.mp3', 'assets/voicelines/mama-luigi-win.mp3', 'assets/voicelines/mama-luigi-lose.mp3'] }, // vivid green
   { name: "King Harkinian",img: "assets/King-Harkinian.png", color: 0xDAA520, lightbarColor: 0xFF8C00, voicelines: ['assets/voicelines/king-harkinian-hit.mp3', 'assets/voicelines/king-harkinian-win.mp3', 'assets/voicelines/king-harkinian-lose.mp3'] }, // bright orange-gold
   { name: "Doge",          img: "assets/Doge.png",           color: 0xCBB987, lightbarColor: 0xFFDD44, voicelines: ['assets/voicelines/doge-hit.mp3', 'assets/voicelines/doge-win.mp3', 'assets/voicelines/doge-lose.mp3'] }, // warm yellow
@@ -18,6 +14,7 @@ const CHARACTERS = [
   { name: "Rick Astley",   img: "assets/Rick-Astley.png",    color: 0x363030, lightbarColor: 0x363030, voicelines: ['assets/voicelines/rick-astley-hit.mp3', 'assets/voicelines/rick-astley-win.mp3', 'assets/voicelines/rick-astley-lose.mp3'] }, // almost black
   { name: "Weegee",        img: "assets/Weegee.png",         color: 0x4c7e66, lightbarColor: 0x33cc66, voicelines: ['assets/voicelines/weegee-hit.mp3', 'assets/voicelines/weegee-win.mp3', 'assets/voicelines/weegee-lose.mp3'] }, // emerald green (distinct from Mama Luigi green)
   { name: "Morshu",        img: "assets/Morshu.png",         color: 0xFF8000, lightbarColor: 0xFFA500, voicelines: ['assets/voicelines/morshu-hit.mp3', 'assets/voicelines/morshu-win.mp3', 'assets/voicelines/morshu-lose.mp3'] }, // orange
+  { name: "Malleo",        img: "assets/Malleo.png",         color: 0xb30c0c, lightbarColor: 0xFF0000, voicelines: ['assets/voicelines/malleo-hit.mp3', 'assets/voicelines/malleo-win.mp3', 'assets/voicelines/malleo-lose.mp3'] }, // red
 ];
 
 // =============================================
