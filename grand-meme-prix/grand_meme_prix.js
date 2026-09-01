@@ -1,3 +1,15 @@
+const cannonReady = import('../cannon-es.js');
+let CannonBody = null;
+let CannonSphere = null;
+let CannonVec3 = null;
+let CannonWorld = null;
+cannonReady.then(({ Body, Sphere, Vec3, World }) => {
+  CannonBody = Body;
+  CannonSphere = Sphere;
+  CannonVec3 = Vec3;
+  CannonWorld = World;
+});
+
 // =============================================
 // MEME CHARACTERS ARRAY — add new ones easily!
 // Just drop PNG files next to the HTML and add entries here.
@@ -15,6 +27,7 @@ const CHARACTERS = [
   { name: "Weegee",        img: "assets/Weegee.png",         color: 0x4c7e66, lightbarColor: 0x33cc66, voicelines: ['assets/voicelines/weegee-hit.mp3', 'assets/voicelines/weegee-win.mp3', 'assets/voicelines/weegee-lose.mp3'] }, // emerald green (distinct from Mama Luigi green)
   { name: "Morshu",        img: "assets/Morshu.png",         color: 0xFF8000, lightbarColor: 0xFFA500, voicelines: ['assets/voicelines/morshu-hit.mp3', 'assets/voicelines/morshu-win.mp3', 'assets/voicelines/morshu-lose.mp3'] }, // orange
   { name: "Malleo",        img: "assets/Malleo.png",         color: 0xb30c0c, lightbarColor: 0xFF0000, voicelines: ['assets/voicelines/malleo-hit.mp3', 'assets/voicelines/malleo-win.mp3', 'assets/voicelines/malleo-lose.mp3'] }, // red
+  { name: "Mayor Cravendish", img: "assets/Mayor-Cravendish.png", color: 0x0fa4c8, lightbarColor: 0x0000FF, voicelines: ['assets/voicelines/mayor-cravendish-hit.mp3', 'assets/voicelines/mayor-cravendish-win.mp3', 'assets/voicelines/mayor-cravendish-lose.mp3'] }, // blue
 ];
 
 // =============================================
@@ -102,6 +115,7 @@ function applySettings() {
   if (typeof bgmEl !== 'undefined' && bgmEl) bgmEl.volume = settings.musicVol / 100;
   // Win sound (MP3)
   if (typeof winSoundEl !== 'undefined' && winSoundEl) winSoundEl.volume = settings.sfxVol / 100;
+  activeSfxAudio.forEach(el => { el.volume = settings.sfxVol / 100; });
   // One-shot Web Audio SFX (countdown, slip, shell, launch sounds)
   if (sfxMasterGain) sfxMasterGain.gain.value = settings.sfxVol / 100;
   // Engine synth — masterGain nodes are stored on each voice
@@ -1395,6 +1409,112 @@ let raceTimer = 0;
 let animId;
 let keys = {};
 let itemBoxes = [];
+let kartBumpWorld = null;
+let kartBumpBodies = [];
+const KART_BUMP_RADIUS = 1.35;
+const KART_BUMP_CONTACT_DISTANCE_SQ = (KART_BUMP_RADIUS * 2.05) ** 2;
+
+function initKartBumpPhysics() {
+  kartBumpWorld = new CannonWorld({ gravity: new CannonVec3(0, 0, 0) });
+  kartBumpWorld.solver.iterations = 4;
+  kartBumpWorld.solver.tolerance = 1e-4;
+  kartBumpWorld.defaultContactMaterial.restitution = 0.55;
+  kartBumpWorld.defaultContactMaterial.friction = 0.12;
+  kartBumpBodies = players.map(player => {
+    const body = new CannonBody({
+      mass: 1.4,
+      shape: new CannonSphere(KART_BUMP_RADIUS),
+      fixedRotation: true,
+      linearDamping: 0,
+      angularDamping: 1,
+      allowSleep: false,
+    });
+    body.position.set(player.kart.position.x, 0, player.kart.position.z);
+    body._inputVelocity = new CannonVec3();
+    kartBumpWorld.addBody(body);
+    return body;
+  });
+}
+
+function updateKartBumpPhysics(delta) {
+  if (!kartBumpWorld || kartBumpBodies.length !== players.length) return;
+
+  players.forEach((player, index) => {
+    const body = kartBumpBodies[index];
+    if (player.bombAirborneTimer > 0) {
+      body.position.set(player.kart.position.x, 0, player.kart.position.z);
+      body.velocity.set(0, 0, 0);
+      return;
+    }
+    const velocity = body._inputVelocity;
+    velocity.set(
+      Math.sin(player.angle) * player.speed,
+      0,
+      Math.cos(player.angle) * player.speed,
+    );
+    body.position.set(
+      player.kart.position.x - velocity.x * delta,
+      0,
+      player.kart.position.z - velocity.z * delta,
+    );
+    body.velocity.copy(velocity);
+    body.wakeUp();
+  });
+
+  let contactPossible = false;
+  for (let i = 0; i < players.length && !contactPossible; i++) {
+    for (let j = i + 1; j < players.length; j++) {
+      const dx = players[i].kart.position.x - players[j].kart.position.x;
+      const dz = players[i].kart.position.z - players[j].kart.position.z;
+      if (dx * dx + dz * dz < KART_BUMP_CONTACT_DISTANCE_SQ) {
+        contactPossible = true;
+        break;
+      }
+    }
+  }
+  if (!contactPossible) return;
+
+  kartBumpWorld.step(delta);
+
+  players.forEach((player, index) => {
+    const body = kartBumpBodies[index];
+    if (player.bombAirborneTimer > 0) return;
+    player.kart.position.x = body.position.x;
+    player.kart.position.z = body.position.z;
+
+    const vx = body.velocity.x;
+    const vz = body.velocity.z;
+    const resolvedSpeed = Math.hypot(vx, vz);
+    if (resolvedSpeed > 0.01) {
+      player.angle = Math.atan2(vx, vz);
+      player.speed = resolvedSpeed;
+    } else {
+      player.speed = 0;
+    }
+  });
+
+  for (let i = 0; i < players.length; i++) {
+    for (let j = i + 1; j < players.length; j++) {
+      const first = players[i];
+      const second = players[j];
+      if (first.kart.position.distanceTo(second.kart.position) >= 2.8) continue;
+
+      const starPlayer = first.starTimer > 0 && second.starTimer <= 0 ? first
+        : second.starTimer > 0 && first.starTimer <= 0 ? second
+        : null;
+      const target = starPlayer === first ? second : starPlayer === second ? first : null;
+      if (!target || target.spinoutTimer > 0) continue;
+
+      target.spinoutTimer = 3.0;
+      target.spinoutAngle = 0;
+      target.stunTimer = 3.0;
+      target.speed *= 0.4;
+      starPlayer.speed *= 0.92;
+      playSlipSound();
+      playCharacterVoiceline(target.charIndex, 'hit');
+    }
+  }
+}
 
 // =============================================
 // DEV MODE
@@ -1804,6 +1924,22 @@ function playCountdownBeeps() {
 
 // ── BACKGROUND MUSIC via <audio> element ──
 let bgmEl = null;
+const activeSfxAudio = new Set();
+
+function playSfxAudio(src) {
+  const el = document.createElement('audio');
+  el.src = src;
+  el.volume = settings.sfxVol / 100;
+  const cleanup = () => {
+    activeSfxAudio.delete(el);
+    el.remove();
+  };
+  el.onended = cleanup;
+  el.onerror = cleanup;
+  activeSfxAudio.add(el);
+  document.body.appendChild(el);
+  el.play().catch(cleanup);
+}
 
 function startBGM() {
   if (!bgmEl) {
@@ -2617,6 +2753,11 @@ function createPlayer(charIndex, startPos, startAngle, scene) {
     lightningTimer: 0,       // > 0 = shrunk + half speed from lightning strike (13s)
     _scaleAnim: null,        // active scale animation { type, from, to, duration, elapsed }
     _lightningPitchShift: false,
+    bombAirborneTimer: 0,
+    bombAirborneElapsed: 0,
+    bombAirborneStartY: 0,
+    bombAirborneDistance: 0,
+    bombAirborneAngle: 0,
   };
 }
 
@@ -2641,11 +2782,12 @@ function updateLaps(player) {
       player.lap++;
       if (player.lap > TOTAL_LAPS && !player.finishTime) {
         player.finishTime = (Date.now() - raceStart) / 1000;
-        // Determine finishing position: if any other player already finished, this is 2nd place
-        const isFirst = !players.some(p => p !== player && p.finishTime !== null);
+        // The crossing order is the final finishing place, even while other
+        // racers are still driving toward the line.
+        player.finishPlace = players.filter(p => p.finishTime !== null).length;
         const charIdx = player.charIndex;
         setTimeout(() => {
-          playCharacterVoiceline(charIdx, isFirst ? 'win' : 'lose');
+          playCharacterVoiceline(charIdx, player.finishPlace === 1 ? 'win' : 'lose');
         }, 1000);
         checkAllFinished();
       }
@@ -2685,15 +2827,20 @@ function checkAllFinished() {
   const allFinished   = players.every(p => p.finishTime !== null);
   const someFinished  = players.some(p => p.finishTime !== null);
 
+  // A finished human must keep driving under the cinematic AI. A CPU may have
+  // claimed winnerAI earlier, so selecting only when winnerAI is null leaves a
+  // human kart frozen as soon as updatePlayer() starts skipping it.
+  const latestHuman = humanPlayers
+    .filter(p => p.finishTime !== null)
+    .sort((a, b) => b.finishTime - a.finishTime)[0];
+  const latestHumanIdx = latestHuman ? players.indexOf(latestHuman) : -1;
+
   // ── All racers done → start 10-second cinematic then show podium ─────────
   if (allFinished) {
     // Activate cinematic camera on the last human to finish (they just crossed)
     // so their camera gets the cool treatment during the countdown.
-    const lastHuman = humanPlayers
-      .filter(p => p.finishTime !== null)
-      .sort((a, b) => b.finishTime - a.finishTime)[0]; // highest finishTime = last to finish
-    if (lastHuman && !winnerAI) {
-      activateWinnerAI(players.indexOf(lastHuman));
+    if (latestHuman && (!winnerAI || winnerAI.playerIdx !== latestHumanIdx)) {
+      activateWinnerAI(latestHumanIdx);
     }
     _startPostFinishCinematic();
     return;
@@ -2708,8 +2855,9 @@ function checkAllFinished() {
 
     // Activate winnerAI for the first finisher so their kart keeps driving while
     // we wait for everyone else.  Only do this once (winnerAI guard).
-    if (!winnerAI) {
-      activateWinnerAI(finishedIndices[0]);
+    const cinematicIdx = latestHumanIdx !== -1 ? latestHumanIdx : finishedIndices[0];
+    if (!winnerAI || winnerAI.playerIdx !== cinematicIdx) {
+      activateWinnerAI(cinematicIdx);
     }
 
     // In solo mode: if all CPUs have finished but the human hasn't yet, we wait
@@ -2726,6 +2874,11 @@ function checkAllFinished() {
         players.forEach(p => {
           if (p.finishTime === null) p.finishTime = (Date.now() - raceStart) / 1000;
         });
+        const forcedHuman = humanPlayers[humanPlayers.length - 1];
+        const forcedHumanIdx = players.indexOf(forcedHuman);
+        if (forcedHuman && (!winnerAI || winnerAI.playerIdx !== forcedHumanIdx)) {
+          activateWinnerAI(forcedHumanIdx);
+        }
         _startPostFinishCinematic();
       }
     }, 90000);
@@ -2742,6 +2895,7 @@ const ITEMS_WEIGHTED = [
   '⭐ Star',   '⭐ Star',   '⭐ Star',   '⭐ Star',
   '💨 Boost',  '💨 Boost',  '💨 Boost',  '💨 Boost',
   '⚡ Lightning',  // rare — only 1 entry out of 17
+  '💣 Bomb',
 ];
 const ITEMS = ITEMS_WEIGHTED; // kept for any external references
 
@@ -2966,13 +3120,7 @@ function makeLightningBoltMesh() {
 
 // Play the lightning-strike.mp3 sound file
 function playLightningStrikeSound() {
-  const el = document.createElement('audio');
-  el.src = 'assets/lightning-strike.mp3';
-  el.volume = settings.sfxVol / 100;
-  el.onended = () => el.remove();
-  el.onerror  = () => el.remove();
-  document.body.appendChild(el);
-  el.play().catch(() => {});
+  playSfxAudio('assets/lightning-strike.mp3');
 }
 
 // ── Live bolt entries — updated every frame by updateLightningEffects() ──────
@@ -3169,6 +3317,217 @@ function triggerLightningStrike(thrower) {
 //              homingVel,      ← {x,z} velocity used during direct homing phase
 //              phase }         ← 'track' | 'homing'
 let redShells = [];
+
+// =============================================
+// BOMB ITEM
+// =============================================
+let bombs = [];
+const BOMB_FUSE_DURATION = 3;
+const BOMB_BLAST_RADIUS = 6;
+const BOMB_AIRBORNE_DURATION = 5;
+
+function makeBombMesh() {
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.SphereGeometry(0.75, 16, 12),
+    new THREE.MeshLambertMaterial({ color: 0x171717 })
+  );
+  const cap = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.22, 0.28, 0.18, 12),
+    new THREE.MeshLambertMaterial({ color: 0x555555 })
+  );
+  cap.position.y = 0.7;
+  group.add(body, cap);
+
+  const fuse = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.07, 0.07, 0.8, 8),
+    new THREE.MeshLambertMaterial({ color: 0x8b5a2b })
+  );
+  fuse.position.set(0, 1.15, 0);
+  fuse.rotation.z = -0.18;
+  group.add(fuse);
+
+  const spark = new THREE.Mesh(
+    new THREE.SphereGeometry(0.14, 8, 8),
+    new THREE.MeshBasicMaterial({ color: 0xffcc00 })
+  );
+  spark.position.set(0.07, 1.55, 0);
+  group.add(spark);
+  group.userData.spark = spark;
+  group.userData.fuse = fuse;
+  group.userData.spin = 1.8;
+  group.traverse(obj => {
+    if (obj.isMesh) {
+      obj.castShadow = settings.shadows;
+      obj.receiveShadow = settings.shadows;
+    }
+  });
+  return group;
+}
+
+function spawnBomb(thrower) {
+  const behind = new THREE.Vector3(
+    -Math.sin(thrower.angle) * 3.2,
+    0,
+    -Math.cos(thrower.angle) * 3.2
+  );
+  const position = thrower.kart.position.clone().add(behind);
+  position.y = 0.75;
+  const mesh1 = makeBombMesh();
+  const mesh2 = scenes[1] ? makeBombMesh() : null;
+  mesh1.position.copy(position);
+  if (mesh2) mesh2.position.copy(position);
+  scenes[0].add(mesh1);
+  if (mesh2) scenes[1].add(mesh2);
+  bombs.push({ mesh1, mesh2, position: position.clone(), fuse: BOMB_FUSE_DURATION, exploded: false });
+}
+
+function makeExplosionMesh() {
+  const group = new THREE.Group();
+  const outer = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 16, 12),
+    new THREE.MeshBasicMaterial({ color: 0xff5a00, transparent: true, opacity: 0.9 })
+  );
+  const inner = new THREE.Mesh(
+    new THREE.SphereGeometry(0.55, 12, 8),
+    new THREE.MeshBasicMaterial({ color: 0xffee88, transparent: true, opacity: 1 })
+  );
+  group.add(outer, inner);
+  for (let i = 0; i < 10; i++) {
+    const spike = new THREE.Mesh(
+      new THREE.ConeGeometry(0.22, 1.5, 6),
+      new THREE.MeshBasicMaterial({ color: i % 2 ? 0xff2200 : 0xffaa00, transparent: true, opacity: 0.85 })
+    );
+    const angle = (i / 10) * Math.PI * 2;
+    spike.position.set(Math.cos(angle) * 0.75, 0.4, Math.sin(angle) * 0.75);
+    spike.rotation.z = Math.PI / 2;
+    spike.rotation.y = angle;
+    group.add(spike);
+  }
+  return group;
+}
+
+function playBombExplosionSound() {
+  playSfxAudio('assets/bomb-explosion.mp3');
+}
+
+function launchPlayerFromBomb(player, origin) {
+  if (player.finishTime !== null || player.bombAirborneTimer > 0) return;
+  const dx = player.kart.position.x - origin.x;
+  const dz = player.kart.position.z - origin.z;
+  const distance = Math.hypot(dx, dz) || 1;
+  const strength = Math.max(0.35, 1 - distance / BOMB_BLAST_RADIUS);
+  player.bombAirborneTimer = BOMB_AIRBORNE_DURATION;
+  player.bombAirborneElapsed = 0;
+  player.bombAirborneStartY = player.kart.position.y;
+  player.bombAirborneStartX = player.kart.position.x;
+  player.bombAirborneStartZ = player.kart.position.z;
+  player.bombAirborneDistance = 5 + strength * 7;
+  player.bombAirborneAngle = Math.atan2(dx, dz);
+  player.speed = 0;
+  player.stunTimer = BOMB_AIRBORNE_DURATION;
+  player.spinoutTimer = 0;
+  player.kart.rotation.z = 0;
+  playCharacterVoiceline(player.charIndex, 'hit');
+}
+
+function explodeBomb(bomb) {
+  bomb.exploded = true;
+  scenes[0].remove(bomb.mesh1);
+  if (bomb.mesh2) scenes[1].remove(bomb.mesh2);
+  const explosion1 = makeExplosionMesh();
+  const explosion2 = scenes[1] ? makeExplosionMesh() : null;
+  explosion1.position.copy(bomb.position);
+  if (explosion2) explosion2.position.copy(bomb.position);
+  scenes[0].add(explosion1);
+  if (explosion2) scenes[1].add(explosion2);
+  const effect = { mesh1: explosion1, mesh2: explosion2, elapsed: 0 };
+  bomb.effect = effect;
+  playBombExplosionSound();
+
+  for (const player of players) {
+    if (player.starTimer > 0) continue;
+    const dx = player.kart.position.x - bomb.position.x;
+    const dz = player.kart.position.z - bomb.position.z;
+    if (dx * dx + dz * dz <= BOMB_BLAST_RADIUS * BOMB_BLAST_RADIUS) {
+      launchPlayerFromBomb(player, bomb.position);
+    }
+  }
+}
+
+function updateBombs(delta) {
+  for (const bomb of bombs) {
+    if (!bomb.exploded) {
+      const bombHitDistanceSq = 2.2 * 2.2;
+      const bombHit = players.some(player => {
+        if (player.finishTime !== null || player.bombAirborneTimer > 0) return false;
+        const dx = player.kart.position.x - bomb.position.x;
+        const dz = player.kart.position.z - bomb.position.z;
+        return dx * dx + dz * dz <= bombHitDistanceSq;
+      });
+      if (bombHit) bomb.fuse = 0;
+      bomb.fuse -= delta;
+      const fuseProgress = Math.max(0, bomb.fuse / BOMB_FUSE_DURATION);
+      const fuseLength = 0.8 * fuseProgress;
+      bomb.mesh1.userData.fuse.scale.y = fuseProgress;
+      bomb.mesh1.userData.fuse.position.y = 0.75 + fuseLength / 2;
+      bomb.mesh1.userData.spark.position.y = 0.75 + fuseLength + 0.08;
+      bomb.mesh1.rotation.y += delta * bomb.mesh1.userData.spin;
+      bomb.mesh1.userData.spark.visible = Math.floor(bomb.fuse * 10) % 2 === 0;
+      if (bomb.mesh2) {
+        bomb.mesh2.rotation.y = bomb.mesh1.rotation.y;
+        bomb.mesh2.userData.fuse.scale.y = fuseProgress;
+        bomb.mesh2.userData.fuse.position.y = 0.75 + fuseLength / 2;
+        bomb.mesh2.userData.spark.position.y = 0.75 + fuseLength + 0.08;
+        bomb.mesh2.userData.spark.visible = bomb.mesh1.userData.spark.visible;
+      }
+      if (bomb.fuse <= 0) explodeBomb(bomb);
+    }
+    if (!bomb.effect) continue;
+    bomb.effect.elapsed += delta;
+    const progress = Math.min(bomb.effect.elapsed / 0.8, 1);
+    const scale = 1 + progress * BOMB_BLAST_RADIUS;
+    bomb.effect.mesh1.scale.setScalar(scale);
+    bomb.effect.mesh1.children.forEach(child => { child.material.opacity = 1 - progress; });
+    if (bomb.effect.mesh2) {
+      bomb.effect.mesh2.scale.setScalar(scale);
+      bomb.effect.mesh2.children.forEach(child => { child.material.opacity = 1 - progress; });
+    }
+    if (progress >= 1) {
+      scenes[0].remove(bomb.effect.mesh1);
+      if (bomb.effect.mesh2) scenes[1].remove(bomb.effect.mesh2);
+      bomb.effect = null;
+    }
+  }
+  bombs = bombs.filter(bomb => !bomb.exploded || bomb.effect);
+}
+
+function updateBombAirborne(player, delta) {
+  if (player.bombAirborneTimer <= 0) return false;
+  player.bombAirborneTimer = Math.max(0, player.bombAirborneTimer - delta);
+  player.bombAirborneElapsed += delta;
+  const progress = Math.min(player.bombAirborneElapsed / BOMB_AIRBORNE_DURATION, 1);
+  const smoothProgress = progress * progress * (3 - 2 * progress);
+  const arc = Math.sin(progress * Math.PI);
+  player.kart.position.x = player.bombAirborneStartX
+    + Math.sin(player.bombAirborneAngle) * player.bombAirborneDistance * smoothProgress;
+  player.kart.position.z = player.bombAirborneStartZ
+    + Math.cos(player.bombAirborneAngle) * player.bombAirborneDistance * smoothProgress;
+  player.kart.position.y = player.bombAirborneStartY + arc * 8;
+  player.kart.rotation.y = player.bombAirborneAngle + progress * Math.PI * 8;
+  const landingBlend = Math.sin(progress * Math.PI);
+  player.kart.rotation.x = landingBlend * Math.PI * 2;
+  player.kart.rotation.z = landingBlend * Math.PI * 3;
+  player.speed = 0;
+  if (progress >= 1) {
+    player.kart.position.y = player.bombAirborneStartY;
+    player.kart.rotation.x = 0;
+    player.kart.rotation.z = 0;
+    player.bombAirborneTimer = 0;
+    player.stunTimer = 0;
+  }
+  return true;
+}
 
 // ── Build a 3D red shell mesh ──
 function makeRedShellMesh() {
@@ -3526,6 +3885,9 @@ function useItem(player, otherPlayer) {
   } else if (player.item.includes('Lightning')) {
     // Strike ALL other racers simultaneously — Mario Kart style
     triggerLightningStrike(player);
+
+  } else if (player.item.includes('Bomb')) {
+    spawnBomb(player);
   }
 
   player.item = null;
@@ -3612,6 +3974,8 @@ const OFFTRACK_MULT = 0.3;     // speed multiplier when off track
 
 function updatePlayer(player, binds, delta, otherPlayer) {
   if (player.finishTime) return;
+
+  if (updateBombAirborne(player, delta)) return;
 
   // Tick immunity timer
   if (player.bananaImmune > 0) player.bananaImmune -= delta;
@@ -3774,34 +4138,6 @@ function updatePlayer(player, binds, delta, otherPlayer) {
 
   if (player.itemCooldown > 0) player.itemCooldown -= delta;
 
-  // Player–player collision — check against all other active players
-  for (const otherPlayer of players) {
-    if (otherPlayer === player) continue;
-    const dist = player.kart.position.distanceTo(otherPlayer.kart.position);
-    if (dist < 2.5) {
-      const push = new THREE.Vector3().subVectors(player.kart.position, otherPlayer.kart.position).normalize();
-      player.kart.position.addScaledVector(push, 1.5);
-
-      if (player.starTimer > 0 && otherPlayer.starTimer <= 0) {
-        // Star player smashes the other into a full spinout — KAPOW 💥
-        if (otherPlayer.spinoutTimer <= 0) {
-          otherPlayer.spinoutTimer = 3.0;
-          otherPlayer.spinoutAngle = 0;
-          otherPlayer.stunTimer    = 3.0;
-          otherPlayer.speed       *= 0.4;
-          playSlipSound();
-          // Play a hit voiceline for the player who got smashed
-          playCharacterVoiceline(otherPlayer.charIndex, 'hit');
-        }
-        // Star player barely slows down
-        player.speed *= 0.92;
-      } else {
-        // Normal bump
-        player.speed *= 0.5;
-      }
-    }
-  }
-
   // Stadium wall collision — OBB test per stand, hard bounce with velocity reflection
   const KART_R = 1.4; // half-width of kart for collision
   for (const wall of stadiumWalls) {
@@ -3860,7 +4196,31 @@ function updateSoloAI(delta, cpuIdx) {
   const ai = players[cpuIdx];
   const aiState = soloAIs[cpuIdx - 1]; // personality object for this CPU
   const human = players[0];
-  if (!ai || ai.finishTime) return;
+  if (!ai) return;
+
+  if (updateBombAirborne(ai, delta)) return;
+
+  // ── POST-FINISH: CPU already crossed the line ─────────────────────────────
+  // Keep ticking all effect timers so star/lightning/boost still expire properly,
+  // then drive the kart along the track using the same lookahead logic as winnerAI.
+  // We do NOT return early — this replaces the old hard stop.
+  if (ai.finishTime) {
+    // Tick every effect timer so visual effects don't freeze
+    if (ai.bananaImmune   > 0) ai.bananaImmune   -= delta;
+    if (ai.itemCooldown   > 0) ai.itemCooldown   -= delta;
+    if (ai.starTimer      > 0) ai.starTimer       = Math.max(0, ai.starTimer      - delta);
+    if (ai.boostTimer     > 0) ai.boostTimer      = Math.max(0, ai.boostTimer     - delta);
+    if (ai.launchBoostTimer > 0) ai.launchBoostTimer = Math.max(0, ai.launchBoostTimer - delta);
+    if (ai.launchSmokeTimer > 0) ai.launchSmokeTimer = Math.max(0, ai.launchSmokeTimer - delta);
+    if (ai.launchStallTimer > 0) ai.launchStallTimer = Math.max(0, ai.launchStallTimer - delta);
+    if (ai.lightningTimer > 0) {
+      ai.lightningTimer = Math.max(0, ai.lightningTimer - delta);
+      if (ai.lightningTimer === 0) restoreFromLightning(ai);
+    }
+
+    drivePostFinishAI(ai, aiState, delta);
+    return;
+  }
 
   if (ai.bananaImmune > 0) ai.bananaImmune -= delta;
   if (ai.itemCooldown > 0) ai.itemCooldown -= delta;
@@ -4127,6 +4487,18 @@ function updateSoloAI(delta, cpuIdx) {
       } else if (item.includes('Lightning')) {
         // Use lightning when losing or just randomly — it's a powerful nuke
         shouldUse = distanceBehind > 0.08 || Math.random() < 0.55;
+      } else if (item.includes('Bomb')) {
+        const aiTrackT = closestTrackT(ai.kart.position);
+        const kartBehind = players.some(other => {
+          if (other === ai || other.finishTime !== null || other.bombAirborneTimer > 0) return false;
+          if (other.speed <= 0.5) return false;
+          const otherTrackT = closestTrackT(other.kart.position);
+          const trackDistanceBehind = (aiTrackT - otherTrackT + 1) % 1;
+          const worldDistance = ai.kart.position.distanceTo(other.kart.position);
+          return trackDistanceBehind > 0.002 && trackDistanceBehind < 0.08 && worldDistance < 10;
+        });
+        // Bombs are primarily defensive: wait for a moving kart to be close behind.
+        shouldUse = kartBehind ? Math.random() < 0.9 : Math.random() < 0.08;
       }
 
       if (shouldUse) {
@@ -4164,6 +4536,36 @@ let winnerAI = null;
 const AI_SPEED_TARGET = MAX_SPEED * 0.82; // a little slower than max so it feels natural
 const AI_STEER_RATE   = 2.6;              // rad/s steering correction
 
+// Shared post-finish driver for CPUs and the cinematic-controlled racer.
+function drivePostFinishAI(player, state, delta) {
+  const LOOKAHEAD = 0.025;
+  const arcLen = TRACK_CURVE.getLength();
+  const dtPerSec = AI_SPEED_TARGET / arcLen;
+
+  if (state.postFinishTrackT === undefined) {
+    state.postFinishTrackT = closestTrackT(player.kart.position);
+  }
+  state.postFinishTrackT = (state.postFinishTrackT + dtPerSec * delta) % 1;
+
+  const targetPt = TRACK_CURVE.getPoint((state.postFinishTrackT + LOOKAHEAD) % 1);
+  const dx = targetPt.x - player.kart.position.x;
+  const dz = targetPt.z - player.kart.position.z;
+  const desiredAngle = Math.atan2(dx, dz);
+  let angleDiff = desiredAngle - player.angle;
+  while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+  while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+  const maxSteer = AI_STEER_RATE * delta;
+  player.angle += Math.max(-maxSteer, Math.min(maxSteer, angleDiff));
+  if (player.speed < AI_SPEED_TARGET) player.speed += ACCEL * 0.7 * delta;
+  player.speed = Math.min(player.speed, AI_SPEED_TARGET);
+  player.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
+  player.kart.position.x += Math.sin(player.angle) * player.speed * delta;
+  player.kart.position.z += Math.cos(player.angle) * player.speed * delta;
+  player.kart.rotation.y = player.angle;
+  player.kart.rotation.z = 0;
+}
+
 function activateWinnerAI(playerIdx) {
   const p = players[playerIdx];
   // Snap to the nearest track position so the AI has a clean starting t
@@ -4188,42 +4590,7 @@ function updateWinnerAI(delta) {
   if (!p || p.finishTime === null) return; // safety — shouldn't happen
 
   // ── 1. DRIVE ALONG THE TRACK ──
-  // Compute the track centre-line point one lookahead distance ahead of the kart
-  const LOOKAHEAD = 0.025; // fraction of curve to look ahead (~one corner)
-  const arcLen    = TRACK_CURVE.getLength();
-  const dtPerSec  = AI_SPEED_TARGET / arcLen; // how much t to cover per second at target speed
-
-  // Advance internal trackT at the same rate as the kart will actually travel
-  winnerAI.trackT = (winnerAI.trackT + dtPerSec * delta) % 1;
-
-  const lookaheadT  = (winnerAI.trackT + LOOKAHEAD) % 1;
-  const targetPt    = TRACK_CURVE.getPoint(lookaheadT);
-
-  // Desired angle: from kart position toward lookahead point on curve
-  const dx = targetPt.x - p.kart.position.x;
-  const dz = targetPt.z - p.kart.position.z;
-  const desiredAngle = Math.atan2(dx, dz);
-
-  // Steer angle toward desired, clamped to AI_STEER_RATE
-  let angleDiff = desiredAngle - p.angle;
-  // Wrap to [-π, π]
-  while (angleDiff >  Math.PI) angleDiff -= Math.PI * 2;
-  while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-  const maxSteer = AI_STEER_RATE * delta;
-  p.angle += Math.max(-maxSteer, Math.min(maxSteer, angleDiff));
-
-  // Accelerate toward target speed
-  if (p.speed < AI_SPEED_TARGET) {
-    p.speed += ACCEL * 0.7 * delta;
-  }
-  p.speed = Math.min(p.speed, AI_SPEED_TARGET);
-  p.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
-
-  // Move the kart
-  p.kart.position.x += Math.sin(p.angle) * p.speed * delta;
-  p.kart.position.z += Math.cos(p.angle) * p.speed * delta;
-  p.kart.rotation.y  = p.angle;
-  p.kart.rotation.z  = 0;
+  drivePostFinishAI(p, winnerAI, delta);
 
   // Tick effect timers so fire/rainbow effects still expire during the cinematic.
   // (updatePlayer is skipped for the winner, so we must handle this here.)
@@ -4343,7 +4710,8 @@ function updateItemBoxes(delta) {
 // =============================================
 // RACE SETUP & START
 // =============================================
-function startGame() {
+async function startGame() {
+  await cannonReady;
   const isSolo = gameMode === 'solo';
   soloAI = null;
   soloAIs = [];
@@ -4509,6 +4877,8 @@ function startGame() {
     }
     soloAI = soloAIs[0]; // keep legacy reference for compat
   }
+
+  initKartBumpPhysics();
 
   // ── Countdown + Launch Boost detection ──
   //
@@ -4742,9 +5112,11 @@ function startGame() {
       if (aiIdx !== 0 && !(gameMode_dev && devFreecam)) updatePlayer(players[0], p1Binds, delta, players[1]);
       if (!gameMode_dev) {
         if (isSolo) {
-          // Drive each CPU independently
+          // Drive each CPU independently.
+          // Finished CPUs are handled inside updateSoloAI (post-finish path) so we
+          // always call it — winnerAI only affects the human player's camera, not CPUs.
           for (let ci = 1; ci <= soloNumCPUs; ci++) {
-            if (aiIdx !== ci) updateSoloAI(delta, ci);
+            updateSoloAI(delta, ci);
           }
         } else if (aiIdx !== 1) {
           updatePlayer(players[1], p2Binds, delta, players[0]);
@@ -4753,6 +5125,9 @@ function startGame() {
 
       // AI drives the winner's kart (also updates that kart's laps)
       updateWinnerAI(delta);
+      updateBombs(delta);
+
+      updateKartBumpPhysics(delta);
 
       updateItemBoxes(delta);
       updateBananaPeels(delta, players);
@@ -5338,6 +5713,9 @@ function backToMenu() {
   stopEngineAudio();
   stopBGM();
   ghostKarts = null;
+  kartBumpWorld = null;
+  kartBumpBodies = [];
+  bombs = [];
   itemBoxes = [];
   bananaPeels = [];
   redShells = [];
