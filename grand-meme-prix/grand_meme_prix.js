@@ -2751,6 +2751,10 @@ function createPlayer(charIndex, startPos, startAngle, scene) {
     launchHoldStart: null,   // timestamp (ms) when forward was first held during countdown
     launchSmokeTimer: 0,     // > 0 = emit dark smoke from exhaust
     lightningTimer: 0,       // > 0 = shrunk + half speed from lightning strike (13s)
+    squishTimer: 0,          // > 0 while a squish animation is active
+    flatTimer: 0,            // > 0 while the kart/sprite remains pancake-flat
+    recoverTimer: 0,         // > 0 while the kart/sprite bounces back to normal
+    _squashSpeedMultiplier: 1,
     _scaleAnim: null,        // active scale animation { type, from, to, duration, elapsed }
     _lightningPitchShift: false,
     bombAirborneTimer: 0,
@@ -2769,6 +2773,8 @@ const CHECKPOINTS = [];
 for (let i = 0; i < NUM_CHECKPOINTS; i++) {
   CHECKPOINTS.push(TRACK_CURVE.getPoint(i / NUM_CHECKPOINTS));
 }
+const FINISH_LINE_POSITION = TRACK_CURVE.getPoint(0);
+CHECKPOINTS[0].copy(FINISH_LINE_POSITION);
 
 function updateLaps(player) {
   const pos = player.kart.position;
@@ -3202,6 +3208,90 @@ function updateLightningEffects(delta) {
     }
   }
 
+  // ── Flattened squish / recovery animation ────────────────────────────────
+  players.forEach(player => {
+    if (!player || !player.kart) return;
+
+    if (player.squishTimer > 0) {
+      player.squishTimer = Math.max(0, player.squishTimer - delta);
+    }
+    if (player.flatTimer > 0) {
+      player.flatTimer = Math.max(0, player.flatTimer - delta);
+      if (player.flatTimer === 0) {
+        player.recoverTimer = 0.42;
+      }
+    }
+    if (player.recoverTimer > 0) {
+      player.recoverTimer = Math.max(0, player.recoverTimer - delta);
+      if (player.recoverTimer === 0) {
+        player._squashSpeedMultiplier = 1;
+      }
+    }
+
+    const squashState = player.kart.userData.squashState;
+    if (squashState) {
+      squashState.timer += delta;
+      const isRecovering = player.flatTimer <= 0 && player.recoverTimer > 0;
+      const duration = isRecovering ? 0.42 : squashState.duration;
+      const t = Math.min(1, squashState.timer / duration);
+      const eased = 1 - Math.pow(1 - t, 4);
+      const wave = 1 + Math.sin(t * Math.PI * 6.5) * (isRecovering ? 0.12 : 0.18);
+      const start = squashState.startScale.clone();
+      const end = squashState.targetScale.clone();
+      const current = isRecovering
+        ? start.clone().lerp(end, 1 - eased).multiplyScalar(1 + Math.sin(t * Math.PI) * 0.18)
+        : start.clone().lerp(end, eased).multiplyScalar(wave);
+
+      player.kart.scale.set(
+        current.x,
+        Math.max(0.12, current.y * (isRecovering ? 1.15 : 0.9)),
+        current.z
+      );
+
+      if (t >= 1) {
+        if (isRecovering) {
+          player.kart.scale.copy(squashState.startScale);
+          delete player.kart.userData.squashState;
+        } else if (player.flatTimer <= 0) {
+          squashState.timer = 0;
+          squashState.startScale.copy(player.kart.scale);
+        }
+      }
+    }
+
+    const sprite = player.kart.userData.charSprite;
+    const spriteState = sprite && sprite.userData.squashState;
+    if (spriteState) {
+      spriteState.timer += delta;
+      const isRecovering = player.flatTimer <= 0 && player.recoverTimer > 0;
+      const duration = isRecovering ? 0.42 : spriteState.duration;
+      const t = Math.min(1, spriteState.timer / duration);
+      const eased = 1 - Math.pow(1 - t, 4);
+      const wave = 1 + Math.sin(t * Math.PI * 7.2) * (isRecovering ? 0.12 : 0.2);
+      const start = spriteState.startScale.clone();
+      const end = spriteState.targetScale.clone();
+      const current = isRecovering
+        ? start.clone().lerp(end, 1 - eased).multiplyScalar(1 + Math.sin(t * Math.PI) * 0.14)
+        : start.clone().lerp(end, eased).multiplyScalar(wave);
+
+      sprite.scale.set(
+        current.x,
+        Math.max(0.12, current.y * (isRecovering ? 1.2 : 0.92)),
+        current.z
+      );
+
+      if (t >= 1) {
+        if (isRecovering) {
+          sprite.scale.copy(spriteState.startScale);
+          delete sprite.userData.squashState;
+        } else if (player.flatTimer <= 0) {
+          spriteState.timer = 0;
+          spriteState.startScale.copy(sprite.scale);
+        }
+      }
+    }
+  });
+
   // ── Kart scale animations ─────────────────────────────────────────────────
   players.forEach(player => {
     const sa = player._scaleAnim;
@@ -3239,6 +3329,77 @@ function updateLightningEffects(delta) {
     }
   });
 }
+
+function triggerSquishSound() {
+  playSfxAudio('assets/squish.mp3');
+}
+
+function triggerKartSquish(target) {
+  if (!target || !target.kart) return;
+  if (target.squishTimer > 0 || target.flatTimer > 0) return;
+
+  target.squishTimer = 0.55;
+  target.flatTimer = 2.5;
+  target.recoverTimer = 0;
+  target._squashSpeedMultiplier = 0.42;
+
+  const kartStart = target.kart.scale.clone();
+  const kartTarget = new THREE.Vector3(
+    Math.max(1.25, kartStart.x * 2.2),
+    0.14,
+    Math.max(1.25, kartStart.z * 2.2)
+  );
+  target.kart.userData.squashState = {
+    startScale: kartStart.clone(),
+    targetScale: kartTarget,
+    duration: 0.18,
+    timer: 0,
+    recovering: false,
+  };
+
+  const sprite = target.kart.userData.charSprite;
+  if (sprite) {
+    const spriteStart = sprite.scale.clone();
+    sprite.userData.squashState = {
+      startScale: spriteStart.clone(),
+      targetScale: new THREE.Vector3(spriteStart.x * 1.7, 0.12, Math.max(0.7, spriteStart.z * 0.8)),
+      duration: 0.16,
+      timer: 0,
+      recovering: false,
+    };
+  }
+
+  triggerSquishSound();
+}
+
+function resolveTinyKartSquishes() {
+  for (let i = 0; i < players.length; i++) {
+    const runner = players[i];
+    if (!runner || !runner.kart || runner.finishTime !== null) continue;
+    const runnerScale = runner.kart.scale.x || 1;
+    if (runnerScale < 0.95) continue;
+
+    for (let j = 0; j < players.length; j++) {
+      if (i === j) continue;
+      const target = players[j];
+      if (!target || !target.kart || target.finishTime !== null) continue;
+
+      // The lightning timer is the real source of truth for "tiny racer" status.
+      // A flattened kart can temporarily grow wider in X/Z while still being
+      // lightning-shrunk underneath, so checking the current visible scale here
+      // creates false immunity after repeated squishes.
+      if (target.lightningTimer <= 0) continue;
+      if (target.squishTimer > 0 || target.flatTimer > 0) continue;
+
+      const dx = runner.kart.position.x - target.kart.position.x;
+      const dz = runner.kart.position.z - target.kart.position.z;
+      if (dx * dx + dz * dz > 5.5 * 5.5) continue;
+      triggerKartSquish(target);
+      break;
+    }
+  }
+}
+
 
 // Restore a player that was shrunk by lightning — animate the grow-back
 function restoreFromLightning(player) {
@@ -3975,6 +4136,8 @@ const OFFTRACK_MULT = 0.3;     // speed multiplier when off track
 function updatePlayer(player, binds, delta, otherPlayer) {
   if (player.finishTime) return;
 
+  resolveTinyKartSquishes();
+
   if (updateBombAirborne(player, delta)) return;
 
   // Tick immunity timer
@@ -4042,6 +4205,7 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   const onTrack = isOnTrack(player.kart.position);
   const speedMult = onTrack ? 1 : OFFTRACK_MULT;
 
+  const squashPenalty = player._squashSpeedMultiplier || 1;
   const stalled = player.launchStallTimer > 0;
 
   if (!stunned) {
@@ -4103,12 +4267,14 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   // Stall: clamp forward speed to 0 (can't drive forward) and decay to 0
   if (stalled && player.speed > 0) player.speed *= Math.pow(0.05, delta);
 
-  // Clamp speed — launch boost stacks additively with item boost; star wins over all
-  const speedCap = player.starTimer > 0 ? MAX_SPEED * 1.55
-                 : player.launchBoostTimer > 0 ? MAX_SPEED * 1.38
-                 : player.boostTimer > 0 ? MAX_SPEED * 1.4
-                 : player.lightningTimer > 0 ? MAX_SPEED * 0.5
-                 : MAX_SPEED;
+  // Lightning halves the extra speed from active Star and Boost items while the
+  // racer is small; the multiplier returns to 1 when the kart grows back.
+  const lightningBoostMultiplier = player.lightningTimer > 0 ? 0.5 : 1;
+  const speedCap = player.starTimer > 0 ? MAX_SPEED * 1.55 * lightningBoostMultiplier * squashPenalty
+                 : player.launchBoostTimer > 0 ? MAX_SPEED * 1.38 * squashPenalty
+                 : player.boostTimer > 0 ? MAX_SPEED * 1.4 * lightningBoostMultiplier * squashPenalty
+                 : player.lightningTimer > 0 ? MAX_SPEED * 0.5 * squashPenalty
+                 : MAX_SPEED * squashPenalty;
   player.speed = Math.max(-6, Math.min(speedCap * speedMult, player.speed));
 
   // Frame-rate-independent friction: multiply by (1 - friction)^delta
@@ -4197,6 +4363,8 @@ function updateSoloAI(delta, cpuIdx) {
   const aiState = soloAIs[cpuIdx - 1]; // personality object for this CPU
   const human = players[0];
   if (!ai) return;
+
+  resolveTinyKartSquishes();
 
   if (updateBombAirborne(ai, delta)) return;
 
@@ -4425,14 +4593,17 @@ function updateSoloAI(delta, cpuIdx) {
   }
 
   const onTrack = isOnTrack(ai.kart.position);
-  const speedCap = ai.starTimer > 0 ? MAX_SPEED * 1.55
-    : ai.launchBoostTimer > 0 ? MAX_SPEED * 1.38
-    : ai.boostTimer > 0 ? MAX_SPEED * 1.4
-    : ai.lightningTimer > 0 ? MAX_SPEED * 0.5
-    : MAX_SPEED;
-  const targetSpeed = (onTrack ? speedCap : MAX_SPEED * 0.25);
+  // Match human driving: lightning halves active Star and item Boost speed.
+  const squashPenalty = ai._squashSpeedMultiplier || 1;
+  const lightningBoostMultiplier = ai.lightningTimer > 0 ? 0.5 : 1;
+  const speedCap = ai.starTimer > 0 ? MAX_SPEED * 1.55 * lightningBoostMultiplier * squashPenalty
+    : ai.launchBoostTimer > 0 ? MAX_SPEED * 1.38 * squashPenalty
+    : ai.boostTimer > 0 ? MAX_SPEED * 1.4 * lightningBoostMultiplier * squashPenalty
+    : ai.lightningTimer > 0 ? MAX_SPEED * 0.5 * squashPenalty
+    : MAX_SPEED * squashPenalty;
+  const targetSpeed = speedCap * (onTrack ? 1 : OFFTRACK_MULT);
   if (ai.speed < targetSpeed) ai.speed += ACCEL * delta;
-  ai.speed = Math.min(speedCap, ai.speed);
+  ai.speed = Math.min(targetSpeed, ai.speed);
   ai.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
   ai.kart.position.x += Math.sin(ai.angle) * ai.speed * delta;
   ai.kart.position.z += Math.cos(ai.angle) * ai.speed * delta;
@@ -4542,15 +4713,22 @@ function drivePostFinishAI(player, state, delta) {
   const arcLen = TRACK_CURVE.getLength();
   const dtPerSec = AI_SPEED_TARGET / arcLen;
 
-  if (state.postFinishTrackT === undefined) {
-    state.postFinishTrackT = closestTrackT(player.kart.position);
-  }
-  state.postFinishTrackT = (state.postFinishTrackT + dtPerSec * delta) % 1;
+  // Use a single continuous track-progress value for the cinematic drive. Re-snapping
+  // to closestTrackT() every frame causes tiny position/angle oscillations near the
+  // curve and makes the winner's camera and kart visibly jitter.
+  if (typeof state.trackT !== 'number') state.trackT = closestTrackT(player.kart.position);
+  if (typeof state.postFinishTrackT !== 'number') state.postFinishTrackT = state.trackT;
 
-  const targetPt = TRACK_CURVE.getPoint((state.postFinishTrackT + LOOKAHEAD) % 1);
+  state.trackT = (state.trackT + dtPerSec * delta + 1) % 1;
+  state.postFinishTrackT = state.trackT;
+
+  const targetPt = TRACK_CURVE.getPoint((state.trackT + LOOKAHEAD) % 1);
+  const targetTan = TRACK_CURVE.getTangent((state.trackT + LOOKAHEAD) % 1).normalize();
   const dx = targetPt.x - player.kart.position.x;
   const dz = targetPt.z - player.kart.position.z;
-  const desiredAngle = Math.atan2(dx, dz);
+  const desiredAngle = Math.hypot(dx, dz) > 1
+    ? Math.atan2(dx, dz)
+    : Math.atan2(targetTan.x, targetTan.z);
   let angleDiff = desiredAngle - player.angle;
   while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
   while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
@@ -5431,11 +5609,17 @@ function updateMirrorKarts() {
     scenes[1].add(g2);
     ghostKarts = [g1, g2];
   }
-  // Sync mirror kart transforms to match the real karts every frame
+  // Sync mirror kart transforms to match the real karts every frame,
+  // including size so tiny lightning racers stay tiny on the other screen.
   ghostKarts[0].position.copy(players[1].kart.position);
   ghostKarts[0].rotation.copy(players[1].kart.rotation);
+  ghostKarts[0].scale.copy(players[1].kart.scale);
+  ghostKarts[0].userData.charSprite.scale.copy(players[1].kart.userData.charSprite.scale);
+
   ghostKarts[1].position.copy(players[0].kart.position);
   ghostKarts[1].rotation.copy(players[0].kart.rotation);
+  ghostKarts[1].scale.copy(players[0].kart.scale);
+  ghostKarts[1].userData.charSprite.scale.copy(players[0].kart.userData.charSprite.scale);
 }
 
 function syncItemBoxVisibility() {
