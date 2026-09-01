@@ -113,6 +113,14 @@
       </div>
     </div>
     <div class="controls-hint">Complete <span>3 laps</span> to win! Stay on track or you'll slow down!</div>
+    <div class="cpu-count-selector">
+      <div class="cpu-count-label">🤖 CPU COUNT</div>
+      <div class="cpu-count-controls">
+        <button class="char-btn" onclick="changeCPUCount(-1)">◀</button>
+        <span id="cpuCountDisplay" class="cpu-count-value">1</span>
+        <button class="char-btn" onclick="changeCPUCount(1)">▶</button>
+      </div>
+    </div>
     <div style="display:flex;gap:14px">
       <button class="back-btn" onclick="goBack()">◀ BACK</button>
       <button id="startBtn" onclick="startGame()">🏁 START RACE! 🏁</button>
@@ -172,8 +180,18 @@
 
 </div>
 
-<!-- HUB BUTTON — always visible bottom-left -->
+<!-- HUB BUTTON — only visible in main menu (moved to pause menu during race) -->
 <a href="../index.html" id="hub-btn">← HUB</a>
+
+<!-- PAUSE SCREEN -->
+<div id="pauseScreen" style="display:none">
+  <div id="pauseContent">
+    <div id="pauseTitle">⏸️ PAUSED</div>
+    <button class="pause-btn" onclick="resumeGame()">▶ RESUME</button>
+    <button class="pause-btn pause-btn-menu" onclick="backToMenu()">🏠 MAIN MENU</button>
+    <a href="../index.html" class="pause-btn pause-btn-hub">← HUB</a>
+  </div>
+</div>
 
 <!-- YOUTUBE CREDIT — bottom-right, hidden during race -->
 <a href="https://www.youtube.com/@That1DutchGuy" target="_blank" id="yt-credit">Made by YouTuber That One Dutch Guy</a>
@@ -200,6 +218,22 @@
   <div id="raceTimer">00:00</div>
 </div>
 
+<!-- EXTRA CPU HUD BOXES (CPU2 = bottom-right, CPU3 = bottom-left) -->
+<div class="player-hud cpu-extra-hud" id="hudCpu2" style="display:none">
+  <div class="hud-name" id="hudCpu2name">🤖 CPU 2</div>
+  <div class="hud-lap">Lap <span id="hudCpu2lap">1</span>/3</div>
+  <div class="hud-speed">⚡ <span id="hudCpu2speed">0</span> km/h</div>
+  <div id="hudCpu2item" style="font-size:20px; min-height:24px"></div>
+  <div id="hudCpu2place" class="hud-place"></div>
+</div>
+<div class="player-hud cpu-extra-hud" id="hudCpu3" style="display:none">
+  <div class="hud-name" id="hudCpu3name">🤖 CPU 3</div>
+  <div class="hud-lap">Lap <span id="hudCpu3lap">1</span>/3</div>
+  <div class="hud-speed">⚡ <span id="hudCpu3speed">0</span> km/h</div>
+  <div id="hudCpu3item" style="font-size:20px; min-height:24px"></div>
+  <div id="hudCpu3place" class="hud-place"></div>
+</div>
+
 <!-- COUNTDOWN -->
 <div id="countdown"></div>
 
@@ -210,6 +244,13 @@
     <div id="winTrophy">🏆</div>
     <h2 id="winTitle">RACE OVER!</h2>
     <div id="winPodium">
+      <div class="podium-entry" id="podium3rd" style="display:none">
+        <div class="podium-medal">🥉</div>
+        <div class="podium-char-img-wrap"><img id="win3img" src="" alt=""/></div>
+        <div class="podium-name" id="win3name"></div>
+        <div class="podium-time" id="win3time"></div>
+        <div class="podium-block bronze-block">3rd</div>
+      </div>
       <div class="podium-entry" id="podium1st">
         <div class="podium-medal">🥇</div>
         <div class="podium-char-img-wrap"><img id="win1img" src="" alt=""/></div>

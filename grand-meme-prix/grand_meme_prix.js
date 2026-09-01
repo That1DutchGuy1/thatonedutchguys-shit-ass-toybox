@@ -184,9 +184,11 @@ function resetSettings() {
 // =============================================
 // PLAYER STATE
 // =============================================
-let playerChars = [0, 1 % CHARACTERS.length];
+let playerChars = [0, 1 % CHARACTERS.length, 2 % CHARACTERS.length, 3 % CHARACTERS.length];
 let gameMode = 'coop';
-let soloAI = null;
+let soloAI = null;         // legacy single-AI state (kept for compatibility)
+let soloAIs = [];          // array of AI personality objects, one per CPU
+let soloNumCPUs = 1;       // 1-3 CPUs in solo mode
 
 function changeChar(player, dir) {
   playerChars[player] = (playerChars[player] + dir + CHARACTERS.length) % CHARACTERS.length;
@@ -216,6 +218,14 @@ function updateCharUI() {
   if (p1nameCoop) p1nameCoop.textContent = c0.name;
   if (p2imgCoop) p2imgCoop.src = c1.img;
   if (p2nameCoop) p2nameCoop.textContent = c1.name;
+  // Update CPU count selector display
+  const cpuCountEl = document.getElementById('cpuCountDisplay');
+  if (cpuCountEl) cpuCountEl.textContent = soloNumCPUs;
+}
+
+function changeCPUCount(dir) {
+  soloNumCPUs = Math.max(1, Math.min(3, soloNumCPUs + dir));
+  updateCharUI();
 }
 
 // =============================================
@@ -1378,6 +1388,8 @@ const TOTAL_LAPS = 3;
 // =============================================
 let scenes = [], cameras = [], renderers = [], players = [];
 let raceRunning = false;
+let racePaused = false;
+let pauseStart = 0;   // timestamp when pause began (for adjusting raceStart)
 let raceStart = 0;
 let raceTimer = 0;
 let animId;
@@ -1451,6 +1463,57 @@ function showDevUnlockFlash() {
     modeGroup.appendChild(btn);
   }
 }
+
+// =============================================
+// PAUSE SYSTEM — ESC key + DS4 Options button
+// =============================================
+let _gpOptionsWasPressed = [false, false]; // edge-detect Options button per pad
+
+function togglePause() {
+  if (!raceRunning && !racePaused) return; // not in a race
+  const _ws = document.getElementById('winScreen');
+  if (_ws && _ws.style.display === 'flex') return; // race over — win screen is visible
+  if (racePaused) {
+    resumeGame();
+  } else {
+    pauseGame();
+  }
+}
+
+function pauseGame() {
+  if (racePaused) return;
+  racePaused = true;
+  raceRunning = false;
+  pauseStart = Date.now();
+  document.getElementById('pauseScreen').style.display = 'flex';
+  // Stop engine audio so it doesn't drone on while paused
+  if (typeof stopEngineAudio === 'function') stopEngineAudio();
+  if (typeof bgmEl !== 'undefined' && bgmEl) bgmEl.pause();
+}
+
+function resumeGame() {
+  if (!racePaused) return;
+  racePaused = false;
+  raceRunning = true;
+  // Adjust raceStart by the amount of time we were paused so the timer is accurate
+  raceStart += (Date.now() - pauseStart);
+  document.getElementById('pauseScreen').style.display = 'none';
+  // Restart engine audio and BGM
+  if (typeof startEngineAudio === 'function') startEngineAudio();
+  if (typeof bgmEl !== 'undefined' && bgmEl) bgmEl.play().catch(() => {});
+}
+
+// ESC key listener for pause (global, always active)
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Escape') {
+    // Don't pause during countdown (raceRunning is false but we're not in menu either)
+    const _menu = document.getElementById('mainMenu');
+    const _ws   = document.getElementById('winScreen');
+    if (_menu && _menu.style.display !== 'none') return; // on main menu
+    if (_ws   && _ws.style.display   === 'flex') return; // win screen visible
+    togglePause();
+  }
+});
 
 // ── Dev mode freecam state ──
 const _devCamPos   = new THREE.Vector3(0, 10, 0);
@@ -1558,7 +1621,7 @@ const stadiumWalls = [];
 // =============================================
 let audioCtx = null;
 let sfxMasterGain = null; // master gain for all one-shot Web Audio SFX
-const engineVoices = [null, null]; // one per player
+const engineVoices = [null, null, null, null]; // up to 4 players
 
 function initAudioContext() {
   if (audioCtx) return;
@@ -1675,27 +1738,29 @@ function startEngineAudio() {
   if (!audioCtx) return;
   stopEngineAudio(); // clean up any previous voices
 
-  // P1 engine — left pan, P2 engine — right pan (subtle stereo separation)
-  [0, 1].forEach(i => {
+  // Create one engine voice per player (solo: P1 + CPUs, coop: 2 players)
+  const numVoices = players.length;
+  // Pan spread: -0.4 (left) to +0.4 (right) evenly distributed
+  for (let i = 0; i < numVoices; i++) {
     const masterGain = audioCtx.createGain();
     masterGain.gain.value = (settings.sfxVol / 100) * 0.12;
 
     // Subtle stereo pan per player
-    const panner = audioCtx.createStereoPanner
-      ? audioCtx.createStereoPanner()
-      : null;
+    const panVal = numVoices === 1 ? 0 : ((i / (numVoices - 1)) * 0.8 - 0.4);
+    const panner = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
     if (panner) {
-      panner.pan.value = i === 0 ? -0.3 : 0.3;
+      panner.pan.value = panVal;
       masterGain.connect(panner);
       panner.connect(audioCtx.destination);
     } else {
       masterGain.connect(audioCtx.destination);
     }
 
-    const voice = createEngineVoice(audioCtx, masterGain, i === 0 ? 0 : 7 + Math.random() * 6);
+    const detune = i === 0 ? 0 : 5 + Math.random() * 8 + i * 3; // each CPU has a different pitch
+    const voice = createEngineVoice(audioCtx, masterGain, detune);
     voice.masterGain = masterGain; // expose so applySettings() can reach it
     engineVoices[i] = voice;
-  });
+  }
 }
 
 function stopEngineAudio() {
@@ -1794,7 +1859,11 @@ function playCharacterVoiceline(charIndex, type) {
 function updateEngineAudio() {
   if (!audioCtx || !raceRunning) return;
   players.forEach((p, i) => {
-    if (engineVoices[i]) engineVoices[i].update(p.speed);
+    if (engineVoices[i]) {
+      // Lightning pitch shift: pass a boosted virtual speed so the engine sounds higher-pitched
+      const virtualSpeed = p._lightningPitchShift ? Math.abs(p.speed) * 2.2 + MAX_SPEED * 0.4 : p.speed;
+      engineVoices[i].update(virtualSpeed);
+    }
   });
 }
 
@@ -2545,6 +2614,9 @@ function createPlayer(charIndex, startPos, startAngle, scene) {
     launchBoostTimer: 0,     // > 0 = launch boost active (separate from item boost)
     launchHoldStart: null,   // timestamp (ms) when forward was first held during countdown
     launchSmokeTimer: 0,     // > 0 = emit dark smoke from exhaust
+    lightningTimer: 0,       // > 0 = shrunk + half speed from lightning strike (13s)
+    _scaleAnim: null,        // active scale animation { type, from, to, duration, elapsed }
+    _lightningPitchShift: false,
   };
 }
 
@@ -2584,25 +2656,94 @@ function updateLaps(player) {
 
 let _finishFallbackTimer = null;
 
+// ── Post-finish cinematic delay ──────────────────────────────────────────────
+// After the last racer crosses the line we play 10 seconds of cinematic camera
+// before showing the win screen.  _cinematicCountdownEl shows a small "podium
+// in Ns" overlay so the player isn't confused by the delay.
+let _postFinishTimer = null;   // setTimeout handle for the 10s delay
+
+function _startPostFinishCinematic() {
+  if (_postFinishTimer) return; // don't start twice
+  _postFinishTimer = setTimeout(() => {
+    _postFinishTimer = null;
+    if (raceRunning) showFinish();
+  }, 10000);
+}
+
+function _clearPostFinishCinematic() {
+  if (_postFinishTimer) { clearTimeout(_postFinishTimer); _postFinishTimer = null; }
+}
+
 function checkAllFinished() {
   if (gameMode_dev) return; // dev mode has no finish condition
-  if (players.every(p => p.finishTime !== null)) {
-    showFinish();
-  } else if (players.some(p => p.finishTime !== null)) {
-    // Winner finished — hand their kart to the AI, wait for the other player
-    const winnerIdx = players.findIndex(p => p.finishTime !== null);
-    activateWinnerAI(winnerIdx);
-    // Safety fallback: force finish after 60s if second player never crosses the line
-    // Store the timer ID so we can cancel it if the user goes back to the menu
+
+  const isSolo    = gameMode === 'solo';
+  const numHumans = isSolo ? 1 : 2;
+
+  // Identify which players are human (indices 0..numHumans-1)
+  const humanPlayers  = players.slice(0, numHumans);
+  const allFinished   = players.every(p => p.finishTime !== null);
+  const someFinished  = players.some(p => p.finishTime !== null);
+
+  // ── All racers done → start 10-second cinematic then show podium ─────────
+  if (allFinished) {
+    // Activate cinematic camera on the last human to finish (they just crossed)
+    // so their camera gets the cool treatment during the countdown.
+    const lastHuman = humanPlayers
+      .filter(p => p.finishTime !== null)
+      .sort((a, b) => b.finishTime - a.finishTime)[0]; // highest finishTime = last to finish
+    if (lastHuman && !winnerAI) {
+      activateWinnerAI(players.indexOf(lastHuman));
+    }
+    _startPostFinishCinematic();
+    return;
+  }
+
+  // ── Some (but not all) finished ───────────────────────────────────────────
+  if (someFinished) {
+    const finishedIndices = players
+      .map((p, i) => ({ p, i }))
+      .filter(({ p }) => p.finishTime !== null)
+      .map(({ i }) => i);
+
+    // Activate winnerAI for the first finisher so their kart keeps driving while
+    // we wait for everyone else.  Only do this once (winnerAI guard).
+    if (!winnerAI) {
+      activateWinnerAI(finishedIndices[0]);
+    }
+
+    // In solo mode: if all CPUs have finished but the human hasn't yet, we wait
+    // patiently — no forced finish, no early cinematic.  The human finishing
+    // will re-call checkAllFinished() and hit the allFinished branch above.
+
+    // In co-op: one human finished; wait for the other to finish naturally.
+
+    // Safety fallback: if someone never crosses after 90 s, force the podium.
     if (_finishFallbackTimer) clearTimeout(_finishFallbackTimer);
-    _finishFallbackTimer = setTimeout(() => { if (raceRunning) showFinish(); }, 60000);
+    _finishFallbackTimer = setTimeout(() => {
+      if (raceRunning) {
+        // Force-finish any player still racing so the podium has all times
+        players.forEach(p => {
+          if (p.finishTime === null) p.finishTime = (Date.now() - raceStart) / 1000;
+        });
+        _startPostFinishCinematic();
+      }
+    }, 90000);
   }
 }
 
 // =============================================
 // ITEMS
 // =============================================
-const ITEMS = ['🍌 Banana', '🔴 Shell', '⭐ Star', '💨 Boost'];
+// Weighted item pool — Lightning is rare (1 entry vs 4 for common items)
+const ITEMS_WEIGHTED = [
+  '🍌 Banana', '🍌 Banana', '🍌 Banana', '🍌 Banana',
+  '🔴 Shell',  '🔴 Shell',  '🔴 Shell',  '🔴 Shell',
+  '⭐ Star',   '⭐ Star',   '⭐ Star',   '⭐ Star',
+  '💨 Boost',  '💨 Boost',  '💨 Boost',  '💨 Boost',
+  '⚡ Lightning',  // rare — only 1 entry out of 17
+];
+const ITEMS = ITEMS_WEIGHTED; // kept for any external references
 
 // =============================================
 // BANANA PEELS — live 3D objects in world space
@@ -2691,8 +2832,8 @@ function spawnBananaPeel(thrower) {
   bananaPeels.push({ mesh1, mesh2, position: spawnPos.clone(), active: true });
 }
 
-function updateBananaPeels(delta, p1, p2) {
-  bananaPeels.forEach((peel, idx) => {
+function updateBananaPeels(delta, playersArr) {
+  bananaPeels.forEach((peel) => {
     if (!peel.active) return;
 
     // Gentle wobble so it's not completely static
@@ -2700,9 +2841,9 @@ function updateBananaPeels(delta, p1, p2) {
     if (peel.mesh2) peel.mesh2.rotation.y += delta * 0.4;
 
     // Check collision with each player.
-    // IMPORTANT: use a for-loop with break so that if p1 consumes the peel,
-    // p2 cannot also trigger off it in the same frame (forEach can't break).
-    for (const player of [p1, p2]) {
+    // IMPORTANT: use a for-loop with break so that if one player consumes the peel,
+    // no other player can also trigger off it in the same frame.
+    for (const player of playersArr) {
       if (!peel.active) break; // already consumed this frame — stop immediately
       if (player.bananaImmune > 0) continue;
       if (player.stunTimer > 0) continue;
@@ -2751,6 +2892,271 @@ function playSlipSound() {
   gain.connect(sfxMasterGain);
   osc.start();
   osc.stop(audioCtx.currentTime + 0.65);
+}
+
+// =============================================
+// LIGHTNING BOLT ITEM
+// =============================================
+// Builds a jagged 3D lightning bolt mesh descending from above the target kart.
+// Build the zigzag bolt geometry.
+// The bolt spans from y=totalH down to y=0 (impact point at origin).
+// All segment kink offsets are baked in at creation time so the shape is crisp.
+function makeLightningBoltMesh() {
+  const group = new THREE.Group();
+
+  // Two materials per segment — thick yellow outer + thin white hot core
+  // We clone per segment so each can be faded independently via opacity.
+  const SEGMENTS = 8;
+  const TOTAL_H  = 18;  // world-units tall (kart is at group origin, bolt top is above)
+  const segH = TOTAL_H / SEGMENTS;
+
+  // Pre-bake kink offsets for the whole bolt
+  const kinks = [{ x: 0, z: 0 }]; // bottom anchor (y=0, impact)
+  for (let i = 1; i < SEGMENTS; i++) {
+    kinks.unshift({
+      x: (Math.random() - 0.5) * 1.6,
+      z: (Math.random() - 0.5) * 1.6,
+    });
+  }
+  kinks.unshift({ x: 0, z: 0 }); // top anchor (y=TOTAL_H, entry from sky)
+
+  // Build segments bottom→top so segment 0 is the lowest (nearest the kart)
+  for (let i = 0; i < SEGMENTS; i++) {
+    const bKink = kinks[i];       // bottom of this segment
+    const tKink = kinks[i + 1];   // top of this segment
+
+    const botY = i       * segH;
+    const topY = (i + 1) * segH;
+
+    // Width widens slightly toward the top (entry is narrower at impact, thicker from sky)
+    const w = 0.08 + (i / SEGMENTS) * 0.14;
+
+    // Direction vector for this segment
+    const dx = tKink.x - bKink.x;
+    const dy = topY    - botY;
+    const dz = tKink.z - bKink.z;
+    const len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+    // Yellow outer bar
+    const outerGeo = new THREE.BoxGeometry(w, len, w);
+    const outerMat = new THREE.MeshBasicMaterial({ color: 0xFFEE00, transparent: true, opacity: 1.0 });
+    const outer = new THREE.Mesh(outerGeo, outerMat);
+    outer.position.set(
+      (bKink.x + tKink.x) * 0.5,
+      (botY    + topY)    * 0.5,
+      (bKink.z + tKink.z) * 0.5
+    );
+    // Align box Y-axis along the segment direction
+    const up = new THREE.Vector3(dx, dy, dz).normalize();
+    const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), up);
+    outer.quaternion.copy(quat);
+    group.add(outer);
+
+    // White hot core — ~30% width of outer
+    const coreGeo = new THREE.BoxGeometry(w * 0.3, len, w * 0.3);
+    const coreMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 1.0 });
+    const core = new THREE.Mesh(coreGeo, coreMat);
+    core.position.copy(outer.position);
+    core.quaternion.copy(outer.quaternion);
+    group.add(core);
+  }
+
+  return group;
+}
+
+// Play the lightning-strike.mp3 sound file
+function playLightningStrikeSound() {
+  const el = document.createElement('audio');
+  el.src = 'assets/lightning-strike.mp3';
+  el.volume = settings.sfxVol / 100;
+  el.onended = () => el.remove();
+  el.onerror  = () => el.remove();
+  document.body.appendChild(el);
+  el.play().catch(() => {});
+}
+
+// ── Live bolt entries — updated every frame by updateLightningEffects() ──────
+// Each entry: { bolt1, bolt2, target (player), elapsed, phase }
+// phase: 'strike' → bolt is visible and flashing
+//        'done'   → ready to remove
+const _activeBolts = [];
+
+// Set all mesh opacities inside a bolt group
+function _setBoltOpacity(boltGroup, opacity) {
+  boltGroup.traverse(obj => {
+    if (obj.isMesh && obj.material && obj.material.transparent) {
+      obj.material.opacity = opacity;
+    }
+  });
+}
+
+// Spawn a lightning bolt anchored to targetPlayer's kart. The bolt is added to
+// _activeBolts and kept alive / removed by updateLightningEffects() each frame.
+function spawnLightningVFX(targetPlayer) {
+  const bolt1 = makeLightningBoltMesh();
+  // Position so bolt bottom (y=0 in group space) sits right at kart level.
+  // The group origin = kart position; the bolt mesh spans 0→TOTAL_H upward.
+  bolt1.position.copy(targetPlayer.kart.position);
+  bolt1.position.y = 0; // bolt geometry already goes up from y=0
+  scenes[0].add(bolt1);
+
+  let bolt2 = null;
+  if (scenes[1]) {
+    bolt2 = makeLightningBoltMesh();
+    bolt2.position.copy(bolt1.position);
+    scenes[1].add(bolt2);
+  }
+
+  // Start invisible — updateLightningEffects will flash it in immediately
+  _setBoltOpacity(bolt1, 0);
+  if (bolt2) _setBoltOpacity(bolt2, 0);
+
+  _activeBolts.push({ bolt1, bolt2, target: targetPlayer, elapsed: 0, phase: 'strike' });
+}
+
+// Called every frame from the main loop. Animates all live bolts and handles
+// the kart scale shrink-in and the eventual grow-back animation.
+function updateLightningEffects(delta) {
+  // ── Bolt flash animation ──────────────────────────────────────────────────
+  for (let i = _activeBolts.length - 1; i >= 0; i--) {
+    const b = _activeBolts[i];
+    b.elapsed += delta;
+
+    if (b.phase === 'strike') {
+      // Snap bolt X/Z to follow the kart even while it's spinning
+      b.bolt1.position.x = b.target.kart.position.x;
+      b.bolt1.position.z = b.target.kart.position.z;
+      if (b.bolt2) {
+        b.bolt2.position.x = b.target.kart.position.x;
+        b.bolt2.position.z = b.target.kart.position.z;
+      }
+
+      // Three-flash sequence: flash-in(0→0.08s), hold(0.08→0.22s),
+      // flicker-off(0.22→0.28s), flicker-on(0.28→0.38s), fade-out(0.38→0.60s)
+      const e = b.elapsed;
+      let opacity;
+      if      (e < 0.08) opacity = e / 0.08;           // flash in
+      else if (e < 0.22) opacity = 1.0;                 // hold bright
+      else if (e < 0.28) opacity = 1.0 - (e - 0.22) / 0.06; // flicker off
+      else if (e < 0.38) opacity = (e - 0.28) / 0.10;  // flicker back on
+      else if (e < 0.60) opacity = 1.0 - (e - 0.38) / 0.22; // fade out
+      else               opacity = 0;
+
+      _setBoltOpacity(b.bolt1, Math.max(0, opacity));
+      if (b.bolt2) _setBoltOpacity(b.bolt2, Math.max(0, opacity));
+
+      if (e >= 0.60) {
+        b.phase = 'done';
+        scenes[0].remove(b.bolt1);
+        if (b.bolt2) scenes[1].remove(b.bolt2);
+        _activeBolts.splice(i, 1);
+      }
+    }
+  }
+
+  // ── Kart scale animations ─────────────────────────────────────────────────
+  players.forEach(player => {
+    const sa = player._scaleAnim;
+    if (!sa) return;
+
+    sa.elapsed += delta;
+    const t = Math.min(sa.elapsed / sa.duration, 1.0);
+
+    let scale;
+    if (sa.type === 'shrink') {
+      // Elastic squish: overshoot slightly then settle at 0.5
+      // Uses a dampened spring feel: fast drop, tiny bounce at the bottom
+      const ease = t < 0.7
+        ? 1.0 - (t / 0.7)           // linear drop to 0 over first 70%
+        : (t - 0.7) / 0.3 * 0.08;  // tiny bounce back up to ~0.08 extra
+      scale = sa.from + (sa.to - sa.from) * (1.0 - ease);
+      // Add a squeeze pulse at impact (t≈0.7): kart squashes wide then tall
+      const squishPhase = Math.sin(t * Math.PI * 3) * 0.12 * (1 - t);
+      player.kart.scale.set(
+        scale + squishPhase,
+        scale - squishPhase * 0.5,
+        scale + squishPhase
+      );
+    } else {
+      // 'restore' — elastic spring back to 1.0: overshoot then settle
+      // Overshoots to ~1.15 at t≈0.6 then bounces back to exactly 1.0
+      const overshoot = Math.sin(t * Math.PI) * 0.18 * (1 - t * 0.8);
+      scale = sa.from + (sa.to - sa.from) * t + overshoot;
+      player.kart.scale.setScalar(scale);
+    }
+
+    if (t >= 1.0) {
+      player.kart.scale.setScalar(sa.to);
+      player._scaleAnim = null;
+    }
+  });
+}
+
+// Restore a player that was shrunk by lightning — animate the grow-back
+function restoreFromLightning(player) {
+  const currentScale = player.kart.scale.x; // whatever scale we're at right now
+  player._scaleAnim = {
+    type:     'restore',
+    from:     currentScale,
+    to:       1.0,
+    duration: 0.45,  // 450ms grow-back
+    elapsed:  0,
+  };
+  player._lightningPitchShift = false;
+}
+
+// Apply lightning shrink + spinout to one target player
+function applyLightningToPlayer(target) {
+  if (target.finishTime !== null) return;
+  if (target.starTimer > 0) return; // star power blocks lightning
+
+  target.lightningTimer = 13;
+
+  // Spinout
+  target.spinoutTimer = 2.5;
+  target.spinoutAngle = 0;
+  target.stunTimer    = 2.5;
+  target.speed       *= 0.25;
+
+  // Animated shrink — from current scale down to 0.5
+  const currentScale = target.kart.scale.x;
+  target._scaleAnim = {
+    type:     'shrink',
+    from:     currentScale,
+    to:       0.5,
+    duration: 0.35,  // 350ms shrink
+    elapsed:  0,
+  };
+
+  target._lightningPitchShift = true;
+  playCharacterVoiceline(target.charIndex, 'hit');
+
+  // Screen flash for human players
+  const isHuman = gameMode === 'solo'
+    ? target === players[0]
+    : (target === players[0] || target === players[1]);
+  if (isHuman) {
+    const flash = document.createElement('div');
+    flash.className = 'lightning-flash-overlay';
+    document.body.appendChild(flash);
+    flash.addEventListener('animationend', () => flash.remove());
+  }
+}
+
+// Main lightning item use — hits ALL opponents at once with a staggered delay
+function triggerLightningStrike(thrower) {
+  const targets = players.filter(p => p !== thrower && p.finishTime === null);
+  if (targets.length === 0) return;
+
+  targets.forEach((target, idx) => {
+    // Stagger bolts slightly for dramatic effect (50ms apart)
+    setTimeout(() => {
+      if (!raceRunning) return;
+      spawnLightningVFX(target);
+      playLightningStrikeSound();
+      applyLightningToPlayer(target);
+    }, idx * 80);
+  });
 }
 
 // =============================================
@@ -3072,6 +3478,30 @@ function collectItem(player, idx) {
   }
 }
 
+// Find the nearest player ahead of `thrower` on the track; falls back to nearest overall.
+function findShellTarget(thrower) {
+  const throwerT = closestTrackT(thrower.kart.position);
+  let bestAhead = null, bestAheadDist = Infinity;
+  let bestAny   = null, bestAnyDist   = Infinity;
+
+  for (const p of players) {
+    if (p === thrower || p.finishTime !== null) continue;
+    const pT = closestTrackT(p.kart.position);
+    // "Ahead" means larger t (wrapping). Steps forward from thrower to p.
+    const stepsAhead = ((pT - throwerT + 1) % 1) * TRACK_SAMPLES;
+    const stepsBack  = ((throwerT - pT + 1) % 1) * TRACK_SAMPLES;
+    // World-space distance for tie-breaking
+    const worldDist = thrower.kart.position.distanceTo(p.kart.position);
+
+    if (stepsAhead < stepsBack) {
+      // p is ahead of thrower
+      if (worldDist < bestAheadDist) { bestAheadDist = worldDist; bestAhead = p; }
+    }
+    if (worldDist < bestAnyDist) { bestAnyDist = worldDist; bestAny = p; }
+  }
+  return bestAhead || bestAny; // prefer someone ahead, fall back to nearest
+}
+
 function useItem(player, otherPlayer) {
   if (!player.item || player.itemCooldown > 0) return;
 
@@ -3089,7 +3519,13 @@ function useItem(player, otherPlayer) {
     player.bananaImmune = 2.5;
 
   } else if (player.item.includes('Shell')) {
-    spawnRedShell(player, otherPlayer);
+    // Target the nearest player ahead; fallback to any opponent
+    const shellTarget = findShellTarget(player) || otherPlayer;
+    if (shellTarget) spawnRedShell(player, shellTarget);
+
+  } else if (player.item.includes('Lightning')) {
+    // Strike ALL other racers simultaneously — Mario Kart style
+    triggerLightningStrike(player);
   }
 
   player.item = null;
@@ -3190,6 +3626,15 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   if (player.boostTimer > 0) {
     player.boostTimer -= delta;
     if (player.boostTimer < 0) player.boostTimer = 0;
+  }
+
+  // Tick lightning timer — restore size when it expires
+  if (player.lightningTimer > 0) {
+    player.lightningTimer -= delta;
+    if (player.lightningTimer <= 0) {
+      player.lightningTimer = 0;
+      restoreFromLightning(player);
+    }
   }
 
   // ── Launch boost timer (separate from item boost) ──
@@ -3298,6 +3743,7 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   const speedCap = player.starTimer > 0 ? MAX_SPEED * 1.55
                  : player.launchBoostTimer > 0 ? MAX_SPEED * 1.38
                  : player.boostTimer > 0 ? MAX_SPEED * 1.4
+                 : player.lightningTimer > 0 ? MAX_SPEED * 0.5
                  : MAX_SPEED;
   player.speed = Math.max(-6, Math.min(speedCap * speedMult, player.speed));
 
@@ -3328,28 +3774,31 @@ function updatePlayer(player, binds, delta, otherPlayer) {
 
   if (player.itemCooldown > 0) player.itemCooldown -= delta;
 
-  // Player–player collision
-  const dist = player.kart.position.distanceTo(otherPlayer.kart.position);
-  if (dist < 2.5) {
-    const push = new THREE.Vector3().subVectors(player.kart.position, otherPlayer.kart.position).normalize();
-    player.kart.position.addScaledVector(push, 1.5);
+  // Player–player collision — check against all other active players
+  for (const otherPlayer of players) {
+    if (otherPlayer === player) continue;
+    const dist = player.kart.position.distanceTo(otherPlayer.kart.position);
+    if (dist < 2.5) {
+      const push = new THREE.Vector3().subVectors(player.kart.position, otherPlayer.kart.position).normalize();
+      player.kart.position.addScaledVector(push, 1.5);
 
-    if (player.starTimer > 0 && otherPlayer.starTimer <= 0) {
-      // Star player smashes the other into a full spinout — KAPOW 💥
-      if (otherPlayer.spinoutTimer <= 0) {
-        otherPlayer.spinoutTimer = 3.0;
-        otherPlayer.spinoutAngle = 0;
-        otherPlayer.stunTimer    = 3.0;
-        otherPlayer.speed       *= 0.4;
-        playSlipSound();
-        // Play a hit voiceline for the player who got smashed
-        playCharacterVoiceline(otherPlayer.charIndex, 'hit');
+      if (player.starTimer > 0 && otherPlayer.starTimer <= 0) {
+        // Star player smashes the other into a full spinout — KAPOW 💥
+        if (otherPlayer.spinoutTimer <= 0) {
+          otherPlayer.spinoutTimer = 3.0;
+          otherPlayer.spinoutAngle = 0;
+          otherPlayer.stunTimer    = 3.0;
+          otherPlayer.speed       *= 0.4;
+          playSlipSound();
+          // Play a hit voiceline for the player who got smashed
+          playCharacterVoiceline(otherPlayer.charIndex, 'hit');
+        }
+        // Star player barely slows down
+        player.speed *= 0.92;
+      } else {
+        // Normal bump
+        player.speed *= 0.5;
       }
-      // Star player barely slows down
-      player.speed *= 0.92;
-    } else {
-      // Normal bump
-      player.speed *= 0.5;
     }
   }
 
@@ -3405,8 +3854,11 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   updateLaps(player);
 }
 
-function updateSoloAI(delta) {
-  const ai = players[1];
+function updateSoloAI(delta, cpuIdx) {
+  // cpuIdx is the index into players[] (1 for first CPU, 2 for second, etc.)
+  if (cpuIdx === undefined) cpuIdx = 1;
+  const ai = players[cpuIdx];
+  const aiState = soloAIs[cpuIdx - 1]; // personality object for this CPU
   const human = players[0];
   if (!ai || ai.finishTime) return;
 
@@ -3414,6 +3866,10 @@ function updateSoloAI(delta) {
   if (ai.itemCooldown > 0) ai.itemCooldown -= delta;
   if (ai.starTimer > 0) ai.starTimer = Math.max(0, ai.starTimer - delta);
   if (ai.boostTimer > 0) ai.boostTimer = Math.max(0, ai.boostTimer - delta);
+  if (ai.lightningTimer > 0) {
+    ai.lightningTimer = Math.max(0, ai.lightningTimer - delta);
+    if (ai.lightningTimer === 0) restoreFromLightning(ai);
+  }
   if (ai.launchBoostTimer > 0) ai.launchBoostTimer = Math.max(0, ai.launchBoostTimer - delta);
   if (ai.launchSmokeTimer > 0) ai.launchSmokeTimer = Math.max(0, ai.launchSmokeTimer - delta);
   if (ai.launchStallTimer > 0) {
@@ -3426,10 +3882,10 @@ function updateSoloAI(delta) {
   }
 
   // Initialise AI personality state on first call
-  if (soloAI.swerveTimer    === undefined) soloAI.swerveTimer  = 0;
-  if (soloAI.swerveOffset   === undefined) soloAI.swerveOffset = 0;
-  if (soloAI.swerveDir      === undefined) soloAI.swerveDir    = 0;
-  if (soloAI.peelDodge      === undefined) soloAI.peelDodge    = null;
+  if (aiState.swerveTimer    === undefined) aiState.swerveTimer  = 0;
+  if (aiState.swerveOffset   === undefined) aiState.swerveOffset = 0;
+  if (aiState.swerveDir      === undefined) aiState.swerveDir    = 0;
+  if (aiState.peelDodge      === undefined) aiState.peelDodge    = null;
 
   // ── Star cancels incoming spinouts for the AI too ──
   if (ai.starTimer > 0 && ai.spinoutTimer > 0) {
@@ -3452,14 +3908,18 @@ function updateSoloAI(delta) {
     return;
   }
 
-  // ── Star collision: human with star rams the AI ──
-  const distToHuman = ai.kart.position.distanceTo(human.kart.position);
-  if (distToHuman < 2.5 && human.starTimer > 0 && ai.starTimer <= 0 && ai.spinoutTimer <= 0) {
-    ai.spinoutTimer = 3.0;
-    ai.spinoutAngle = 0;
-    ai.stunTimer    = 3.0;
-    ai.speed       *= 0.4;
-    playSlipSound();
+  // ── Star collision: any star-powered racer rams this AI ──
+  for (const other of players) {
+    if (other === ai) continue;
+    const distToOther = ai.kart.position.distanceTo(other.kart.position);
+    if (distToOther < 2.5 && other.starTimer > 0 && ai.starTimer <= 0 && ai.spinoutTimer <= 0) {
+      ai.spinoutTimer = 3.0;
+      ai.spinoutAngle = 0;
+      ai.stunTimer    = 3.0;
+      ai.speed       *= 0.4;
+      playSlipSound();
+      break;
+    }
   }
 
   const aiT = closestTrackT(ai.kart.position);
@@ -3468,19 +3928,19 @@ function updateSoloAI(delta) {
 
   // ── Banana peel avoidance with 50/50 dodge chance ──
   // Tick down any active dodge decision
-  if (soloAI.peelDodge && soloAI.peelDodge.timer > 0) {
-    soloAI.peelDodge.timer -= delta;
-    if (soloAI.peelDodge.timer <= 0) soloAI.peelDodge = null;
+  if (aiState.peelDodge && aiState.peelDodge.timer > 0) {
+    aiState.peelDodge.timer -= delta;
+    if (aiState.peelDodge.timer <= 0) aiState.peelDodge = null;
   }
   // Scan for nearby peels — make one dodge decision per peel encounter
   const PEEL_LOOK_DIST = 7;
-  if (!soloAI.peelDodge) {
+  if (!aiState.peelDodge) {
     for (const peel of bananaPeels) {
       if (!peel.active) continue;
       if (ai.kart.position.distanceTo(peel.position) < PEEL_LOOK_DIST) {
         const willDodge = Math.random() < 0.5;          // 50% chance to even try
         const dodgeDir  = Math.random() < 0.5 ? 1 : -1; // random side
-        soloAI.peelDodge = {
+        aiState.peelDodge = {
           dir:   willDodge ? dodgeDir : 0, // 0 = failed to react, drives straight into it
           timer: 1.4,                       // hold decision for 1.4 s
         };
@@ -3492,14 +3952,77 @@ function updateSoloAI(delta) {
   // ── Random swerve personality ──
   // Periodically pick a new lateral bias so the AI weaves around the track a bit.
   // Suppressed while actively dodge-steering away from a peel.
-  soloAI.swerveTimer -= delta;
-  if (soloAI.swerveTimer <= 0) {
-    soloAI.swerveTimer = 1.8 + Math.random() * 2.4;   // every 1.8 – 4.2 s
+  // Each AI gets a slightly different cadence so they don't all swerve in sync.
+  aiState.swerveTimer -= delta;
+  if (aiState.swerveTimer <= 0) {
+    aiState.swerveTimer = 1.6 + Math.random() * 2.8 + (cpuIdx * 0.3); // staggered timing per CPU
     const roll = Math.random();
-    if      (roll < 0.35) soloAI.swerveDir =  1;      // drift right
-    else if (roll < 0.70) soloAI.swerveDir = -1;      // drift left
-    else                  soloAI.swerveDir =  0;       // go straight
-    soloAI.swerveOffset = (0.6 + Math.random() * 1.8) * soloAI.swerveDir;
+    if      (roll < 0.35) aiState.swerveDir =  1;      // drift right
+    else if (roll < 0.70) aiState.swerveDir = -1;      // drift left
+    else                  aiState.swerveDir =  0;       // go straight
+    aiState.swerveOffset = (0.6 + Math.random() * 1.8) * aiState.swerveDir;
+  }
+
+  // ── Kart avoidance: steer around nearby karts (CPU and human) ──
+  // Only applies when the AI does NOT have a star — a star-powered kart intentionally
+  // rams into opponents. Also tick the overtake cooldown so passing manoeuvres feel
+  // deliberate rather than instant jitters.
+  if (aiState.avoidTimer === undefined) aiState.avoidTimer = 0;
+  if (aiState.avoidDir   === undefined) aiState.avoidDir   = 0;
+  if (aiState.avoidTimer > 0) aiState.avoidTimer -= delta;
+
+  const AVOID_LOOK_DIST = 5.5;  // how far ahead the AI sees other karts
+  const AVOID_SIDE_DIST = 3.2;  // lateral overlap threshold (kart width ~ 2.4)
+
+  if (ai.starTimer <= 0 && aiState.avoidTimer <= 0) {
+    // Build the track-forward and track-perp vectors at AI's current position
+    const aiForwardX = Math.sin(ai.angle);
+    const aiForwardZ = Math.cos(ai.angle);
+
+    let bestAvoidDir = 0;    // signed: +1 = go right (wider), -1 = go left
+    let closestDot   = -1;   // dot product of closest threat (higher = more directly ahead)
+
+    for (const other of players) {
+      if (other === ai) continue;
+      if (other.finishTime !== null) continue;
+
+      const dx = other.kart.position.x - ai.kart.position.x;
+      const dz = other.kart.position.z - ai.kart.position.z;
+      const worldDist = Math.sqrt(dx * dx + dz * dz);
+      if (worldDist > AVOID_LOOK_DIST + 2) continue; // quick early-out
+
+      // How far directly ahead is the other kart?
+      const forwardDot = dx * aiForwardX + dz * aiForwardZ;
+      if (forwardDot < 0.5) continue; // behind or beside us — no action needed
+
+      // How far to the side is the other kart?
+      const rightX = aiForwardZ;   // perpendicular-right in XZ
+      const rightZ = -aiForwardX;
+      const sideDot = dx * rightX + dz * rightZ; // positive = other kart is to our right
+
+      // Is the other kart close enough laterally to be a collision threat?
+      if (Math.abs(sideDot) > AVOID_SIDE_DIST) continue; // far enough to the side — no issue
+
+      if (forwardDot > closestDot) {
+        closestDot = forwardDot;
+        // Pick the side with more space to go around:
+        // Negative sideDot = other kart is to our LEFT → we go RIGHT (+1)
+        // Positive sideDot = other kart is to our RIGHT → we go LEFT (-1)
+        // Additionally, every ~30% of the time the AI attempts a pass on the
+        // opposite side (adds overtaking flavour so CPUs don't always queue up).
+        const preferredSide = sideDot <= 0 ? 1 : -1;
+        const tryOvertake   = Math.random() < 0.30;
+        bestAvoidDir = tryOvertake ? -preferredSide : preferredSide;
+      }
+    }
+
+    if (bestAvoidDir !== 0) {
+      // Hold avoidance direction for a short time so the kart actually clears the obstacle
+      aiState.avoidDir   = bestAvoidDir;
+      aiState.avoidTimer = 0.8 + Math.random() * 0.6;
+    } else {
+      aiState.avoidDir = 0;
+    }
   }
 
   // ── Steering: lookahead point + lateral nudge ──
@@ -3508,10 +4031,16 @@ function updateSoloAI(delta) {
   const tan        = TRACK_CURVE.getTangent(lookaheadT).normalize();
   const perp       = new THREE.Vector3(-tan.z, 0, tan.x); // perpendicular to track
 
-  // Peel dodge overrides the random swerve; dir=0 means AI does nothing (hits the peel)
-  let lateralBias = soloAI.swerveOffset;
-  if (soloAI.peelDodge && soloAI.peelDodge.dir !== 0) {
-    lateralBias = soloAI.peelDodge.dir * 3.5;
+  // Priority: peel dodge > kart avoidance > random swerve
+  // Peel dodge dir=0 means AI froze (will hit the peel); avoidDir always has a real side
+  let lateralBias = aiState.swerveOffset;
+  if (aiState.avoidDir !== 0 && ai.starTimer <= 0) {
+    // Avoidance: nudge 2.5–3.5 units to the chosen side, strength scales with speed
+    const avoidStrength = 2.5 + (Math.abs(ai.speed) / MAX_SPEED) * 1.0;
+    lateralBias = aiState.avoidDir * avoidStrength;
+  }
+  if (aiState.peelDodge && aiState.peelDodge.dir !== 0) {
+    lateralBias = aiState.peelDodge.dir * 3.5;
   }
 
   const nudgedTarget = target.clone().addScaledVector(perp, lateralBias);
@@ -3538,7 +4067,9 @@ function updateSoloAI(delta) {
   const onTrack = isOnTrack(ai.kart.position);
   const speedCap = ai.starTimer > 0 ? MAX_SPEED * 1.55
     : ai.launchBoostTimer > 0 ? MAX_SPEED * 1.38
-    : ai.boostTimer > 0 ? MAX_SPEED * 1.4 : MAX_SPEED;
+    : ai.boostTimer > 0 ? MAX_SPEED * 1.4
+    : ai.lightningTimer > 0 ? MAX_SPEED * 0.5
+    : MAX_SPEED;
   const targetSpeed = (onTrack ? speedCap : MAX_SPEED * 0.25);
   if (ai.speed < targetSpeed) ai.speed += ACCEL * delta;
   ai.speed = Math.min(speedCap, ai.speed);
@@ -3562,11 +4093,11 @@ function updateSoloAI(delta) {
     const item = ai.item;
 
     // Initialise a hesitation delay when the item was just collected
-    if (soloAI.itemHesitation === undefined || soloAI.itemHesitation === null) {
-      soloAI.itemHesitation = 0.5 + Math.random() * 2.0; // 0.5 – 2.5 s before even considering using it
+    if (aiState.itemHesitation === undefined || aiState.itemHesitation === null) {
+      aiState.itemHesitation = 0.5 + Math.random() * 2.0; // 0.5 – 2.5 s before even considering using it
     }
-    soloAI.itemHesitation -= delta;
-    if (soloAI.itemHesitation > 0) {
+    aiState.itemHesitation -= delta;
+    if (aiState.itemHesitation > 0) {
       // Still thinking…
     } else {
       // Check if a red shell is currently targeting the AI and closing in
@@ -3583,23 +4114,29 @@ function updateSoloAI(delta) {
         // Use boost when behind or just ready to go
         shouldUse = distanceBehind > 0.05 || Math.random() < 0.5;
       } else if (item.includes('Shell')) {
-        // Fire at the human only if they're ahead and not already finished
-        const aiAhead = distanceBehind > 0.5; // distanceBehind wraps, so >0.5 means AI is actually behind
-        shouldUse = human.finishTime === null && (aiAhead || Math.random() < 0.35);
+        // Fire at the nearest opponent ahead — works for any number of racers
+        const shellTarget = findShellTarget(ai);
+        shouldUse = shellTarget !== null && (Math.random() < 0.7 || distanceBehind > 0.5);
       } else if (item.includes('Banana')) {
-        // Drop banana when close behind the human or shell is incoming (desperation)
-        const humanClose = ai.kart.position.distanceTo(human.kart.position) < 8;
-        shouldUse = (humanClose && distanceBehind < 0.45) || (shellIncoming && Math.random() < 0.4);
+        // Drop banana when a rival is close behind or shell incoming (desperation)
+        const nearestDist = players.reduce((min, p) => {
+          if (p === ai) return min;
+          return Math.min(min, ai.kart.position.distanceTo(p.kart.position));
+        }, Infinity);
+        shouldUse = (nearestDist < 8 && distanceBehind < 0.45) || (shellIncoming && Math.random() < 0.4);
+      } else if (item.includes('Lightning')) {
+        // Use lightning when losing or just randomly — it's a powerful nuke
+        shouldUse = distanceBehind > 0.08 || Math.random() < 0.55;
       }
 
       if (shouldUse) {
-        useItem(ai, human);
-        soloAI.itemHesitation = null; // reset for next item
+        useItem(ai, human); // useItem now calls findShellTarget internally for shells
+        aiState.itemHesitation = null; // reset for next item
       }
     }
   } else if (!ai.item) {
     // No item held — clear hesitation so a fresh delay is set when next item is picked up
-    soloAI.itemHesitation = null;
+    aiState.itemHesitation = null;
   }
 
   updateLaps(ai);
@@ -3693,6 +4230,10 @@ function updateWinnerAI(delta) {
   if (p.starTimer       > 0) p.starTimer       = Math.max(0, p.starTimer       - delta);
   if (p.boostTimer      > 0) p.boostTimer      = Math.max(0, p.boostTimer      - delta);
   if (p.launchBoostTimer > 0) p.launchBoostTimer = Math.max(0, p.launchBoostTimer - delta);
+  if (p.lightningTimer  > 0) {
+    p.lightningTimer = Math.max(0, p.lightningTimer - delta);
+    if (p.lightningTimer === 0) restoreFromLightning(p);
+  }
 
   // Still track laps so the HUD is accurate
   updateLaps(p);
@@ -3805,9 +4346,15 @@ function updateItemBoxes(delta) {
 function startGame() {
   const isSolo = gameMode === 'solo';
   soloAI = null;
+  soloAIs = [];
   if (isSolo && !gameMode_dev) {
-    const available = CHARACTERS.map((_, index) => index).filter(index => index !== playerChars[0]);
-    playerChars[1] = available[Math.floor(Math.random() * available.length)];
+    // Randomly assign unique characters for each CPU slot
+    const used = new Set([playerChars[0]]);
+    for (let ci = 1; ci <= soloNumCPUs; ci++) {
+      const available = CHARACTERS.map((_, index) => index).filter(index => !used.has(index));
+      playerChars[ci] = available[Math.floor(Math.random() * available.length)];
+      used.add(playerChars[ci]);
+    }
   }
   // Reset dev state
   if (gameMode_dev) {
@@ -3823,8 +4370,15 @@ function startGame() {
 
   document.getElementById('mainMenu').style.display = 'none';
   document.getElementById('yt-credit').classList.add('hidden');
+  document.getElementById('hub-btn').classList.add('hidden');
   document.getElementById('hud').style.display = 'block';
   document.getElementById('divider').style.display = isSolo ? 'none' : 'block';
+
+  // Extra CPU HUD boxes — show only if enough CPUs selected
+  const cpu2HudEl = document.getElementById('hudCpu2');
+  const cpu3HudEl = document.getElementById('hudCpu3');
+  if (cpu2HudEl) cpu2HudEl.style.display = (isSolo && soloNumCPUs >= 2) ? '' : 'none';
+  if (cpu3HudEl) cpu3HudEl.style.display = (isSolo && soloNumCPUs >= 3) ? '' : 'none';
 
   const W = isSolo ? window.innerWidth : window.innerWidth / 2;
   const H = window.innerHeight;
@@ -3891,34 +4445,70 @@ function startGame() {
   const spawnPerp = new THREE.Vector3(-spawnTangent.z, 0, spawnTangent.x);
 
   const spawnOrigin = TRACK_WAYPOINTS[0].clone();
-  const p1Start = spawnOrigin.clone()
-    .addScaledVector(spawnPerp, -2)    // left lane
-    .add(new THREE.Vector3(0, 0.85, 0));
-  const p2Start = spawnOrigin.clone()
-    .addScaledVector(spawnPerp,  2)    // right lane
-    .add(new THREE.Vector3(0, 0.85, 0));
+
+  // Grid layout: 2 columns (left/right), 2 rows — staggered behind start line.
+  // Row 0 is on the start line, row 1 is one kart-length behind.
+  // The track tangent points forward; behind = -tangent direction.
+  const ROW_SPACING = 4.5; // units between front/rear rows on the grid
+  const spawnSlots = [
+    // [lateral offset, row offset]
+    [-2,  0],          // slot 0: front-left
+    [ 2,  0],          // slot 1: front-right
+    [-2, -ROW_SPACING],// slot 2: rear-left
+    [ 2, -ROW_SPACING],// slot 3: rear-right
+  ].map(([lat, row]) =>
+    spawnOrigin.clone()
+      .addScaledVector(spawnPerp, lat)
+      .addScaledVector(spawnTangent, row)
+      .add(new THREE.Vector3(0, 0.85, 0))
+  );
 
   if (gameMode_dev) {
     // Dev mode: only one player, no CPU at all
     players = [
-      createPlayer(playerChars[0], p1Start, spawnAngle, s1),
+      createPlayer(playerChars[0], spawnSlots[0], spawnAngle, s1),
       // Dummy ghost P2 so array indexing doesn't crash (never rendered/updated)
       createPlayer(playerChars[0], new THREE.Vector3(-9999, -9999, -9999), spawnAngle, s1),
     ];
     players[1].kart.visible = false;
     document.getElementById('hud1name').textContent = '🔧 ' + CHARACTERS[playerChars[0]].name;
     document.getElementById('hud2').style.display = 'none';
+  } else if (isSolo) {
+    // Solo: P1 + 1–3 CPUs, all in scene 1
+    players = [];
+    const totalDrivers = 1 + soloNumCPUs; // P1 + CPUs
+    for (let i = 0; i < totalDrivers; i++) {
+      players.push(createPlayer(playerChars[i], spawnSlots[i], spawnAngle, s1));
+    }
+    document.getElementById('hud1name').textContent = '🏎️ ' + CHARACTERS[playerChars[0]].name;
+    document.getElementById('hud2name').textContent = '🤖 ' + CHARACTERS[playerChars[1]].name;
+    document.getElementById('hud2').style.display = '';
+    // Names for extra CPU HUD boxes
+    if (soloNumCPUs >= 2) {
+      document.getElementById('hudCpu2name').textContent = '🤖 ' + CHARACTERS[playerChars[2]].name;
+    }
+    if (soloNumCPUs >= 3) {
+      document.getElementById('hudCpu3name').textContent = '🤖 ' + CHARACTERS[playerChars[3]].name;
+    }
   } else {
+    // Co-op: P1 left, P2 right
     players = [
-      createPlayer(playerChars[0], p1Start, spawnAngle, s1),
-      createPlayer(playerChars[1], p2Start, spawnAngle, isSolo ? s1 : s2),
+      createPlayer(playerChars[0], spawnSlots[0], spawnAngle, s1),
+      createPlayer(playerChars[1], spawnSlots[1], spawnAngle, s2),
     ];
     document.getElementById('hud1name').textContent = '🏎️ ' + CHARACTERS[playerChars[0]].name;
-    document.getElementById('hud2name').textContent = (isSolo ? '🤖 ' : '🏎️ ') + CHARACTERS[playerChars[1]].name;
+    document.getElementById('hud2name').textContent = '🏎️ ' + CHARACTERS[playerChars[1]].name;
     document.getElementById('hud2').style.display = '';
   }
 
-  if (isSolo && !gameMode_dev) soloAI = { itemDecisionTimer: 0 };
+  if (isSolo && !gameMode_dev) {
+    // Create one AI personality object per CPU
+    soloAIs = [];
+    for (let ci = 0; ci < soloNumCPUs; ci++) {
+      soloAIs.push({ itemDecisionTimer: 0 });
+    }
+    soloAI = soloAIs[0]; // keep legacy reference for compat
+  }
 
   // ── Countdown + Launch Boost detection ──
   //
@@ -4015,9 +4605,11 @@ function startGame() {
 
       // ── Resolve CPU launch result ──
       if (isSolo) {
-        const roll = Math.random();
-        // 50% normal, 30% boost, 20% stall
-        players[1].launchResult = roll < 0.5 ? 'normal' : roll < 0.8 ? 'boost' : 'stall';
+        for (let ci = 1; ci <= soloNumCPUs; ci++) {
+          const roll = Math.random();
+          // 50% normal, 30% boost, 20% stall
+          players[ci].launchResult = roll < 0.5 ? 'normal' : roll < 0.8 ? 'boost' : 'stall';
+        }
       }
 
     } else {
@@ -4115,6 +4707,30 @@ function startGame() {
     const delta = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
 
+    // ── DS4 Options button → pause (poll every frame, outside raceRunning guard) ──
+    {
+      const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+      // Check each assigned gamepad slot
+      [gpAssign[0], gpAssign[1]].forEach((padIdx, slot) => {
+        if (padIdx === undefined || padIdx === null) return;
+        const gp = pads[padIdx];
+        if (!gp) return;
+        const raw = isRawMapping(gp);
+        // Options button: standard mapping = buttons[9], raw Linux = buttons[9] as well
+        const optBtn = gp.buttons[9];
+        const pressed = optBtn ? (optBtn.pressed || optBtn.value > 0.5) : false;
+        if (pressed && !_gpOptionsWasPressed[slot]) {
+          // Only toggle if we're in an active race (not on menu, not on win screen)
+          const _menuEl = document.getElementById('mainMenu');
+          const _wsEl   = document.getElementById('winScreen');
+          const _menuHidden = _menuEl && _menuEl.style.display === 'none';
+          const _wsHidden   = !_wsEl  || _wsEl.style.display  !== 'flex';
+          if (_menuHidden && _wsHidden) togglePause();
+        }
+        _gpOptionsWasPressed[slot] = pressed;
+      });
+    }
+
     if (raceRunning) {
       const aiIdx = winnerAI ? winnerAI.playerIdx : -1;
 
@@ -4126,7 +4742,10 @@ function startGame() {
       if (aiIdx !== 0 && !(gameMode_dev && devFreecam)) updatePlayer(players[0], p1Binds, delta, players[1]);
       if (!gameMode_dev) {
         if (isSolo) {
-          if (aiIdx !== 1) updateSoloAI(delta);
+          // Drive each CPU independently
+          for (let ci = 1; ci <= soloNumCPUs; ci++) {
+            if (aiIdx !== ci) updateSoloAI(delta, ci);
+          }
         } else if (aiIdx !== 1) {
           updatePlayer(players[1], p2Binds, delta, players[0]);
         }
@@ -4136,7 +4755,7 @@ function startGame() {
       updateWinnerAI(delta);
 
       updateItemBoxes(delta);
-      updateBananaPeels(delta, players[0], players[1]);
+      updateBananaPeels(delta, players);
       updateRedShells(delta);
       if (!isSolo) syncItemBoxVisibility();
 
@@ -4153,6 +4772,7 @@ function startGame() {
 
       if (!isSolo) updateMirrorKarts();
       updateStarEffects(delta);
+      updateLightningEffects(delta);
       updateFireParticles(delta);
       updateSmokeParticles(delta);
       updateWheels(delta);
@@ -4182,7 +4802,7 @@ const FIRE_COLORS = [0xFF4400, 0xFF8800, 0xFFCC00, 0xFF2200, 0xFFFFAA];
 const FIRE_POOL_SIZE = 28; // particles per player
 
 // Pools are initialised lazily on first boost so scenes[] is ready.
-const _firePools = [null, null];
+const _firePools = [null, null, null, null]; // up to 4 players
 
 function initFirePool(pi) {
   if (_firePools[pi]) return;
@@ -4291,7 +4911,7 @@ function updateFireParticles(delta) {
 // DARK SMOKE PARTICLES — launch stall exhaust
 // =============================================
 const SMOKE_POOL_SIZE = 32;
-const _smokePools = [null, null];
+const _smokePools = [null, null, null, null]; // up to 4 players
 
 function initSmokePool(pi) {
   if (_smokePools[pi]) return;
@@ -4387,7 +5007,7 @@ let ghostKarts = null;
 // =============================================
 // Store original material colors so we can restore them when the star expires.
 // We also track the last known starTimer state per player to know when to restore.
-const _starOrigColors = [null, null]; // per player, array of { mesh, color }
+const _starOrigColors = [null, null, null, null]; // per player (up to 4), array of { mesh, color }
 
 function updateStarEffects(delta) {
   players.forEach((player, pi) => {
@@ -4531,10 +5151,11 @@ function updateHUD() {
   const secs = Math.floor(t%60).toString().padStart(2,'0');
   document.getElementById('raceTimer').textContent = mins+':'+secs;
 
-  // Determine race position for each player.
+  // Determine race position for all players.
   // Already-finished players rank above unfinished ones (by finishTime ascending).
   // Among unfinished players, rank by lap desc then checkpoint desc.
-  const ranked = [0, 1].slice().sort((a, b) => {
+  const allIndices = players.map((_, i) => i);
+  const ranked = allIndices.slice().sort((a, b) => {
     const pa = players[a], pb = players[b];
     if (pa.finishTime !== null && pb.finishTime !== null) return pa.finishTime - pb.finishTime;
     if (pa.finishTime !== null) return -1;
@@ -4542,22 +5163,47 @@ function updateHUD() {
     if (pa.lap !== pb.lap) return pb.lap - pa.lap;
     return pb.checkpoint - pa.checkpoint;
   });
-  // ranked[0] = index of the player in 1st, ranked[1] = index in 2nd
-  const placeOf = [0, 0];
-  placeOf[ranked[0]] = 1;
-  placeOf[ranked[1]] = 2;
+  const placeOf = new Array(players.length).fill(0);
+  ranked.forEach((playerIdx, rank) => { placeOf[playerIdx] = rank + 1; });
 
-  const placeLabel = ['🥇 1st', '🥈 2nd'];
+  const placeLabels = ['🥇 1st', '🥈 2nd', '🥉 3rd', '4th'];
   const placeFinish = '✅ Finished!';
 
-  [0,1].forEach(i => {
+  // Only update HUD for P1 and P2 (the two visible HUD panels)
+  [0, 1].forEach(i => {
+    if (!players[i]) return;
     const p = players[i];
     document.getElementById(`hud${i+1}lap`).textContent = Math.min(p.lap, TOTAL_LAPS);
     document.getElementById(`hud${i+1}speed`).textContent = Math.abs(Math.round(p.speed * 3.6));
     document.getElementById(`hud${i+1}item`).textContent = p.item || '';
+    const place = placeOf[i];
     document.getElementById(`hud${i+1}place`).textContent =
-      p.finishTime !== null ? placeFinish : placeLabel[placeOf[i] - 1];
+      p.finishTime !== null ? placeFinish : (placeLabels[place - 1] || `${place}th`);
   });
+
+  // Extra CPU HUD boxes (indices 2 and 3 in players array = CPU2 and CPU3)
+  // CPU2 box (player index 2)
+  const cpu2El = document.getElementById('hudCpu2');
+  if (cpu2El && cpu2El.style.display !== 'none' && players[2]) {
+    const p = players[2];
+    document.getElementById('hudCpu2lap').textContent = Math.min(p.lap, TOTAL_LAPS);
+    document.getElementById('hudCpu2speed').textContent = Math.abs(Math.round(p.speed * 3.6));
+    document.getElementById('hudCpu2item').textContent = p.item || '';
+    const place = placeOf[2];
+    document.getElementById('hudCpu2place').textContent =
+      p.finishTime !== null ? placeFinish : (placeLabels[place - 1] || `${place}th`);
+  }
+  // CPU3 box (player index 3)
+  const cpu3El = document.getElementById('hudCpu3');
+  if (cpu3El && cpu3El.style.display !== 'none' && players[3]) {
+    const p = players[3];
+    document.getElementById('hudCpu3lap').textContent = Math.min(p.lap, TOTAL_LAPS);
+    document.getElementById('hudCpu3speed').textContent = Math.abs(Math.round(p.speed * 3.6));
+    document.getElementById('hudCpu3item').textContent = p.item || '';
+    const place = placeOf[3];
+    document.getElementById('hudCpu3place').textContent =
+      p.finishTime !== null ? placeFinish : (placeLabels[place - 1] || `${place}th`);
+  }
 }
 
 // =============================================
@@ -4583,11 +5229,25 @@ function showFinish() {
   document.getElementById('win1time').textContent = `${times[0].time.toFixed(2)}s`;
   document.getElementById('winTitle').textContent  = `${times[0].name} WINS THE RACE!`;
 
-  // Runner-up
+  // Runner-up (2nd)
   if (times[1]) {
     document.getElementById('win2img').src   = times[1].img;
     document.getElementById('win2name').textContent = times[1].name;
     document.getElementById('win2time').textContent = `${times[1].time.toFixed(2)}s`;
+    document.getElementById('podium2nd').style.display = '';
+  }
+
+  // 3rd place — only visible when there are 3+ racers
+  const podium3rd = document.getElementById('podium3rd');
+  if (podium3rd) {
+    if (times[2]) {
+      document.getElementById('win3img').src = times[2].img;
+      document.getElementById('win3name').textContent = times[2].name;
+      document.getElementById('win3time').textContent = `${times[2].time.toFixed(2)}s`;
+      podium3rd.style.display = '';
+    } else {
+      podium3rd.style.display = 'none';
+    }
   }
 
   // Confetti burst
@@ -4644,12 +5304,22 @@ function spawnConfetti() {
 }
 
 function backToMenu() {
+  // Reset pause state first so resumeGame() isn't needed
+  racePaused = false;
+  raceRunning = false;
+  document.getElementById('pauseScreen').style.display = 'none';
   document.getElementById('winScreen').style.display = 'none';
   document.getElementById('hud').style.display = 'none';
   document.getElementById('hud2').style.display = ''; // restore in case dev mode hid it
+  // Hide extra CPU HUD boxes
+  const cpu2El = document.getElementById('hudCpu2');
+  const cpu3El = document.getElementById('hudCpu3');
+  if (cpu2El) cpu2El.style.display = 'none';
+  if (cpu3El) cpu3El.style.display = 'none';
   ds4Lightbar.resetAll(); // restore DS4 default blue
   document.getElementById('divider').style.display = 'none';
   document.getElementById('mainMenu').style.display = 'flex';
+  document.getElementById('hub-btn').classList.remove('hidden');
   document.getElementById('yt-credit').classList.remove('hidden');
   // Clean up dev overlays
   if (_devDebugEl) _devDebugEl.style.display = 'none';
@@ -4671,19 +5341,21 @@ function backToMenu() {
   itemBoxes = [];
   bananaPeels = [];
   redShells = [];
+  _activeBolts.length = 0;
+  soloAIs = [];
   winnerAI = null;
   cinModeIdx = 0;
-  _starOrigColors[0] = null;
-  _starOrigColors[1] = null;
-  _firePools[0] = null;
-  _firePools[1] = null;
-  _smokePools[0] = null;
-  _smokePools[1] = null;
+  for (let i = 0; i < 4; i++) {
+    _starOrigColors[i] = null;
+    _firePools[i] = null;
+    _smokePools[i] = null;
+  }
   stadiumWalls.length = 0;
   players = [];
   scenes = [];
   cameras = [];
   if (animId) cancelAnimationFrame(animId);
   if (_finishFallbackTimer) { clearTimeout(_finishFallbackTimer); _finishFallbackTimer = null; }
+  _clearPostFinishCinematic();
   updateCharUI();
 }
