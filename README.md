@@ -62,7 +62,7 @@
 * Meme Claw Machine (I dunno, stable, logic works, but might add more shit in the future)
 * The Big Meme Quiz (Finished, unless I come up with some big brain additions)
 * Meme Mafia (Finished, unless I come up with some big brain additions)
-* Grand Meme Prix 3D (Beta / WIP)
+* Grand Meme Prix 3D (Finished, unless I come up with some big brain additions)
 
 ---
 
@@ -82,35 +82,21 @@
 
 * Meme Claw Machine's claw now has NEON LIGHTS for absolutely no fucking reason! 🤩
 * three.min.js, three.module.js, and cannon-es.js are now sitting in the root of the repo so no more shitty lazy duplicates! 😎
-* Grand Meme Prix 3D got a huge update! We're getting close to a 1.0! 🤯
 * King Harkinian's Personal Chef Simulator's "Scrub All The Floors In Hyrule" minigame has been improved! 🧽
 
 ---
 
-<p><strong><font size="4">🚨 THE GRAND MEME PRIX 3D UPDATE!</font></strong></p>
+<p><strong><font size="4">🚨 THE GRAND MEME PRIX 3D FULL RELEASE!</font></strong></p>
 
-<p><strong><font size="2">Grand Meme Prix 3D is now starting to look like a proper fucking game!</font></strong></p>  <br>
+<p><strong><font size="2">Grand Meme Prix 3D is finally going into 1.0!</font></strong></p>  <br>
 
-* Da wheels on the kart go round and round! Yep, wheels now spin properly to your movement! 🛞
-* Wheels also have a proper steering axle now for that epic steering action! 😎
-* The wheel models have been redesigned! 🛞
-* Just like in Mario Kart, the rocket boosts and engine stalls have been added to the countdown sequence depending on your timing! 🚀
-* The karts now have brand new proper 3D dual exhaust pipes on them! 💨
-* In local multiplayer co-op, your friend will now correctly appear on both your screens, assuming you actually have any friends, lol! 😁
-* In singleplayer mode, the CPU player has been edited to be more fair and realistic! 🤖
-* Controller support! 🎮️
-* If you have a DualShock 4, the lightbar changes color depending on your selected character! FUCKING RAVE WHEN YOU CYCLE THROUGH THE CHARACTERS! 🕺🏻
-
----
-
-<p><strong><font size="4">ℹ️ WHAT'S COMING NEXT FOR GRAND MEME PRIX 3D BEFORE 1.0!</font></strong></p>
-
-* Drifting mechanics! 🏎️
-* Voice lines for the character when they win, lose, get hit, etc! 🎙️
-* More characters in the roster! 🧑🏻
-* Support for Xbox One and Xbox Series X/S controllers! Also coming for the other games that already have DS4 support! 🎮️
-* CPU player improvements so that they don't suck ass too much nor are too pro! 🤖
-* Maybe some more 3D kart model improvements to make them look cooler! 😎
+* Now uses Cannon physics for bumping into karts! BUMPACARS! 🏎️
+* Added Mayor Cravendish as a playable character! This is illegal you know? 🤵🏻‍♂️
+* Every character now got 3 voice lines each! 🎙️
+* Added the Lightning Bolt! It works just like in fucking Mario Kart dude! ⚡️
+* Added the Bomb! Does exactly what you would expect from one! Morshu is a fan of this one! 💣️
+* In singleplayer mode, you can now select if you wanna race with either 1, 2, or 3 CPU drivers! Holy shit! 🤯
+* NOW GO FUCKING PLAY IT! 🔫
 
 ---
 
@@ -125,9 +111,9 @@
 ---
 
 <p><strong><font size="3">📝 Project Overview</font></strong></p>
-<p><strong><font size="2">This is a work-in-progress minigame hub that I am currently developing as a fun side project!</font></strong></p>
+<p><strong><font size="2">I do this as a hobby just for my own amusement, </font></strong></p>
 
-<p><strong><font size="2">For those who don't know me, I am a retired YouTuber known as That One Dutch Guy. <br> If you want a quick laugh and loose braincells simultaneously, then feel free to check out some of my old videos! More interactive toys and games will be continually added here in the future.</font></strong></p>
+<p><strong><font size="2">For those who don't know me, I am a retired YouTuber known as That One Dutch Guy. <br> If you want a quick laugh and lose even more of your small amount of braincells simultaneously, the watch my fucking old videos! More interactive toys and games will be continually added here in the future.</font></strong></p>
 
 ---
 
