@@ -63,6 +63,7 @@
 * The Big Meme Quiz (Finished, unless I come up with some big brain additions)
 * Meme Mafia (Finished, unless I come up with some big brain additions)
 * Grand Meme Prix 3D (Finished, unless I come up with some big brain additions)
+* I.M. Meen's Book Shredding Simulator (Beta / WIP)
 
 ---
 
@@ -76,13 +77,14 @@
 
 ---
 
-<p><strong><font size="4">🚨 BIG UPDATE!</font></strong></p>
+<p><strong><font size="4">🚨 BRAND NEW BETA GAME!</font></strong></p>
 
-<p><strong><font size="2">Various games gotten small to large updates!</font></strong></p>  <br>
+<p><strong><font size="2">I.M. Meen's Book Shredding Simulator public Beta has arrived!</font></strong></p>  <br>
 
-* Meme Claw Machine's claw now has NEON LIGHTS for absolutely no fucking reason! 🤩
-* three.min.js, three.module.js, and cannon-es.js are now sitting in the root of the repo so no more shitty lazy duplicates! 😎
-* King Harkinian's Personal Chef Simulator's "Scrub All The Floors In Hyrule" minigame has been improved! 🧽
+* Help Ignatius Mortimer Meen destroy a bunch of books, including the Bible, in his brand new hyper modern industrial shredder! 📔
+* Click the fucking button to shred those goodie-goodie books! 😈
+* Earn € for shredding books and buy upgrades! 💶
+* Click till you die of old age! OR ELSE! 🔫
 
 ---
 

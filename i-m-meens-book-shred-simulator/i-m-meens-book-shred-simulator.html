@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../device-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Destroy books for I.M. Meen and earn money!">
+  <title>I.M. Meen's Book Shredding Simulator</title>
+  <link rel="stylesheet" href="i-m-meens-book-shred-simulator.css">
+</head>
+<body>
+<div id="game-area">
+
+  <!-- BACKGROUND -->
+  <div id="bg"></div>
+
+  <!-- GAME TITLE -->
+  <div id="game-title">I.M. Meen's Book Shredding Simulator</div>
+
+  <!-- UPGRADE PANEL -->
+  <div id="upgrade-panel">
+    <button class="upgrade-btn" id="upgrade-value"
+            style="background: linear-gradient(135deg, #e55d20, #b83c00);">
+    </button>
+    <button class="upgrade-btn" id="upgrade-speed"
+            style="background: linear-gradient(135deg, #1aa89e, #0e6e68);">
+    </button>
+    <button class="upgrade-btn" id="upgrade-shredSpeed"
+            style="background: linear-gradient(135deg, #c9a000, #8a6d00);">
+    </button>
+    <button class="upgrade-btn" id="upgrade-quantity"
+            style="background: linear-gradient(135deg, #8b3fd6, #5c1fa3);">
+    </button>
+  </div>
+
+  <!-- MONEY COUNTER -->
+  <div id="money-counter">€0,00</div>
+
+  <!-- HUB BUTTON -->
+  <a href="../index.html" id="hub-btn">← HUB</a>
+
+  <!-- SHREDDER IMAGE (behind books at z:10, but overlay is z:11) -->
+  <img id="shredder-img" src="./assets/images/shredder.png" alt="Book Shredder">
+
+  <!-- YOUTUBE CREDIT -->
+  <a href="https://www.youtube.com/@That1DutchGuy" target="_blank" id="yt-credit">Made by YouTuber That One Dutch Guy</a>
+
+  <!-- SHREDDER OVERLAY - same image layered on top of falling books -->
+  <!-- We achieve the "book going inside shredder" effect by clipping the book
+       animation itself before it reaches the shredder body -->
+
+  <!-- MEEN + SHRED BUTTON -->
+  <div id="meen-shred-area">
+    <img id="meen-img" src="./assets/images/i-m-meen.png" alt="I.M. Meen">
+    <button id="shred-btn">SHRED</button>
+  </div>
+
+</div>
+<audio id="theme-music" src="./assets/music/I-M-Meen-Theme-Song.wav" preload="auto"></audio>
+<script src="i-m-meens-book-shred-simulator.js"></script>
+</body>
+</html>

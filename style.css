@@ -513,6 +513,9 @@ h1 {
 .card-bg-grand-meme-prix {
   background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-grand-meme-prix.png');
 }
+.card-bg-i-m-meen {
+  background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-i-m-meen.png');
+}
 
 /* Card hover effect: slight scale up and rotation, plus border color change */
 
