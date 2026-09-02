@@ -1070,6 +1070,42 @@ const WEEGEE_MEMORY = 6;
 // Sub-cell margin to stay away from walls (world units)
 const WEEGEE_WALL_MARGIN = 0.55;
 
+// ── Suspicion Zone System ─────────────────────────────────────────────────────
+// Every maze cell tracks how long ago Weegee last visited it (in seconds).
+// Cells that haven't been visited for a long time become "suspicious" and get
+// priority when picking a wander target, making Weegee actively patrol the
+// whole map instead of clustering in areas he's already checked.
+//
+// WEEGEE_SUSPICION_THRESHOLD : seconds before a cell becomes suspicious
+// WEEGEE_SUSPICION_WEIGHT    : how many extra "votes" a suspicious cell gets
+//                              in the weighted random draw (higher = more pull)
+const WEEGEE_SUSPICION_THRESHOLD = 20.0;
+const WEEGEE_SUSPICION_WEIGHT    = 6;
+
+// Flat array [MAZE_H * MAZE_W] tracking seconds-since-last-visit per cell.
+// Initialised to WEEGEE_SUSPICION_THRESHOLD so every cell starts suspicious
+// on a fresh floor — Weegee immediately feels pressure to explore everywhere.
+let weegeeCellLastVisited = [];
+
+function initSuspicionZones() {
+  weegeeCellLastVisited = new Array(MAZE_H * MAZE_W).fill(WEEGEE_SUSPICION_THRESHOLD);
+}
+
+// Call once per frame (during updateWeegee) to age every cell's timer.
+// Also marks Weegee's current cell as freshly visited (timer = 0).
+function tickSuspicionZones(dt) {
+  const wCol = Math.floor(weegee.x / CELL);
+  const wRow = Math.floor(weegee.z / CELL);
+  for (let i = 0; i < weegeeCellLastVisited.length; i++) {
+    weegeeCellLastVisited[i] += dt;
+  }
+  // Clamp so timers don't grow unboundedly
+  const idx = wRow * MAZE_W + wCol;
+  if (idx >= 0 && idx < weegeeCellLastVisited.length) {
+    weegeeCellLastVisited[idx] = 0;
+  }
+}
+
 // Pick a random sub-cell offset that keeps Weegee away from cell walls
 function pickSubCellOffset() {
   const halfCell = CELL / 2;
@@ -1112,7 +1148,18 @@ function pickWanderTarget() {
   const farCandidates = candidates.filter(({c, r}) => Math.abs(c - wCol) + Math.abs(r - wRow) >= 3);
   const pool = farCandidates.length > 0 ? farCandidates : candidates;
 
-  const chosen = pool[Math.floor(Math.random() * pool.length)];
+  // ── Suspicion-weighted random draw ───────────────────────────────────────
+  // Each candidate gets 1 base ticket. Suspicious cells (unvisited long enough)
+  // get WEEGEE_SUSPICION_WEIGHT extra tickets, making them much more likely to
+  // be chosen without being guaranteed — keeps the behaviour feeling organic.
+  const tickets = [];
+  for (const cell of pool) {
+    const cellIdx = cell.r * MAZE_W + cell.c;
+    const age = weegeeCellLastVisited[cellIdx] !== undefined ? weegeeCellLastVisited[cellIdx] : WEEGEE_SUSPICION_THRESHOLD;
+    const weight = age >= WEEGEE_SUSPICION_THRESHOLD ? WEEGEE_SUSPICION_WEIGHT : 1;
+    for (let t = 0; t < weight; t++) tickets.push(cell);
+  }
+  const chosen = tickets[Math.floor(Math.random() * tickets.length)];
   // Track visit
   weegee._visitedCells.push(chosen.key);
   if (weegee._visitedCells.length > WEEGEE_MEMORY) weegee._visitedCells.shift();
@@ -1628,6 +1675,7 @@ function spawnWeegeefarAway() {
   weegee.targetCellX = null;
   weegee.targetCellZ = null;
   weegee._visitedCells = weegee._visitedCells || [];
+  initSuspicionZones();
   weegee._subOffX = 0;
   weegee._subOffZ = 0;
   weegeeInterceptTarget = null;
@@ -1988,6 +2036,11 @@ function updateWeegee(dt) {
     }
     return;
   }
+
+  // ── Suspicion zone tick ───────────────────────────────────────────────────
+  // Ages every cell's unvisited timer and resets Weegee's current cell to 0.
+  // Runs every frame regardless of state so timers are always accurate.
+  tickSuspicionZones(dt);
 
   // ── Throttled hearing check ────────────────────────────────────────────────
   // Only runs a few times per second (WEEGEE_HEAR_INTERVAL) so it's cheap
