@@ -144,7 +144,7 @@ body.mobile-blocked #mobile-block {
   max-width: 650px;
   width: 100%;
   text-align: center;
-  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-family: 'Comic Sans MS', sans-serif;
   font-weight: bold;
   color: #ff2b2b;
   opacity: 0;
@@ -200,7 +200,7 @@ body.mobile-blocked #mobile-block {
 }
 
 .splash-btn {
-  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-family: 'Comic Sans MS', sans-serif;
   font-weight: bold;
   font-size: 1.2rem;
   padding: 14px 28px;
@@ -250,7 +250,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 }
 
 body {
-  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-family: 'Comic Sans MS', sans-serif;
   font-weight: bold;
   /* Animated Meme Background */
   background: linear-gradient(-45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #FF13F0, #ff0000);
@@ -635,7 +635,7 @@ h1, .game-card h3 {
   bottom: 20px;
   left: 20px;
   z-index: 1001;
-  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-family: 'Comic Sans MS', sans-serif;
   font-weight: bold;
   font-size: 1.1rem;
   padding: 12px 20px;
@@ -679,7 +679,7 @@ h1, .game-card h3 {
   top: 20px;
   left: 20px;
   z-index: 1002;
-  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-family: 'Comic Sans MS', sans-serif;
   font-weight: bold;
   font-size: 1.1rem;
   padding: 12px 20px;
@@ -689,21 +689,28 @@ h1, .game-card h3 {
    DVD-R PROJECTS BUTTON (top-right)
    ========================================= */
 .dvd-projects-btn {
-  position: fixed;
+  position: absolute;
   top: 20px;
   right: 20px;
   z-index: 1002;
-  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-family: 'Comic Sans MS', sans-serif;
   font-weight: bold;
   font-size: 1.1rem;
-  padding: 12px 20px;
-  /* Override link defaults */
+  padding: 15px 30px;
+  border: 4px solid #333;
+  border-radius: 15px;
   color: black !important;
   -webkit-text-stroke: 0px;
   text-shadow: none;
+  background: conic-gradient(
+    from var(--spin-angle), 
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
   text-decoration: none;
   -webkit-background-clip: unset !important;
   background-clip: unset !important;
+  animation: spin-text-rainbow 2s linear infinite; 
+  transition: transform 0.1s;
   box-shadow: 4px 4px 0px rgba(0,0,0,0.35);
 }
 
@@ -1097,7 +1104,7 @@ body.about-active .game-container {
   transform: translateX(-50%) translateY(-12px);
   background: rgba(0, 0, 0, 0.85);
   color: #00e5ff;
-  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-family: 'Comic Sans MS', sans-serif;
   font-weight: bold;
   font-size: 1rem;
   padding: 12px 22px;
