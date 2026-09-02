@@ -102,6 +102,16 @@
 
 ---
 
+<p><strong><font size="4">📀 THE DVD-R ISO HANGAR!</font></strong></p>
+
+<p><strong><font size="2">AYO! I made a sideproject that's gonna host ISO files for burning onto DVD-R discs! 🤯</font></strong></p> <br>
+
+* It's still in development, but eventually you'll be able to SQUADALA some DVD ISO files from it! 😂
+* It's mainly a preservation project for old YTP! 😎
+* I added another fucking rainbow button to the Shit Ass Toybox that brings you to the fucking hangar! 🤯
+
+---
+
 <p><strong><font size="3">⏮️ THE PREVIOUS HUB UPDATE!</font></strong></p>
 
 > Fuck, I don't remember! 😂

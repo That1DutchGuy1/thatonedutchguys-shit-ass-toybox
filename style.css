@@ -32,7 +32,8 @@ body.mobile-blocked {
 body.mobile-blocked #warning-splash,
 body.mobile-blocked #page-content,
 body.mobile-blocked .about-toggle-btn,
-body.mobile-blocked .music-toggle-btn {
+body.mobile-blocked .music-toggle-btn,
+body.mobile-blocked .dvd-projects-btn {
   display: none !important;
 }
 
@@ -682,6 +683,36 @@ h1, .game-card h3 {
   font-weight: bold;
   font-size: 1.1rem;
   padding: 12px 20px;
+}
+
+/* =========================================
+   DVD-R PROJECTS BUTTON (top-right)
+   ========================================= */
+.dvd-projects-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1002;
+  font-family: 'Comic Sans MS', sans-serif, bold;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 12px 20px;
+  /* Override link defaults */
+  color: black !important;
+  -webkit-text-stroke: 0px;
+  text-shadow: none;
+  text-decoration: none;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.35);
+}
+
+.dvd-projects-btn:hover {
+  transform: scale(1.1);
+}
+
+.dvd-projects-btn:active {
+  transform: scale(0.95);
 }
 
 /* =========================================
