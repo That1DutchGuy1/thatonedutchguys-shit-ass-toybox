@@ -6,6 +6,9 @@
 // Just drop filenames (relative paths) into this array!
 const BOOK_IMAGES = [
   './assets/books/bible.png',
+  './assets/books/random-novel.png',
+  './assets/books/childrens-encyclopedia.png',
+  './assets/books/childrens-animal-book.png',
 ];
 
 // ---- I.M. MEEN VOICE LINES HERE ----
