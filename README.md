@@ -123,9 +123,9 @@
 ---
 
 <p><strong><font size="3">📝 Project Overview</font></strong></p>
-<p><strong><font size="2">I do this as a hobby just for my own amusement, </font></strong></p>
+<p><strong><font size="2">I do this as a hobby just for my own amusement, not for anyone.</font></strong></p>
 
-<p><strong><font size="2">For those who don't know me, I am a retired YouTuber known as That One Dutch Guy. <br> If you want a quick laugh and lose even more of your small amount of braincells simultaneously, the watch my fucking old videos! More interactive toys and games will be continually added here in the future.</font></strong></p>
+<p><strong><font size="2">For those who don't know me, I am a retired YouTuber known as That One Dutch Guy. <br> If you want a quick laugh and lose even more of your small amount of braincells simultaneously, then watch my fucking old videos! More interactive toys and games will be continually added here in the future!</font></strong></p>
 
 ---
 
