@@ -2573,7 +2573,7 @@ function _drawPingasMotorsAd(ctx, w, h) {
 }
 
 /**
- * Draw the Weegee's Staring Race Goggles advertisement canvas.
+ * Draw the Weegee's Racing Goggles advertisement canvas.
  * Weegee stands tall on the left; Comic Sans copy fills the right.
  * Original sprite: 998 × 2517 px (aspect 0.397 — very narrow and tall).
  */
@@ -2617,7 +2617,7 @@ function _drawWeegeeGooglesAd(ctx, w, h) {
 
   // Brand name
   drawLine("WEEGEE'S", Math.round(h * 0.12), Math.round(h * 0.115), '#00FF44');
-  drawLine('STARING RACE', Math.round(h * 0.27), Math.round(h * 0.105), '#FFFFFF');
+  drawLine('RACING', Math.round(h * 0.27), Math.round(h * 0.105), '#FFFFFF');
   drawLine('GOGGLES™', Math.round(h * 0.40), Math.round(h * 0.105), '#00FF44');
 
   // Divider line
@@ -2726,8 +2726,8 @@ function _drawKingHarkinianAd(ctx, w, h) {
   ctx.stroke();
 
   // Slogan — two lines to keep it readable
-  drawLine('"Makes YOU wonder', Math.round(h * 0.62), Math.round(h * 0.082), '#FFFFFF');
-  drawLine("what's for dinner\"", Math.round(h * 0.73), Math.round(h * 0.082), '#FFFFFF');
+  drawLine('Makes YOU wonder', Math.round(h * 0.62), Math.round(h * 0.082), '#FFFFFF');
+  drawLine("what's for dinner!", Math.round(h * 0.73), Math.round(h * 0.082), '#FFFFFF');
 
   // Fine print
   ctx.font = `${Math.round(h * 0.058)}px "Comic Sans MS","Comic Sans",cursive`;
@@ -2821,8 +2821,8 @@ function _drawLongcatAd(ctx, w, h) {
   ctx.stroke();
 
   // Slogan
-  drawLine('"Longcat is long.', Math.round(h * 0.56), Math.round(h * 0.082), '#CC99FF');
-  drawLine('So is our menu."', Math.round(h * 0.67), Math.round(h * 0.082), '#CC99FF');
+  drawLine('Longcat is long.', Math.round(h * 0.56), Math.round(h * 0.082), '#CC99FF');
+  drawLine('So is our menu.', Math.round(h * 0.67), Math.round(h * 0.082), '#CC99FF');
 
   // Fine print
   ctx.font = `${Math.round(h * 0.058)}px "Comic Sans MS","Comic Sans",cursive`;
@@ -2871,7 +2871,7 @@ function addBillboards(sceneObj) {
     drawFn: _drawPingasMotorsAd,
   });
 
-  // ── 2. Weegee's Staring Race Goggles (east turn, faces west) ────────────
+  // ── 2. Weegee's Racing Goggles (east turn, faces west) ────────────
   makeBillboard(sceneObj, {
     x: 210, z: 75,
     rotY: Math.PI,           // faces west toward the sweeping right-hander
