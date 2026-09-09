@@ -324,4 +324,19 @@ let weegeeSlipState = {
 let bananThrowAnim = { active: false, t: 0, duration: 0.55 };
 const BANANA_THROW_PHASES = { riseEnd: 0.25, releaseEnd: 0.55 };
 
+// ── Settings ──────────────────────────────────────────────────────────────────
+// Persisted to localStorage. Loaded once at startup, saved on every change.
+// applyWmSettings() (defined in weegees_mansion_audio.js) pushes values live.
+const WM_SETTINGS_KEY = 'wm_settings_v1';
+const wmSettings = (() => {
+  const defaults = { sfxVol: 100, ambientVol: 100, musicVol: 100, seamlessInput: true };
+  try {
+    const saved = JSON.parse(localStorage.getItem(WM_SETTINGS_KEY));
+    return Object.assign({}, defaults, saved);
+  } catch { return { ...defaults }; }
+})();
+function saveWmSettings() {
+  try { localStorage.setItem(WM_SETTINGS_KEY, JSON.stringify(wmSettings)); } catch {}
+}
+
 // Audio for banana peel

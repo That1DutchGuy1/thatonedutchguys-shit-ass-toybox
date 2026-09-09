@@ -6,29 +6,30 @@ let playerWoahAudio = null;
 let playerShiverAudio = null;
 
 function initBananaAudio() {
+  const sfx = (typeof wmSettings !== 'undefined' ? wmSettings.sfxVol : 100) / 100;
   if (!bananaPeelSlipAudio) {
     bananaPeelSlipAudio = new Audio('Audio/Item/banana-peel-slip.mp3');
-    bananaPeelSlipAudio.volume = 1;
+    bananaPeelSlipAudio.volume = sfx;
   }
   if (!bananaPeelFallAudio) {
     bananaPeelFallAudio = new Audio('Audio/Item/banana-peel-fall.mp3');
-    bananaPeelFallAudio.volume = 1;
+    bananaPeelFallAudio.volume = sfx;
   }
   if (!weegeeScreamBananaAudio) {
     weegeeScreamBananaAudio = new Audio('Audio/Weegee/weegee-scream.mp3');
-    weegeeScreamBananaAudio.volume = 1;
+    weegeeScreamBananaAudio.volume = sfx;
   }
   if (!playerMamafckerAudio) {
     playerMamafckerAudio = new Audio('Audio/Player/player-mamafcker.mp3'); // a sentence mix of Mario saying "Mamafucker" with a funny intentional censor beep on the letter "u" in the middle of the word "fucker" to amplify how angry it must sound
-    playerMamafckerAudio.volume = 1;
+    playerMamafckerAudio.volume = sfx;
   }
   if (!playerWoahAudio) {
     playerWoahAudio = new Audio('Audio/Player/player-woah.mp3');
-    playerWoahAudio.volume = 1;
+    playerWoahAudio.volume = sfx;
   }
   if (!playerShiverAudio) {
     playerShiverAudio = new Audio('Audio/Player/player-shiver.mp3');
-    playerShiverAudio.volume = 1;
+    playerShiverAudio.volume = sfx;
   }
 }
 
@@ -70,7 +71,7 @@ function playBanishScreamGlobal() {
     if (!banishScreamAudio) banishScreamAudio = new Audio('Audio/Weegee/weegee-scream.mp3');
     banishScreamAudio.pause();
     banishScreamAudio.currentTime = 0;
-    banishScreamAudio.volume = 1;
+    banishScreamAudio.volume = (typeof wmSettings !== 'undefined' ? wmSettings.sfxVol : 100) / 100;
     banishScreamAudio.muted = false;
     banishScreamAudio.play().catch(() => {});
   } catch (e) {}
@@ -110,13 +111,14 @@ let plungerHitAudio = null;
 let weegeeEhAudio = null;
 
 function initPlungerAudio() {
+  const sfx = (typeof wmSettings !== 'undefined' ? wmSettings.sfxVol : 100) / 100;
   if (!plungerHitAudio) {
     plungerHitAudio = new Audio('Audio/Item/plunger-projectile-hit.mp3');
-    plungerHitAudio.volume = 1;
+    plungerHitAudio.volume = sfx;
   }
   if (!weegeeEhAudio) {
     weegeeEhAudio = new Audio('Audio/Weegee/weegee-eh.mp3');
-    weegeeEhAudio.volume = 1;
+    weegeeEhAudio.volume = sfx;
   }
 }
 function playPlungerHitSound() {
@@ -140,7 +142,7 @@ let dewChugAudio = null;
 function initDewChugAudio() {
   if (!dewChugAudio) {
     dewChugAudio = new Audio('Audio/Item/dew-chug.mp3');
-    dewChugAudio.volume = 1;
+    dewChugAudio.volume = (typeof wmSettings !== 'undefined' ? wmSettings.sfxVol : 100) / 100;
   }
 }
 function playDewChugSound() {
@@ -164,7 +166,7 @@ let hahaPendingTimer = -1;
 function initHahaAudio() {
   if (!hahaAudio) {
     hahaAudio = new Audio('Audio/Player/haha.mp3');
-    hahaAudio.volume = 1;
+    hahaAudio.volume = (typeof wmSettings !== 'undefined' ? wmSettings.sfxVol : 100) / 100;
   }
 }
 function playHahaSound() {
@@ -190,11 +192,11 @@ bgMusic.loop = true;
 let footstepsAudio = new Audio('Audio/Player/footsteps.mp3');
 footstepsAudio.loop = true;
 footstepsAudio.preload = 'auto';
-footstepsAudio.volume = 1;
+footstepsAudio.volume = (typeof wmSettings !== 'undefined' ? wmSettings.sfxVol : 100) / 100;
 let puddleFootstepsAudio = new Audio('Audio/Player/puddle-footsteps.mp3');
 puddleFootstepsAudio.loop = true;
 puddleFootstepsAudio.preload = 'auto';
-puddleFootstepsAudio.volume = 1;
+puddleFootstepsAudio.volume = (typeof wmSettings !== 'undefined' ? wmSettings.sfxVol : 100) / 100;
 let isWalking = false;
 
 let laughAudio = new Audio('Audio/Death-Victory/weegee-evil-laugh.wav');
@@ -323,7 +325,8 @@ function _echoAmountFromDist(dist) {
 
 // Applies distance-based volume AND echo mix every frame while a clip is playing.
 function _applyWeegeeDistanceAudio(dist) {
-  const vol = Math.max(0, 1 - dist / WEEGEE_AUDIO_MAX_DIST);
+  const sfxScale = (typeof wmSettings !== 'undefined' ? wmSettings.sfxVol : 100) / 100;
+  const vol = Math.max(0, 1 - dist / WEEGEE_AUDIO_MAX_DIST) * sfxScale;
   const echo = _echoAmountFromDist(dist);
 
   if (weegeeMasterGain)   weegeeMasterGain.gain.value   = vol;
@@ -397,3 +400,47 @@ function updateWeegeeVoice(dt) {
   weegeeVoicePlaying = true;
 }
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ── applyWmSettings ───────────────────────────────────────────────────────────
+// Pushes the current wmSettings values live into every audio source.
+// Called on page load (via DOMContentLoaded) and on every settings change.
+function applyWmSettings() {
+  const sfx     = wmSettings.sfxVol     / 100;
+  const ambient = wmSettings.ambientVol / 100;
+  const music   = wmSettings.musicVol   / 100;
+
+  // ── Music ──
+  if (bgMusic) bgMusic.volume = music;
+  if (laughAudio) laughAudio.volume = music;   // death/victory stingers feel like music
+  if (yayAudio)   yayAudio.volume   = music;
+
+  // ── Ambient (weather system exposes a setter via window hook) ──
+  if (typeof window._wmSetAmbientVol === 'function') window._wmSetAmbientVol(ambient);
+
+  // ── SFX — footsteps ──
+  if (typeof footstepsAudio !== 'undefined'       && footstepsAudio)       footstepsAudio.volume       = sfx;
+  if (typeof puddleFootstepsAudio !== 'undefined' && puddleFootstepsAudio) puddleFootstepsAudio.volume = sfx;
+
+  // ── SFX — item / reaction sounds (may be null until first use) ──
+  const sfxAudioEls = [
+    typeof bananaPeelSlipAudio    !== 'undefined' ? bananaPeelSlipAudio    : null,
+    typeof bananaPeelFallAudio    !== 'undefined' ? bananaPeelFallAudio    : null,
+    typeof weegeeScreamBananaAudio!== 'undefined' ? weegeeScreamBananaAudio: null,
+    typeof playerMamafckerAudio   !== 'undefined' ? playerMamafckerAudio   : null,
+    typeof playerWoahAudio        !== 'undefined' ? playerWoahAudio        : null,
+    typeof playerShiverAudio      !== 'undefined' ? playerShiverAudio      : null,
+    typeof banishScreamAudio      !== 'undefined' ? banishScreamAudio      : null,
+    typeof plungerHitAudio        !== 'undefined' ? plungerHitAudio        : null,
+    typeof weegeeEhAudio          !== 'undefined' ? weegeeEhAudio          : null,
+    typeof dewChugAudio           !== 'undefined' ? dewChugAudio           : null,
+    typeof hahaAudio              !== 'undefined' ? hahaAudio              : null,
+  ];
+  sfxAudioEls.forEach(el => { if (el) el.volume = sfx; });
+
+  // Weegee spatial voice is handled per-frame by _applyWeegeeDistanceAudio
+  // which already reads wmSettings.sfxVol directly — no extra call needed here.
+}
+// Apply saved settings on page load (after DOM is ready so bgMusic etc. exist).
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof applyWmSettings === 'function') applyWmSettings();
+});

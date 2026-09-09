@@ -98,8 +98,20 @@
 * Local multiplayer co-op mode can now fucking feature up to two CPU drivers to spice up the race with your friend... that is if you actually have any friends! 🙃
 * An actual fucking grass texture on the grass is now in the game! 🌱
 * A lot of fucking trees are now scattered outside the stadium! 🌲
-* Funny meme billboard ads are now outside to advertise meme stuff! 🤣
+* Funny meme billboard ads are now outside to advertise meme stuff! No real ads! Just funny fake ones! 🤣
 * NOW GO FUCKING PLAY IT! 🔫
+
+---
+
+<p><strong><font size="4">🚨 WEEGEE'S MANSION 3D UPDATE!</font></strong></p>
+
+<p><strong><font size="2">Weegee's Mansion 3D got another fucking update!</font></strong></p>  <br>
+
+* Added a fucking settings menu! ⚙️
+* The settings menu had audio sliders for any of you pussies who are scared of the audio! 🔊
+* DualShock 4 controller lightbars now change to glow red when you use the d-pad menu navigation to start the game! 🔴
+* Changed the fucking main font to good ol' Comic Sans! 😎
+* Updated the LORE and ABOUT tabs on the main menu with some new stuff! 📖
 
 ---
 

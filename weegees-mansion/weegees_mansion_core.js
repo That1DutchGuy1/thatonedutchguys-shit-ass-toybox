@@ -12,9 +12,9 @@ function gameLoop() {
 
   movePlayer(dt);
 
-  // Right stick — camera look. Independent of mouse movement, so mouse
-  // and gamepad look can both be used interchangeably without conflict.
-  if (gamepadState.lookX !== 0 || gamepadState.lookY !== 0) {
+  // Right stick — camera look. Blocked when locked to keyboard input.
+  const _gpLookBlocked = typeof window._wmInputBlocked === 'function' && window._wmInputBlocked(true);
+  if (!_gpLookBlocked && (gamepadState.lookX !== 0 || gamepadState.lookY !== 0)) {
     if (!playerSlipState.active) {
       player.yaw   -= gamepadState.lookX * (window._GAMEPAD_LOOK_SENSITIVITY || 2.6) * dt;
       player.pitch -= gamepadState.lookY * (window._GAMEPAD_LOOK_SENSITIVITY || 2.6) * dt;
@@ -102,7 +102,9 @@ function gameLoop() {
   let shroomSwayY = 0;
 
   if (handMesh && handMesh.material.visible) {
-    const moving = keys['w']||keys['s']||keys['a']||keys['d']||keys['arrowup']||keys['arrowdown']||keys['arrowleft']||keys['arrowright'] || (Math.abs(gamepadState.moveX) > 0.05 || Math.abs(gamepadState.moveY) > 0.05);
+    const _gpBobBlocked = typeof window._wmInputBlocked === 'function' && window._wmInputBlocked(true);
+    const _kbBobBlocked = typeof window._wmInputBlocked === 'function' && window._wmInputBlocked(false);
+    const moving = (!_kbBobBlocked && (keys['w']||keys['s']||keys['a']||keys['d']||keys['arrowup']||keys['arrowdown']||keys['arrowleft']||keys['arrowright'])) || (!_gpBobBlocked && (Math.abs(gamepadState.moveX) > 0.05 || Math.abs(gamepadState.moveY) > 0.05));
     const bSpeed = isSprinting ? 12 : (isSneaking && moving ? 3.5 : (moving ? 7 : 2));
     const bAmt = isSprinting ? 0.03 : (isSneaking && moving ? 0.008 : (moving ? 0.015 : 0.003));
     handMesh.position.y = -0.22 + Math.sin(elapsed * bSpeed) * bAmt;
@@ -233,7 +235,7 @@ function gameLoop() {
         puddleFootstepsAudio.play().catch(err => console.warn(err));
       }
       puddleFootstepsAudio.playbackRate = isSprinting ? 1.7 : (isSneaking ? 0.8 : 1.1);
-      puddleFootstepsAudio.volume = Math.min(1, isSprinting ? 1.3 : 1.0);
+      puddleFootstepsAudio.volume = Math.min(1, (isSprinting ? 1.3 : 1.0) * ((typeof wmSettings !== 'undefined' ? wmSettings.sfxVol : 100) / 100));
       if (!footstepsAudio.paused) footstepsAudio.pause();
     } else if (dryFootstepsAudible) {
       // Dry floor, not sneaking: normal footsteps. Sprint = louder + faster.
@@ -241,7 +243,7 @@ function gameLoop() {
         footstepsAudio.play().catch(err => console.warn(err));
       }
       footstepsAudio.playbackRate = isSprinting ? 1.5 : 1.0;
-      footstepsAudio.volume = Math.min(1, sprintVolBoost);
+      footstepsAudio.volume = Math.min(1, sprintVolBoost * ((typeof wmSettings !== 'undefined' ? wmSettings.sfxVol : 100) / 100));
       if (!puddleFootstepsAudio.paused) puddleFootstepsAudio.pause();
     } else {
       // Sneaking on dry floor: completely silent footsteps.
@@ -330,38 +332,41 @@ document.addEventListener('keydown', e => {
     keys[e.key.toLowerCase()] = true;
   }
 
-  // Space on the death screen restarts — checked first so isDead always wins
-  // over the sneak toggle below.
+  // Space on the death screen restarts — always allowed regardless of input lock.
   if (e.code === 'Space' && isDead) {
     restartGame();
     return;
   }
 
+  // For all in-game keyboard actions below, check whether keyboard is blocked
+  // (seamless input OFF, player started this run on gamepad).
+  const _kbActionsBlocked = typeof window._wmInputBlocked === 'function' && window._wmInputBlocked(false);
+
   // Space in-game toggles sneak (like D-pad down on gamepad).
   // Sneak and sprint are mutually exclusive — sneak wins.
-  if (e.code === 'Space' && gameStarted && !isDead && !isPaused) {
+  if (!_kbActionsBlocked && e.code === 'Space' && gameStarted && !isDead && !isPaused) {
     keys['sneak'] = !keys['sneak'];
     if (keys['sneak'] && keys['shift']) keys['shift'] = false;
   }
 
-  if (e.code === 'KeyF') {
+  if (!_kbActionsBlocked && e.code === 'KeyF') {
     toggleFlashlight();
   }
 
-  if(['1','2','3','4','5'].includes(e.key)) {
+  if (!_kbActionsBlocked && ['1','2','3','4','5'].includes(e.key)) {
     selectedSlot = parseInt(e.key) - 1;
     updateInventoryUI();
   }
 
-  if(e.code === 'KeyQ') {
+  if (!_kbActionsBlocked && e.code === 'KeyQ') {
     tryPickupItem();
   }
 
   if(e.code === 'KeyP') {
-    togglePause();
+    togglePause(); // pause is always allowed
   }
 
-  if ((e.code === 'ArrowUp' || e.code === 'KeyW') && !isDead && gameStarted && !isPaused) {
+  if (!_kbActionsBlocked && (e.code === 'ArrowUp' || e.code === 'KeyW') && !isDead && gameStarted && !isPaused) {
     for (const s of stairPositions) {
       const dx = s.x - player.x, dz = s.z - player.z;
       if (dx*dx + dz*dz < 1.44) {
@@ -391,6 +396,7 @@ window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; }
 
 window.addEventListener('wheel', e => {
   if (!gameStarted || isDead || isPaused) return;
+  if (typeof window._wmInputBlocked === 'function' && window._wmInputBlocked(false)) return;
   if (e.deltaY > 0) {
     selectedSlot = (selectedSlot + 1) % 5;
   } else if (e.deltaY < 0) {
@@ -417,7 +423,7 @@ document.addEventListener('click', (e) => {
         });
       }
     } else {
-      if (e.button === 0) {
+      if (e.button === 0 && !(typeof window._wmInputBlocked === 'function' && window._wmInputBlocked(false))) {
         useCurrentItem();
       }
     }
@@ -435,6 +441,8 @@ document.addEventListener('pointerlockchange', () => {
 document.addEventListener('mousemove', e => {
   if (!pointerLocked || !gameStarted || isPaused) return;
   if (playerSlipState.active) return; // can't look while slipped
+  // When seamless input is OFF and player started on gamepad, ignore mouse look.
+  if (typeof window._wmInputBlocked === 'function' && window._wmInputBlocked(false)) return;
   player.yaw -= e.movementX * 0.002;
   player.pitch -= e.movementY * 0.002;
   player.pitch = Math.max(-0.8, Math.min(0.8, player.pitch));
@@ -458,6 +466,131 @@ window.addEventListener('resize', () => {
 
 // Track whether the warm PointLight has been added so we never add it twice
 let _startLightAdded = false;
+
+// ── DS4 Lightbar via WebHID ───────────────────────────────────────────────
+// Sends a fixed red colour to the DS4 lightbar when the player starts the
+// game, and resets it to default blue when they return to the main menu.
+// Silently no-ops on browsers without WebHID (Firefox, Safari) or when no
+// DS4 is connected — nothing about the core game depends on this succeeding.
+//
+// DS4 USB output report 0x05 (32 bytes):
+//   [0]=0x05  [1]=0xff (enable rumble+lightbar)  [2-3]=0x00
+//   [4]=rightRumble  [5]=leftRumble
+//   [6]=R  [7]=G  [8]=B
+//
+// DS4 BT output report 0x11 (79 bytes):
+//   [0]=0x11  [1]=0xc0  [2]=0x20  [3]=0xf3  [4]=0x04
+//   [5]=rightRumble  [6]=leftRumble
+//   [7]=0x00  [8]=R  [9]=G  [10]=B  [rest]=0x00
+//
+// Sony VID 0x054C, DS4 PIDs: 0x05C4 (original) and 0x09CC (v2/slim).
+const ds4Lightbar = (() => {
+  const SONY_VID = 0x054C;
+  const DS4_PIDS = new Set([0x05C4, 0x09CC]);
+
+  // Map from gamepad index → { dev: HIDDevice, isBT: boolean }
+  const _devices = new Map();
+
+  function _parseVidPid(gpId) {
+    const m = gpId.match(/Vendor:\s*([0-9a-f]+)\s+Product:\s*([0-9a-f]+)/i);
+    if (!m) return null;
+    return { vid: parseInt(m[1], 16), pid: parseInt(m[2], 16) };
+  }
+
+  function _isDS4(dev) {
+    return dev.vendorId === SONY_VID && DS4_PIDS.has(dev.productId);
+  }
+
+  function _isBluetooth(dev) {
+    for (const col of dev.collections) {
+      for (const out of (col.outputReports || [])) {
+        if (out.reportId === 0x05) return false; // USB report present
+      }
+    }
+    return true; // assume BT
+  }
+
+  async function _send(dev, isBT, r, g, b) {
+    let reportId, data;
+    if (!isBT) {
+      data = new Uint8Array(31);
+      data[0] = 0xff; // enable rumble + lightbar
+      data[5] = r; data[6] = g; data[7] = b;
+      reportId = 0x05;
+    } else {
+      data = new Uint8Array(78);
+      data[0] = 0xc0; data[1] = 0x20; data[2] = 0xf3; data[3] = 0x04;
+      data[7] = r; data[8] = g; data[9] = b;
+      reportId = 0x11;
+    }
+    try { await dev.sendReport(reportId, data); }
+    catch (e) { console.warn('[WM] lightbar sendReport failed:', e); }
+  }
+
+  async function _ensureDevice(gpIndex) {
+    if (!navigator.hid) return false;
+    if (gpIndex === null || gpIndex === undefined) return false;
+    if (_devices.has(gpIndex)) return true;
+
+    const gp = (navigator.getGamepads ? navigator.getGamepads() : [])[gpIndex];
+    if (gp) {
+      const ids = _parseVidPid(gp.id);
+      if (!ids || ids.vid !== SONY_VID || !DS4_PIDS.has(ids.pid)) {
+        console.log('[WM] Lightbar: pad is not a DS4, skipping.');
+        return false;
+      }
+    }
+
+    let devices = await navigator.hid.getDevices();
+    let dev = devices.find(_isDS4);
+    if (!dev) {
+      try {
+        const granted = await navigator.hid.requestDevice({ filters: [{ vendorId: SONY_VID }] });
+        dev = granted.find(_isDS4);
+      } catch (e) {
+        console.log('[WM] Lightbar: WebHID permission denied or dismissed.', e);
+        return false;
+      }
+    }
+    if (!dev) return false;
+    if (!dev.opened) {
+      try { await dev.open(); }
+      catch (e) { console.warn('[WM] Lightbar: could not open HID device:', e); return false; }
+    }
+    const isBT = _isBluetooth(dev);
+    _devices.set(gpIndex, { dev, isBT });
+    console.log(`[WM] Lightbar ready — gpIndex=${gpIndex} BT=${isBT} pid=0x${dev.productId.toString(16)}`);
+    return true;
+  }
+
+  async function request(gpIndex, colorHex) {
+    const ready = await _ensureDevice(gpIndex);
+    if (ready && colorHex !== undefined) await setColorHex(gpIndex, colorHex);
+  }
+
+  async function setColor(gpIndex, r, g, b) {
+    const entry = _devices.get(gpIndex);
+    if (!entry) return;
+    await _send(entry.dev, entry.isBT, r, g, b);
+  }
+
+  async function setColorHex(gpIndex, hex) {
+    await setColor(gpIndex, (hex >> 16) & 0xff, (hex >> 8) & 0xff, hex & 0xff);
+  }
+
+  async function reset(gpIndex) { await setColor(gpIndex, 0, 0, 64); }
+
+  async function resetAll() { for (const [idx] of _devices) await reset(idx); }
+
+  return { request, setColor, setColorHex, reset, resetAll };
+})();
+
+// Reset lightbar to default DS4 blue whenever the page is left.
+(function () {
+  function _onExit() { ds4Lightbar.resetAll(); }
+  window.addEventListener('pagehide',     _onExit);
+  window.addEventListener('beforeunload', _onExit);
+})();
 
 // Builds/rebuilds floor 0 and reveals the mansion. Only ever called once the
 // wall/floor/ceiling/skybox/window-wall textures have actually finished
@@ -545,6 +678,17 @@ function startGame() {
   }
 
   updateInventoryUI();
+
+  // DS4 lightbar — set to red for Weegee's Mansion.
+  // window._wmPadIndex is written by the gamepad IIFE below whenever a pad
+  // connects, so it will be set if the player is using a controller.
+  ds4Lightbar.request(window._wmPadIndex ?? null, 0xFF0000);
+
+  // Seamless Input Switching — snapshot the input method used to start the game.
+  // _wmLockInput is defined inside the gamepad IIFE; it stores whether the player
+  // was on gamepad or keyboard at the moment of starting, so the lock can be
+  // enforced per-run when the setting is off.
+  if (typeof window._wmLockInput === 'function') window._wmLockInput();
 
   const lockPromise = document.getElementById('gameCanvas').requestPointerLock();
   if (lockPromise && typeof lockPromise.catch === 'function') {
@@ -774,6 +918,9 @@ gameLoop();
 
     wxMasterGain = wxAudioCtx.createGain();
     wxMasterGain.gain.value = 0;
+    // Apply any ambient volume scale that was set via _wmSetAmbientVol before
+    // the AudioContext existed (e.g. settings loaded on page load).
+    wxMasterGain._ambientVolScale = _pendingAmbientScale;
     wxMasterGain.connect(wxAudioCtx.destination);
 
     // Lowpass filter for rain muffling — frequency updated each frame
@@ -851,7 +998,8 @@ gameLoop();
     if (wxMasterGain) {
       const RAIN_VOL_MIN = 0.18;
       const RAIN_VOL_MAX = 0.85;
-      const target  = RAIN_VOL_MIN + (RAIN_VOL_MAX - RAIN_VOL_MIN) * proximity;
+      const ambientScale = wxMasterGain._ambientVolScale !== undefined ? wxMasterGain._ambientVolScale : 1;
+      const target  = (RAIN_VOL_MIN + (RAIN_VOL_MAX - RAIN_VOL_MIN) * proximity) * ambientScale;
       const current = wxMasterGain.gain.value;
       wxMasterGain.gain.value = current + (target - current) * Math.min(1, dt * 3);
     }
@@ -937,7 +1085,7 @@ gameLoop();
       _origRestartGame();
       // Reset the master gain node so it isn't stuck at 0 from the death
       // pause, then resume the rain loop now that gameStarted is true again.
-      if (wxMasterGain) wxMasterGain.gain.value = 0.18;
+      if (wxMasterGain) wxMasterGain.gain.value = 0.18 * (wxMasterGain._ambientVolScale !== undefined ? wxMasterGain._ambientVolScale : 1);
       if (rainAudio) rainAudio.play().catch(() => {});
     };
   }
@@ -956,6 +1104,23 @@ gameLoop();
     renderer._wxLastTime = now;
     updateWeather(dt);
     _origRender(sceneArg, cameraArg);
+  };
+
+  // ── Expose ambient volume control for the settings system ───────────────────
+  // The weather master gain is private to this IIFE, so we expose a thin setter
+  // that applyWmSettings() (in weegees_mansion_audio.js) can call.
+  // The setter is also safe to call before the AudioContext is built — it
+  // stores the last requested scale and applies it the moment the graph exists.
+  let _pendingAmbientScale = 1;
+  window._wmSetAmbientVol = function (scale) {
+    _pendingAmbientScale = scale;
+    if (wxMasterGain) {
+      wxMasterGain._ambientVolScale = scale;
+      // When muted (scale === 0) silence the gain immediately so the change
+      // takes effect even while the game is paused (updateWeather() doesn't
+      // run then and would otherwise never apply the zero).
+      if (scale === 0) wxMasterGain.gain.value = 0;
+    }
   };
 
   // ── Initialise on page load ──────────────────────────────────────────────────
@@ -981,11 +1146,73 @@ function switchTab(tab) {
     if (btn.getAttribute('onclick') === `switchTab('${tab}')`) btn.classList.add('active');
   });
   // Show/hide panels
-  ['info', 'controls', 'items', 'about'].forEach(t => {
+  ['info', 'controls', 'items', 'about', 'settings'].forEach(t => {
     const el = document.getElementById('tab-' + t);
     if (el) el.style.display = (t === tab) ? '' : 'none';
   });
 }
+
+// ── Settings Panel ────────────────────────────────────────────────────────────
+// Called by the settings sliders and toggle in the HTML panel.
+function onWmSettingChange() {
+  const sfxSlider     = document.getElementById('wm-sfx-slider');
+  const ambientSlider = document.getElementById('wm-ambient-slider');
+  const musicSlider   = document.getElementById('wm-music-slider');
+  const seamlessChk   = document.getElementById('wm-seamless-toggle');
+
+  if (sfxSlider)     wmSettings.sfxVol     = parseInt(sfxSlider.value,     10);
+  if (ambientSlider) wmSettings.ambientVol = parseInt(ambientSlider.value, 10);
+  if (musicSlider)   wmSettings.musicVol   = parseInt(musicSlider.value,   10);
+  if (seamlessChk)   wmSettings.seamlessInput = seamlessChk.checked;
+
+  // Update slider fill gradients
+  [sfxSlider, ambientSlider, musicSlider].forEach(s => {
+    if (!s) return;
+    const pct = ((s.value - s.min) / (s.max - s.min)) * 100;
+    s.style.background =
+      `linear-gradient(to right, #cc0000 0%, #cc0000 ${pct}%, rgba(80,0,0,0.4) ${pct}%, rgba(80,0,0,0.4) 100%)`;
+  });
+
+  // Update value labels
+  if (sfxSlider)     { const l = document.getElementById('wm-sfx-val');     if (l) l.textContent = wmSettings.sfxVol; }
+  if (ambientSlider) { const l = document.getElementById('wm-ambient-val'); if (l) l.textContent = wmSettings.ambientVol; }
+  if (musicSlider)   { const l = document.getElementById('wm-music-val');   if (l) l.textContent = wmSettings.musicVol; }
+
+  if (typeof applyWmSettings === 'function') applyWmSettings();
+  if (typeof saveWmSettings  === 'function') saveWmSettings();
+}
+
+// Sync the settings panel UI to current wmSettings values.
+// Called the first time the Settings tab is opened (so sliders reflect saved values).
+function syncSettingsUI() {
+  const sfxSlider     = document.getElementById('wm-sfx-slider');
+  const ambientSlider = document.getElementById('wm-ambient-slider');
+  const musicSlider   = document.getElementById('wm-music-slider');
+  const seamlessChk   = document.getElementById('wm-seamless-toggle');
+
+  if (sfxSlider)     sfxSlider.value     = wmSettings.sfxVol;
+  if (ambientSlider) ambientSlider.value = wmSettings.ambientVol;
+  if (musicSlider)   musicSlider.value   = wmSettings.musicVol;
+  if (seamlessChk)   seamlessChk.checked = wmSettings.seamlessInput;
+
+  // Trigger fill gradient update
+  [sfxSlider, ambientSlider, musicSlider].forEach(s => {
+    if (!s) return;
+    const pct = ((s.value - s.min) / (s.max - s.min)) * 100;
+    s.style.background =
+      `linear-gradient(to right, #cc0000 0%, #cc0000 ${pct}%, rgba(80,0,0,0.4) ${pct}%, rgba(80,0,0,0.4) 100%)`;
+  });
+
+  if (sfxSlider)     { const l = document.getElementById('wm-sfx-val');     if (l) l.textContent = wmSettings.sfxVol; }
+  if (ambientSlider) { const l = document.getElementById('wm-ambient-val'); if (l) l.textContent = wmSettings.ambientVol; }
+  if (musicSlider)   { const l = document.getElementById('wm-music-val');   if (l) l.textContent = wmSettings.musicVol; }
+}
+
+// Sync settings panel UI on page load so sliders reflect any saved values
+// even before the user opens the Settings tab.
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof syncSettingsUI === 'function') syncSettingsUI();
+});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ── DualShock 4 / Standard Gamepad Support ───────────────────────────────────
@@ -1034,7 +1261,39 @@ function switchTab(tab) {
     gpTooltipPanel.style.display = show ? 'flex' : 'none';
   }
 
+  // Input lock for "Seamless Input Switching" setting.
+  // _lockedToGamepad = null  -> no lock (menu or seamless mode on)
+  //                  = true  -> locked to gamepad for this run
+  //                  = false -> locked to keyboard/mouse for this run
+  let _lockedToGamepad = null;
+
+  // Returns true when the lock is actively blocking the given input source
+  // during live gameplay (never blocks on menu screens).
+  function _inputBlocked(tryingGamepad) {
+    if (_lockedToGamepad === null) return false;
+    if (typeof wmSettings === 'undefined' || wmSettings.seamlessInput) return false;
+    if (!gameStarted) return false;
+    const menuScreen = getActiveMenuScreen();
+    if (menuScreen) return false; // menus always allow both inputs
+    return tryingGamepad !== _lockedToGamepad;
+  }
+
+  // Called by startGame() to snapshot the current input method.
+  window._wmLockInput = function () {
+    _lockedToGamepad = usingGamepad;
+  };
+  // Called by quitToMainMenu() / restartGame() to clear the lock.
+  window._wmUnlockInput = function () {
+    _lockedToGamepad = null;
+  };
+  // Exposed so movePlayer / gameLoop can zero out keyboard input when locked to gamepad.
+  window._wmInputBlocked = _inputBlocked;
+
   function setUsingGamepad(v) {
+    // When the seamless input setting is OFF and we're actively in a game run,
+    // ignore any attempt to switch away from the locked input method.
+    // The lock doesn't apply on menus (pause/death/victory/start screens).
+    if (_inputBlocked(v)) return;
     if (usingGamepad === v) return;
     usingGamepad = v;
     updateGpTooltipVisibility();
@@ -1054,12 +1313,14 @@ function switchTab(tab) {
 
   window.addEventListener('gamepadconnected', (e) => {
     padIndex = e.gamepad.index;
+    window._wmPadIndex = padIndex; // exposed for ds4Lightbar in startGame
     gamepadState.connected = true;
     console.log('[Gamepad] Connected:', e.gamepad.id);
   });
   window.addEventListener('gamepaddisconnected', (e) => {
     if (padIndex === e.gamepad.index) {
       padIndex = null;
+      window._wmPadIndex = null;
       gamepadState.connected = false;
       gamepadState.moveX = 0; gamepadState.moveY = 0;
       gamepadState.lookX = 0; gamepadState.lookY = 0;
@@ -1188,6 +1449,16 @@ function switchTab(tab) {
     const menuScreen = getActiveMenuScreen();
     const inGame = gameStarted && !isDead && !isPaused && !menuScreen;
 
+    // When seamless input is OFF and the player started this run on keyboard,
+    // zero out all gamepad movement/look so the game loop ignores the controller.
+    // Menu navigation is still allowed (the block only applies during live play).
+    if (_inputBlocked(true)) {
+      gamepadState.moveX = 0;
+      gamepadState.moveY = 0;
+      gamepadState.lookX = 0;
+      gamepadState.lookY = 0;
+    }
+
     const pressed = (i) => !!(gp.buttons[i] && gp.buttons[i].pressed);
     const justPressed = (i) => pressed(i) && !prevButtons[i];
 
@@ -1204,43 +1475,45 @@ function switchTab(tab) {
     if (gpActivity) setUsingGamepad(true);
 
     // ── Face buttons: mirror keyboard/mouse actions exactly ─────────────────
+    // When locked to keyboard, allow menu navigation buttons but block in-game actions.
+    const gpInGameAllowed = !_inputBlocked(true);
     if (justPressed(BTN.CROSS)) {
       if (menuScreen) activateFocused(getMenuGrid(menuScreen));   // confirm / TRY AGAIN / etc
-      else if (inGame) tryPickupItem();                            // same as 'Q'
+      else if (inGame && gpInGameAllowed) tryPickupItem();        // same as 'Q'
     }
     if (justPressed(BTN.CIRCLE)) {
-      if (inGame) gamepadState.sprintToggle = !gamepadState.sprintToggle; // toggle sprint
+      if (inGame && gpInGameAllowed) gamepadState.sprintToggle = !gamepadState.sprintToggle; // toggle sprint
     }
     // DPAD_DOWN toggles sneak (mirrors how Circle toggles sprint — no need to hold)
     if (justPressed(BTN.DPAD_DOWN)) {
-      if (inGame) {
+      if (inGame && gpInGameAllowed) {
         gamepadState.sneakToggle = !gamepadState.sneakToggle;
         // Sneak and sprint are mutually exclusive — sneak wins
         if (gamepadState.sneakToggle && gamepadState.sprintToggle) {
           gamepadState.sprintToggle = false;
         }
-      } else {
+      } else if (!inGame) {
         gamepadState.sneakToggle = false;
       }
     }
     if (justPressed(BTN.SQUARE)) {
-      if (inGame) useCurrentItem();                                 // same as left click
+      if (inGame && gpInGameAllowed) useCurrentItem();              // same as left click
     }
     if (justPressed(BTN.TRIANGLE)) {
-      if (inGame) toggleFlashlight();                               // same as 'F'
+      if (inGame && gpInGameAllowed) toggleFlashlight();            // same as 'F'
     }
     if (justPressed(BTN.OPTIONS)) {
-      if (gameStarted && !isDead) togglePause();                    // same as 'P'
+      if (gameStarted && !isDead) togglePause();                    // pause is always allowed
     }
     if (justPressed(BTN.L1)) {
-      if (inGame) { selectedSlot = (selectedSlot - 1 + 5) % 5; updateInventoryUI(); } // same as scroll up
+      if (inGame && gpInGameAllowed) { selectedSlot = (selectedSlot - 1 + 5) % 5; updateInventoryUI(); } // same as scroll up
     }
     if (justPressed(BTN.R1)) {
-      if (inGame) { selectedSlot = (selectedSlot + 1) % 5; updateInventoryUI(); }     // same as scroll down
+      if (inGame && gpInGameAllowed) { selectedSlot = (selectedSlot + 1) % 5; updateInventoryUI(); }     // same as scroll down
     }
 
     // ── Forward-stick stair climbing (mirrors W/ArrowUp near stairs) ────────
-    if (inGame) {
+    if (inGame && gpInGameAllowed) {
       const forwardPushed = gamepadState.moveY < -0.5;
       if (forwardPushed && !prevForwardPushed) {
         for (const s of stairPositions) {

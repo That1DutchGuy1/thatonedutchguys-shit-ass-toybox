@@ -94,21 +94,39 @@
         <button class="menu-tab" onclick="switchTab('controls')">CONTROLS</button>
         <button class="menu-tab" onclick="switchTab('items')">ITEMS</button>
         <button class="menu-tab" onclick="switchTab('about')">ABOUT</button>
+        <button class="menu-tab" onclick="switchTab('settings'); syncSettingsUI()">SETTINGS</button>
       </div>
 
       <!-- LORE Tab -->
       <div class="menu-panel" id="tab-info">
         <div class="lore-section">
           <div class="lore-heading">THE PLAYER</div>
-          <p> You are <strong style="color:#cc6666">Mario!</strong> After trying to smoke super shrooms, you've ended up somewhere that no plumber should ever be. Your only goal: reach the top floor and escape before <em>he</em> finds you.</p>
+          <p> You are <strong style="color:#cc6666">Mario!</strong> <br>
+            After trying to smoke a harmless-looking LSD Shroom that you bought from a familiar, greedy merchant from the Goronu area in Koridai, you fell unconscious. <br>
+            When you woke up, you were somewhere else. <br>
+            A place you realized no plumber should ever be in. <br>
+            Your only goal is to reach the top floor and escape before <em>Weegee</em> finds you. <br>
+          </p>
         </div>
         <div class="lore-section">
           <div class="lore-heading">THE MANSION</div>
-          <p>A cursed five-floor labyrinth that shifts and breathes on its own. It's dark. The walls close in. No map exists — no one who drew one ever made it out. Each floor is a new maze, stranger than the last one. Something about this place feels <em>wrong</em> in a way you can't name.</p>
+          <p>A cursed five-floor labyrinth that is never the same. <br>
+            It's old, dark, decaying, and crumbling... slowly. <br>
+            No map exists, because no one who drew one ever made it out alive. <br>
+            Each floor is a new maze, stranger than the last one. <br>
+            Something about this place feels <em>wrong</em> in a way you can't name. <br>
+          </p>
         </div>
         <div class="lore-section">
           <div class="lore-heading">WEEGEE</div>
-          <p>He roams every floor. He does not stop. <br> Eye contact is <strong style="color:#cc6666">FATAL!</strong> His origin is unknown. <br> His purpose is singular. You are it.</p>
+          <p>Weegee is a mysterious, terrifying, albeit familiar-looking eldritch entity that has been haunting the mansion since November 1992. <br>
+            He roams every single floor. <br>
+            He does not stop. <br>
+            Eye contact is <strong style="color:#cc6666">FATAL!</strong> <br>
+            His origin is unknown. <br>
+            His purpose is singular. <br>
+            You are it. <br>
+          </p>
         </div>
       </div>
 
@@ -235,11 +253,51 @@
       <!-- ABOUT Tab -->
       <div class="menu-panel" id="tab-about" style="display:none;">
         <p class="about-text" style="color:#ffaa00">This game is made by <a href="https://youtube.com/@that1dutchguy?si=64hwISFn48ZFbh9l" id="creator-link" target="_blank">That One Dutch Guy.</a></p>
-        <p class="about-text" style="color:#ffaa00">Made using HTML, CSS, JavaScript <br> Three.js <br> And a whole lot of love for old memes!</p>
-        <p class="about-text" style="color:#ffaa00">Weegee's Mansion 3D is my largest and most ambitious project yet!</p>
-        <p class="about-text" style="color:#ffaa00">The game is played from a first-person perspective in a 3D environment, with 2D billboard sprites and textures for everything else to create that raycaster-like experience!</p>
+        <p class="about-text" style="color:#ffaa00">Made using only HTML, CSS, JavaScript <br> Three.js <br> And a whole lot of love for old memes!</p>
+        <p class="about-text" style="color:#ffaa00">The game uses ZERO frameworks, ZERO CDNs, and ZERO modern fluff! <br> You can easily play it offline entirely by cloning the GitHub repo and opening it in a local live server environment!</p>
+        <p class="about-text" style="color:#ffaa00">It's currently in full release version 1.6!</p>
+        <p class="about-text" style="color:#ffaa00">Weegee's Mansion 3D is one of my largest and most ambitious projects yet!</p>
+        <p class="about-text" style="color:#ffaa00">The game is played from a first-person perspective in a extremely simple procedurally generated 3D maze environment with textures applied to the 3D mesh, but everything else consists of 2D billboard sprites, normal sprites, and decal textures for everything else to create that raycaster-like experience!</p>
         <p class="about-text" style="color:#ffaa00">The game is stable and technically finished, but I might add more content in the future!</p>
         <p class="about-text" style="color:#ffaa00">Now stop being a little bitch and play the goddamn game!</p>
+      </div>
+
+      <!-- SETTINGS Tab -->
+      <div class="menu-panel" id="tab-settings" style="display:none">
+
+        <div class="lore-heading">AUDIO</div>
+
+        <div class="wm-setting-row">
+          <span class="wm-setting-label">SFX</span>
+          <input class="wm-slider" type="range" id="wm-sfx-slider" min="0" max="100" value="100" oninput="onWmSettingChange()">
+          <span class="wm-setting-val" id="wm-sfx-val">100</span>
+        </div>
+
+        <div class="wm-setting-row">
+          <span class="wm-setting-label">AMBIENT</span>
+          <input class="wm-slider" type="range" id="wm-ambient-slider" min="0" max="100" value="100" oninput="onWmSettingChange()">
+          <span class="wm-setting-val" id="wm-ambient-val">100</span>
+        </div>
+
+        <div class="wm-setting-row">
+          <span class="wm-setting-label">MUSIC</span>
+          <input class="wm-slider" type="range" id="wm-music-slider" min="0" max="100" value="100" oninput="onWmSettingChange()">
+          <span class="wm-setting-val" id="wm-music-val">100</span>
+        </div>
+
+        <div class="lore-heading" style="margin-top:18px">GAMEPLAY</div>
+
+        <div class="wm-setting-row wm-toggle-row">
+          <div class="wm-toggle-text">
+            <span class="wm-setting-label">SEAMLESS INPUT SWITCHING</span>
+            <span class="wm-toggle-desc">When off, you're locked to your starting input method for the rest of that run. <br> Does not apply on menus.</span>
+          </div>
+          <label class="wm-toggle-switch">
+            <input type="checkbox" id="wm-seamless-toggle" checked onchange="onWmSettingChange()">
+            <span class="wm-toggle-knob"></span>
+          </label>
+        </div>
+
       </div>
 
       <!-- Action Buttons (always visible below tabs) -->

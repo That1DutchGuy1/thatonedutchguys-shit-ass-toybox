@@ -489,6 +489,8 @@ function togglePause() {
 function quitToMainMenu() {
   isPaused = false;
   gameStarted = false;
+  ds4Lightbar.resetAll(); // restore DS4 default blue
+  if (typeof window._wmUnlockInput === 'function') window._wmUnlockInput();
   isDead = false;
   currentFloor = 0;
   shroomEffectTimeLeft = 0;
@@ -513,8 +515,7 @@ function quitToMainMenu() {
   bgMusic.pause();
   bgMusic.pause();
   bgMusic.currentTime = 0;
-  bgMusic.volume = 1;
-  footstepsAudio.volume = 1;
+  if (typeof applyWmSettings === 'function') applyWmSettings();
   if (isWalking) {
     isWalking = false;
     footstepsAudio.pause();
@@ -524,7 +525,6 @@ function quitToMainMenu() {
   laughAudio.currentTime = 0;
   yayAudio.pause();
   yayAudio.currentTime = 0;
-  yayAudio.volume = 1;
   if (weegeeVoiceAudio && weegeeVoicePlaying) {
     weegeeVoiceAudio.pause();
     weegeeVoicePlaying = false;
@@ -726,6 +726,9 @@ function killPlayer(msg) {
 function restartGame() {
   isDead = false;
   isPaused = false;
+  // Re-lock input: unlock first so the snapshot is fresh for the new run.
+  if (typeof window._wmUnlockInput === 'function') window._wmUnlockInput();
+  if (typeof window._wmLockInput  === 'function') window._wmLockInput();
   currentFloor = 0;
   weegeeActive = false;
   shroomEffectTimeLeft = 0;
@@ -770,14 +773,13 @@ function restartGame() {
   laughAudio.currentTime = 0;
   yayAudio.pause();
   yayAudio.currentTime = 0;
-  yayAudio.volume = 1; // reset in case audio fade was still running
   if (weegeeVoiceAudio && weegeeVoicePlaying) {
     weegeeVoiceAudio.pause();
     weegeeVoicePlaying = false;
   }
   weegeeVoiceCooldown = WEEGEE_AUDIO_COOLDOWN_MIN + Math.random() * (WEEGEE_AUDIO_COOLDOWN_MAX - WEEGEE_AUDIO_COOLDOWN_MIN);
   
-  bgMusic.volume = 1;
+  if (typeof applyWmSettings === 'function') applyWmSettings(); // restore all volumes from settings
   bgMusic.play().catch(err => console.warn(err));
   
   // ── Victory sequence teardown ─────────────────────────────────────────────
@@ -855,13 +857,14 @@ function climbStairs() {
         requestAnimationFrame(fadeAudioStep);
       } else {
         // All audio fully silent — now hard-stop everything.
-        bgMusic.pause(); bgMusic.currentTime = 0; bgMusic.volume = 1;
-        footstepsAudio.pause(); footstepsAudio.volume = 1;
+        bgMusic.pause(); bgMusic.currentTime = 0;
+        footstepsAudio.pause();
         if (isWalking) { isWalking = false; }
         if (weegeeVoiceAudio && weegeeVoicePlaying) {
           weegeeVoiceAudio.pause(); weegeeVoicePlaying = false;
-          weegeeVoiceAudio.volume = 1;
         }
+        // Restore all volumes to current settings (so yayAudio plays at the right level)
+        if (typeof applyWmSettings === 'function') applyWmSettings();
       }
     }
     requestAnimationFrame(fadeAudioStep);
@@ -895,9 +898,8 @@ function climbStairs() {
             fadeOverlay.style.transition = 'opacity 3s linear';
             fadeOverlay.classList.remove('active'); // opacity → 0
 
-            // Play yay.mp3 as the reveal begins.
+            // Play yay.mp3 as the reveal begins (volume already set by applyWmSettings).
             yayAudio.currentTime = 0;
-            yayAudio.volume = 1;
             yayAudio.play().catch(err => console.warn(err));
           }, CONTENT_FADE_DURATION);
         });
@@ -935,22 +937,28 @@ function movePlayer(dt) {
   let baseSpeed = 3.5;
   let movingInput = false;
 
-  if (keys['w'] || keys['s'] || keys['a'] || keys['d'] || keys['arrowup'] || keys['arrowdown']) {
+  // When seamless input is OFF, only read from the input method the player
+  // started this run with. _wmInputBlocked(true) = gamepad is blocked (locked
+  // to keyboard); _wmInputBlocked(false) = keyboard is blocked (locked to gamepad).
+  const _kbBlocked = typeof window._wmInputBlocked === 'function' && window._wmInputBlocked(false);
+  const _gpBlocked = typeof window._wmInputBlocked === 'function' && window._wmInputBlocked(true);
+
+  if (!_kbBlocked && (keys['w'] || keys['s'] || keys['a'] || keys['d'] || keys['arrowup'] || keys['arrowdown'])) {
     movingInput = true;
   }
-  if (gamepadState.moveX !== 0 || gamepadState.moveY !== 0) {
+  if (!_gpBlocked && (gamepadState.moveX !== 0 || gamepadState.moveY !== 0)) {
     movingInput = true;
   }
 
   // ── Sneak state ───────────────────────────────────────────────────────────
   // Space (keyboard, toggle) or DPAD_DOWN (gamepad, toggle). Works while standing still.
-  isSneaking = !!(keys['sneak'] || gamepadState.sneakToggle);
+  isSneaking = !!( (!_kbBlocked && keys['sneak']) || (!_gpBlocked && gamepadState.sneakToggle) );
   if (isSneaking && gamepadState.sprintToggle) gamepadState.sprintToggle = false;
 
   // Circle button TOGGLES sprint rather than needing to be held, but it
   // still ORs cleanly with Shift so keyboard sprinting is unaffected.
   // Sneak overrides sprint: can't do both at once.
-  isSprinting = !isSneaking && (keys['shift'] || gamepadState.sprintToggle) && movingInput && staminaCurrent > 0;
+  isSprinting = !isSneaking && ( (!_kbBlocked && keys['shift']) || (!_gpBlocked && gamepadState.sprintToggle) ) && movingInput && staminaCurrent > 0;
 
   if (isSprinting) {
     staminaCurrent -= STAMINA_DRAIN_RATE * dt;
@@ -982,21 +990,20 @@ function movePlayer(dt) {
   const rx = Math.cos(player.yaw);
   const rz = -Math.sin(player.yaw);
 
-  if (keys['w']||keys['arrowup']) { dx += fx * currentSpeed * dt; dz += fz * currentSpeed * dt; }
-  if (keys['s']||keys['arrowdown']) { dx -= fx * currentSpeed * dt; dz -= fz * currentSpeed * dt; }
-  if (keys['a']) { dx -= rx * currentSpeed * dt; dz -= rz * currentSpeed * dt; }
-  if (keys['d']) { dx += rx * currentSpeed * dt; dz += rz * currentSpeed * dt; }
-  if (keys['arrowleft']) { player.yaw += 1.5 * dt; }
-  if (keys['arrowright']) { player.yaw -= 1.5 * dt; }
+  if (!_kbBlocked && keys['w']||!_kbBlocked && keys['arrowup']) { dx += fx * currentSpeed * dt; dz += fz * currentSpeed * dt; }
+  if (!_kbBlocked && keys['s']||!_kbBlocked && keys['arrowdown']) { dx -= fx * currentSpeed * dt; dz -= fz * currentSpeed * dt; }
+  if (!_kbBlocked && keys['a']) { dx -= rx * currentSpeed * dt; dz -= rz * currentSpeed * dt; }
+  if (!_kbBlocked && keys['d']) { dx += rx * currentSpeed * dt; dz += rz * currentSpeed * dt; }
+  if (!_kbBlocked && keys['arrowleft']) { player.yaw += 1.5 * dt; }
+  if (!_kbBlocked && keys['arrowright']) { player.yaw -= 1.5 * dt; }
 
   // Left stick — forward/back on Y (pushed up = negative), strafe on X.
-  // Additive with WASD so keyboard + gamepad can never conflict.
-  if (gamepadState.moveY !== 0) {
+  if (!_gpBlocked && gamepadState.moveY !== 0) {
     const fwd = -gamepadState.moveY;
     dx += fx * fwd * currentSpeed * dt;
     dz += fz * fwd * currentSpeed * dt;
   }
-  if (gamepadState.moveX !== 0) {
+  if (!_gpBlocked && gamepadState.moveX !== 0) {
     dx += rx * gamepadState.moveX * currentSpeed * dt;
     dz += rz * gamepadState.moveX * currentSpeed * dt;
   }
