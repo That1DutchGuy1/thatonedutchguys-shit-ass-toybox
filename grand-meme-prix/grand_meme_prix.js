@@ -28,7 +28,7 @@ const CHARACTERS = [
   { name: "Morshu",        img: "assets/Morshu.png",         color: 0xFF8000, lightbarColor: 0xFFA500, voicelines: ['assets/voicelines/morshu-hit.mp3', 'assets/voicelines/morshu-win.mp3', 'assets/voicelines/morshu-lose.mp3'] }, // orange
   { name: "Malleo",        img: "assets/Malleo.png",         color: 0xb30c0c, lightbarColor: 0xFF0000, voicelines: ['assets/voicelines/malleo-hit.mp3', 'assets/voicelines/malleo-win.mp3', 'assets/voicelines/malleo-lose.mp3'] }, // red
   { name: "Mayor Cravendish", img: "assets/Mayor-Cravendish.png", color: 0x0fa4c8, lightbarColor: 0x0000FF, voicelines: ['assets/voicelines/mayor-cravendish-hit.mp3', 'assets/voicelines/mayor-cravendish-win.mp3', 'assets/voicelines/mayor-cravendish-lose.mp3'] }, // blue
-  { name: "Ganon",          img: "assets/Ganon.png",           color: 0x3C0008, lightbarColor: 0x5D100A, voicelines: ['assets/voicelines/ganon-hit.mp3', 'assets/voicelines/ganon-win.mp3', 'assets/voicelines/ganon-lose.mp3'] }, // dark maroon
+  { name: "Ganon",          img: "assets/Ganon.png",           color: 0x3C0008, lightbarColor: 0x5D100A, voicelines: ['assets/voicelines/ganon-hit.mp3', 'assets/voicelines/ganon-win.mp3', 'assets/voicelines/ganon-lose.mp3'] }, // maroon
 ];
 
 // =============================================
