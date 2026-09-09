@@ -89,16 +89,13 @@
 
 ---
 
-<p><strong><font size="4">🚨 THE GRAND MEME PRIX 3D FULL RELEASE!</font></strong></p>
+<p><strong><font size="4">🚨 THE GRAND MEME PRIX UPDATE!</font></strong></p>
 
-<p><strong><font size="2">Grand Meme Prix 3D is finally going into 1.0!</font></strong></p>  <br>
+<p><strong><font size="2">Grand Meme Prix 3D got a small lil update!</font></strong></p>  <br>
 
-* Now uses Cannon physics for bumping into karts! BUMPACARS! 🏎️
-* Added Mayor Cravendish as a playable character! This is illegal you know? 🤵🏻‍♂️
-* Every character now got 3 voice lines each! 🎙️
-* Added the Lightning Bolt! It works just like in fucking Mario Kart dude! ⚡️
-* Added the Bomb! Does exactly what you would expect from one! Morshu is a fan of this one! 💣️
-* In singleplayer mode, you can now select if you wanna race with either 1, 2, or 3 CPU drivers! Holy shit! 🤯
+* CD-i Ganon has been added as a new driver! He will make your face the greatest in Koridai if you win as him! 🐷
+* Unique voice lines for Ganon, of course! 🎙️
+* Local multiplayer co-op mode can now fucking feature up to two CPU drivers to spice up the race with your friend... that is if you actually have any friends! 🙃
 * NOW GO FUCKING PLAY IT! 🔫
 
 ---

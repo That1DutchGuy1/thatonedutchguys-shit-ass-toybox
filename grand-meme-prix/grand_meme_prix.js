@@ -28,6 +28,7 @@ const CHARACTERS = [
   { name: "Morshu",        img: "assets/Morshu.png",         color: 0xFF8000, lightbarColor: 0xFFA500, voicelines: ['assets/voicelines/morshu-hit.mp3', 'assets/voicelines/morshu-win.mp3', 'assets/voicelines/morshu-lose.mp3'] }, // orange
   { name: "Malleo",        img: "assets/Malleo.png",         color: 0xb30c0c, lightbarColor: 0xFF0000, voicelines: ['assets/voicelines/malleo-hit.mp3', 'assets/voicelines/malleo-win.mp3', 'assets/voicelines/malleo-lose.mp3'] }, // red
   { name: "Mayor Cravendish", img: "assets/Mayor-Cravendish.png", color: 0x0fa4c8, lightbarColor: 0x0000FF, voicelines: ['assets/voicelines/mayor-cravendish-hit.mp3', 'assets/voicelines/mayor-cravendish-win.mp3', 'assets/voicelines/mayor-cravendish-lose.mp3'] }, // blue
+  { name: "Ganon",          img: "assets/Ganon.png",           color: 0x3C0008, lightbarColor: 0x5D100A, voicelines: ['assets/voicelines/ganon-hit.mp3', 'assets/voicelines/ganon-win.mp3', 'assets/voicelines/ganon-lose.mp3'] }, // dark maroon
 ];
 
 // =============================================
@@ -203,6 +204,7 @@ let gameMode = 'coop';
 let soloAI = null;         // legacy single-AI state (kept for compatibility)
 let soloAIs = [];          // array of AI personality objects, one per CPU
 let soloNumCPUs = 1;       // 1-3 CPUs in solo mode
+let coopNumCPUs = 0;       // 0-2 CPUs in co-op mode
 
 function changeChar(player, dir) {
   playerChars[player] = (playerChars[player] + dir + CHARACTERS.length) % CHARACTERS.length;
@@ -232,13 +234,19 @@ function updateCharUI() {
   if (p1nameCoop) p1nameCoop.textContent = c0.name;
   if (p2imgCoop) p2imgCoop.src = c1.img;
   if (p2nameCoop) p2nameCoop.textContent = c1.name;
-  // Update CPU count selector display
+  // Update CPU count selector display (solo uses soloNumCPUs, coop uses coopNumCPUs)
   const cpuCountEl = document.getElementById('cpuCountDisplay');
-  if (cpuCountEl) cpuCountEl.textContent = soloNumCPUs;
+  if (cpuCountEl) cpuCountEl.textContent = gameMode === 'coop' ? coopNumCPUs : soloNumCPUs;
+  const cpuCountCoopEl = document.getElementById('cpuCountDisplayCoop');
+  if (cpuCountCoopEl) cpuCountCoopEl.textContent = coopNumCPUs;
 }
 
 function changeCPUCount(dir) {
-  soloNumCPUs = Math.max(1, Math.min(3, soloNumCPUs + dir));
+  if (gameMode === 'coop') {
+    coopNumCPUs = Math.max(0, Math.min(2, coopNumCPUs + dir));
+  } else {
+    soloNumCPUs = Math.max(1, Math.min(3, soloNumCPUs + dir));
+  }
   updateCharUI();
 }
 
@@ -1944,7 +1952,7 @@ function playSfxAudio(src) {
 function startBGM() {
   if (!bgmEl) {
     bgmEl = document.createElement('audio');
-    bgmEl.src = 'assets/main-theme.mp3';
+    bgmEl.src = 'assets/grand-meme-prix-3d-theme.mp3';
     bgmEl.loop = true;
     bgmEl.volume = settings.musicVol / 100;
     document.body.appendChild(bgmEl);
@@ -2826,7 +2834,7 @@ function checkAllFinished() {
   if (gameMode_dev) return; // dev mode has no finish condition
 
   const isSolo    = gameMode === 'solo';
-  const numHumans = isSolo ? 1 : 2;
+  const numHumans = isSolo ? 1 : 2; // coop always has exactly 2 human players
 
   // Identify which players are human (indices 0..numHumans-1)
   const humanPlayers  = players.slice(0, numHumans);
@@ -4357,10 +4365,15 @@ function updatePlayer(player, binds, delta, otherPlayer) {
 }
 
 function updateSoloAI(delta, cpuIdx) {
-  // cpuIdx is the index into players[] (1 for first CPU, 2 for second, etc.)
+  // cpuIdx is the index into players[] (1 for first CPU in solo, 2+ for coop CPUs)
   if (cpuIdx === undefined) cpuIdx = 1;
   const ai = players[cpuIdx];
-  const aiState = soloAIs[cpuIdx - 1]; // personality object for this CPU
+  // soloAIs is 0-indexed from the first CPU:
+  //   solo mode:  cpuIdx 1→soloAIs[0], 2→soloAIs[1], 3→soloAIs[2]
+  //   coop mode:  cpuIdx 2→soloAIs[0], 3→soloAIs[1]
+  const isSoloCpu = gameMode === 'solo';
+  const aiStateIdx = isSoloCpu ? (cpuIdx - 1) : (cpuIdx - 2);
+  const aiState = soloAIs[aiStateIdx]; // personality object for this CPU
   const human = players[0];
   if (!ai) return;
 
@@ -4893,13 +4906,23 @@ async function startGame() {
   const isSolo = gameMode === 'solo';
   soloAI = null;
   soloAIs = [];
-  if (isSolo && !gameMode_dev) {
-    // Randomly assign unique characters for each CPU slot
-    const used = new Set([playerChars[0]]);
-    for (let ci = 1; ci <= soloNumCPUs; ci++) {
-      const available = CHARACTERS.map((_, index) => index).filter(index => !used.has(index));
-      playerChars[ci] = available[Math.floor(Math.random() * available.length)];
-      used.add(playerChars[ci]);
+  if (!gameMode_dev) {
+    if (isSolo) {
+      // Randomly assign unique characters for each solo CPU slot
+      const used = new Set([playerChars[0]]);
+      for (let ci = 1; ci <= soloNumCPUs; ci++) {
+        const available = CHARACTERS.map((_, index) => index).filter(index => !used.has(index));
+        playerChars[ci] = available[Math.floor(Math.random() * available.length)];
+        used.add(playerChars[ci]);
+      }
+    } else if (coopNumCPUs > 0) {
+      // Randomly assign unique characters for each coop CPU slot (slots 2 and 3)
+      const used = new Set([playerChars[0], playerChars[1]]);
+      for (let ci = 2; ci < 2 + coopNumCPUs; ci++) {
+        const available = CHARACTERS.map((_, index) => index).filter(index => !used.has(index));
+        playerChars[ci] = available[Math.floor(Math.random() * available.length)];
+        used.add(playerChars[ci]);
+      }
     }
   }
   // Reset dev state
@@ -4920,11 +4943,13 @@ async function startGame() {
   document.getElementById('hud').style.display = 'block';
   document.getElementById('divider').style.display = isSolo ? 'none' : 'block';
 
-  // Extra CPU HUD boxes — show only if enough CPUs selected
+  // Extra CPU HUD boxes — show for solo CPUs 2/3, or coop CPUs 1/2
   const cpu2HudEl = document.getElementById('hudCpu2');
   const cpu3HudEl = document.getElementById('hudCpu3');
-  if (cpu2HudEl) cpu2HudEl.style.display = (isSolo && soloNumCPUs >= 2) ? '' : 'none';
-  if (cpu3HudEl) cpu3HudEl.style.display = (isSolo && soloNumCPUs >= 3) ? '' : 'none';
+  const showCpu2 = (isSolo && soloNumCPUs >= 2) || (!isSolo && coopNumCPUs >= 1);
+  const showCpu3 = (isSolo && soloNumCPUs >= 3) || (!isSolo && coopNumCPUs >= 2);
+  if (cpu2HudEl) cpu2HudEl.style.display = showCpu2 ? '' : 'none';
+  if (cpu3HudEl) cpu3HudEl.style.display = showCpu3 ? '' : 'none';
 
   const W = isSolo ? window.innerWidth : window.innerWidth / 2;
   const H = window.innerHeight;
@@ -5037,20 +5062,35 @@ async function startGame() {
       document.getElementById('hudCpu3name').textContent = '🤖 ' + CHARACTERS[playerChars[3]].name;
     }
   } else {
-    // Co-op: P1 left, P2 right
+    // Co-op: P1 left, P2 right, + optional CPUs (both rendered in s1 since s2 is P2's viewport)
     players = [
       createPlayer(playerChars[0], spawnSlots[0], spawnAngle, s1),
       createPlayer(playerChars[1], spawnSlots[1], spawnAngle, s2),
     ];
+    // CPU drivers in coop are added to both scenes so each viewport sees them
+    for (let ci = 0; ci < coopNumCPUs; ci++) {
+      const cpuSlot = 2 + ci;
+      // Build a kart in s1; then clone the kart group for s2 via a parallel createPlayer call
+      // We use spawnSlots[cpuSlot] which maps to slots 2 and 3 (rear row)
+      const cpuPlayer = createPlayer(playerChars[cpuSlot], spawnSlots[cpuSlot], spawnAngle, s1);
+      players.push(cpuPlayer);
+    }
     document.getElementById('hud1name').textContent = '🏎️ ' + CHARACTERS[playerChars[0]].name;
     document.getElementById('hud2name').textContent = '🏎️ ' + CHARACTERS[playerChars[1]].name;
     document.getElementById('hud2').style.display = '';
+    if (coopNumCPUs >= 1) {
+      document.getElementById('hudCpu2name').textContent = '🤖 ' + CHARACTERS[playerChars[2]].name;
+    }
+    if (coopNumCPUs >= 2) {
+      document.getElementById('hudCpu3name').textContent = '🤖 ' + CHARACTERS[playerChars[3]].name;
+    }
   }
 
-  if (isSolo && !gameMode_dev) {
-    // Create one AI personality object per CPU
+  if (!gameMode_dev && (isSolo || coopNumCPUs > 0)) {
+    // Create one AI personality object per CPU (solo CPUs start at players[1], coop CPUs at players[2])
     soloAIs = [];
-    for (let ci = 0; ci < soloNumCPUs; ci++) {
+    const numCPUs = isSolo ? soloNumCPUs : coopNumCPUs;
+    for (let ci = 0; ci < numCPUs; ci++) {
       soloAIs.push({ itemDecisionTimer: 0 });
     }
     soloAI = soloAIs[0]; // keep legacy reference for compat
@@ -5157,6 +5197,11 @@ async function startGame() {
           const roll = Math.random();
           // 50% normal, 30% boost, 20% stall
           players[ci].launchResult = roll < 0.5 ? 'normal' : roll < 0.8 ? 'boost' : 'stall';
+        }
+      } else if (coopNumCPUs > 0) {
+        for (let ci = 0; ci < coopNumCPUs; ci++) {
+          const roll = Math.random();
+          players[2 + ci].launchResult = roll < 0.5 ? 'normal' : roll < 0.8 ? 'boost' : 'stall';
         }
       }
 
@@ -5296,8 +5341,12 @@ async function startGame() {
           for (let ci = 1; ci <= soloNumCPUs; ci++) {
             updateSoloAI(delta, ci);
           }
-        } else if (aiIdx !== 1) {
-          updatePlayer(players[1], p2Binds, delta, players[0]);
+        } else {
+          if (aiIdx !== 1) updatePlayer(players[1], p2Binds, delta, players[0]);
+          // Drive coop CPU drivers (players[2] and players[3] if present)
+          for (let ci = 0; ci < coopNumCPUs; ci++) {
+            updateSoloAI(delta, 2 + ci);
+          }
         }
       }
 
@@ -5608,6 +5657,15 @@ function updateMirrorKarts() {
     const g2 = buildKart(players[0].charIndex, scenes[1]);
     scenes[1].add(g2);
     ghostKarts = [g1, g2];
+
+    // CPU karts (players[2], players[3]) live in scenes[0] (P1 can already see them).
+    // Build mirrors in scenes[1] so P2 can also see them.
+    for (let ci = 0; ci < coopNumCPUs; ci++) {
+      const cpuIdx = 2 + ci;
+      const cpuMirror = buildKart(players[cpuIdx].charIndex, scenes[1]);
+      scenes[1].add(cpuMirror);
+      ghostKarts.push(cpuMirror); // ghostKarts[2] = mirror of players[2], [3] = players[3]
+    }
   }
   // Sync mirror kart transforms to match the real karts every frame,
   // including size so tiny lightning racers stay tiny on the other screen.
@@ -5620,6 +5678,17 @@ function updateMirrorKarts() {
   ghostKarts[1].rotation.copy(players[0].kart.rotation);
   ghostKarts[1].scale.copy(players[0].kart.scale);
   ghostKarts[1].userData.charSprite.scale.copy(players[0].kart.userData.charSprite.scale);
+
+  // Sync CPU mirror karts for P2's viewport
+  for (let ci = 0; ci < coopNumCPUs; ci++) {
+    const cpuIdx = 2 + ci;
+    const mirror = ghostKarts[2 + ci];
+    if (!mirror) continue;
+    mirror.position.copy(players[cpuIdx].kart.position);
+    mirror.rotation.copy(players[cpuIdx].kart.rotation);
+    mirror.scale.copy(players[cpuIdx].kart.scale);
+    mirror.userData.charSprite.scale.copy(players[cpuIdx].kart.userData.charSprite.scale);
+  }
 }
 
 function syncItemBoxVisibility() {

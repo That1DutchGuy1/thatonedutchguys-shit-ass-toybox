@@ -172,6 +172,14 @@
       </div>
     </div>
     <div class="controls-hint">Complete <span>3 laps</span> to win! Stay on track or you'll slow down!</div>
+    <div class="cpu-count-selector">
+      <div class="cpu-count-label">🤖 CPU COUNT</div>
+      <div class="cpu-count-controls">
+        <button class="char-btn" onclick="changeCPUCount(-1)">◀</button>
+        <span id="cpuCountDisplayCoop" class="cpu-count-value">0</span>
+        <button class="char-btn" onclick="changeCPUCount(1)">▶</button>
+      </div>
+    </div>
     <div style="display:flex;gap:14px">
       <button class="back-btn" onclick="goBack()">◀ BACK</button>
       <button id="startBtnCoop" onclick="startGame()">🏁 START TWO PLAYER CO-OP! 🏁</button>
