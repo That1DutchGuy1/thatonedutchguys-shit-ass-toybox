@@ -96,6 +96,9 @@
 * CD-i Ganon has been added as a new driver! He will make your face the greatest in Koridai if you win as him! 🐷
 * Unique voice lines for Ganon, of course! 🎙️
 * Local multiplayer co-op mode can now fucking feature up to two CPU drivers to spice up the race with your friend... that is if you actually have any friends! 🙃
+* An actual fucking grass texture on the grass is now in the game! 🌱
+* A lot of fucking trees are now scattered outside the stadium! 🌲
+* Funny meme billboard ads are now outside to advertise meme stuff! 🤣
 * NOW GO FUCKING PLAY IT! 🔫
 
 ---
