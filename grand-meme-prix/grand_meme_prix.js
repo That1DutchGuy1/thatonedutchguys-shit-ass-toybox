@@ -2520,9 +2520,9 @@ function _drawPingasMotorsAd(ctx, w, h) {
     // Sub-tagline
     ctx.font = `bold ${Math.round(h * 0.13)}px "Comic Sans MS", "Comic Sans", cursive`;
     ctx.fillStyle = '#000000';
-    ctx.fillText('"SNOO-PINGAS-USUAL?"', w * 0.5 + 2, h * 0.36 + 2);
+    ctx.fillText('SNOO-PINGAS!', w * 0.5 + 2, h * 0.36 + 2);
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText('"SNOO-PINGAS-USUAL?"', w * 0.5, h * 0.36);
+    ctx.fillText('SNOO-PINGAS!', w * 0.5, h * 0.36);
 
     // Small tagline
     ctx.font = `${Math.round(h * 0.09)}px "Comic Sans MS", "Comic Sans", cursive`;
