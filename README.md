@@ -29,6 +29,7 @@
 * A warning splash screen for PC, indicating that braincell loss is guaranteed! 🧠
 * GIANT game cards for each individual game, each with a unique background image inside the card! 🖼️
 * On-site README.md and Wiki.md rendering in the ABOUT tab, using a bundled copy of marked.min.js! ℹ️
+* Mini Toybox side panel and a Beeg Toybox seperate panel for exclusive Mini Toyz! 🪀
 * Interactive Mini Toyz memes that move around like fucking maniacs constantly and make noise when clicked! 💥
 * A spinning rainbow conic gradient music toggle button that you wouldn't dare turn off, right? 🥺
 
@@ -38,10 +39,10 @@
 
 * A banning system for phones, tablets, and even smart kitchen appliances! HA! SUCKERS! 🤣
 * A device-guard.js file that kicks the touchscreen fuckers out of the games if they try to enter via entering the URL! 📵
-* Request desktop site spoofing detection that kicks the fuckers out too! 🕵🏻‍♂️
+* Request desktop site spoofing detection that kicks the fuckers out too! Spoofing as usual I see?! 🕵🏻‍♂️
 * Aggresive dynamic ban messages depending on the type of banned device! 💀
 * Eh, if they do figure a way around device-guard, then ENJOY THE BROKEN CSS! HA! 🤣
-* Native DualShock 4 page navigation support for absolutely no reason! 🎮️
+* Native DualShock 4 page navigation support for absolutely no fucking reason! 🎮️
 * And much more smart shit! Go check it out! NOW! 😁
 
 ---
@@ -67,13 +68,21 @@
 
 ---
 
-**TOYS:**
+**MINI TOYBOX TOYS:**
 
 * MLG Airhorn Toy
 * Robotnik Pingas Toy
 * King Harkinian Dinner Toy
 * Mama Luigi Toy
 * Mario Toast Toy
+
+---
+
+**BEEG TOYBOX EXCLUSIVE TOYS:**
+
+* Weegee Toy
+* Spaghetti Toy
+* Michael Rosen Toy
 
 ---
 
@@ -199,6 +208,6 @@
 * The old Mini-Game Hub used to have JavaScript synthesized background music instead of the current remixed Hotel Mario main theme WAV file!
 * The Mini-Game Hub was a lot more static than the Shit Ass Toybox is now! The oldie used to only have a shifting background and gamecard hover animations! 😯
 * Most of the games were developed insanely fucking fast by my ADHD fueled brain! I made Meme Claw Machine in only two days, yet it uses Three.js and Cannon.js! 😯
-* The circular profile pic logo from my channel spins when you hover over it! 😯
+* The circular profile pic logo from my channel spins when you hover over it with your cursor! 😯
 
 ---

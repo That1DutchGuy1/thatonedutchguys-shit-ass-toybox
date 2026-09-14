@@ -104,6 +104,8 @@ Here is a list of the currently listed games on his website.
 
 He has also made a <a href="https://github.com/That1DutchGuy1/King-Harkinian-Desktop-Pet" target="_blank">King Harkinian Desktop Pet</a> for Linux Mint 22 in Python, a harmless <a href="https://github.com/That1DutchGuy1/The-Weegee-Virus-Prank" target="_blank">Weegee Virus Prank App</a> Debian package for Linux Mint 22, a <a href="https://github.com/That1DutchGuy1/soundbuttons.github.io" target="_blank">soundbutton collection website</a>, and a <a href="https://github.com/That1DutchGuy1/Funny-CD-i-Themed-WhatsApp-Sticker-Pack" target="_blank">CD-i themed WhatsApp sticker pack</a> as well. They're all available publicly on his <a href="https://github.com/That1DutchGuy1" target="_blank">GitHub profile</a> publicly.
 
+One of his hobbies is burning custom YTP DVDs, so he shared this joy with his brand new site, <a href="https://that1dutchguy1.github.io/That-One-Dutch-Guys-DVD-R-ISO-Hangar/" target="_blank">That One Dutch Guy's DVD-R ISO Hangar</a>, where he hosts download links to his custom ISO files, which are hosted on Mega.
+
 That One Dutch Guy also has a <a href="https://www.gta5-mods.com/users/That1DutchGuy" target="_blank">Gta 5 Mods</a> profile where he made a few Grand Theft Auto 5 mods. It seems like it's currently inactive though.
 
 ### Subscriber milestones

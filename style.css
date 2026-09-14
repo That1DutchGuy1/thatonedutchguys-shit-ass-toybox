@@ -291,10 +291,21 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 body {
   font-family: 'Comic Sans MS', sans-serif;
   font-weight: bold;
-  /* Animated Meme Background */
-  background: linear-gradient(-45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #FF13F0, #ff0000);
-  background-size: 300% 300%;
-  animation: meme-wave 10s ease infinite;
+  /* Animated Meme Background — seamless horizontal scroll, vertical rainbow */
+  background: linear-gradient(
+    to right,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #8b00ff,
+    #ff00ff,
+    #ff0000
+  );
+  background-size: 400% 100%;
+  animation: meme-wave 8s linear infinite;
   color: #88ff00;
   -webkit-text-stroke: 0.6px #000;
   text-align: center;
@@ -335,11 +346,10 @@ body {
   }
 }
 
-/* Rainbow gradient background animation */
+/* Rainbow gradient background animation — scrolls left endlessly */
 @keyframes meme-wave {
-  0% { background-position: 0% 0%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 0%; }
+  0%   { background-position: 0% 50%; }
+  100% { background-position: -400% 50%; }
 }
 
 h1 {
@@ -422,7 +432,7 @@ h1 {
 }
 
 .toy-btn.toy-airhorn img {
-  animation: airhorn-bob 2s ease-in-out infinite;
+  animation: airhorn-blast 0.8s ease-in-out infinite;
 }
 
 .toy-btn.toy-pingas img {
@@ -441,9 +451,49 @@ h1 {
   animation: toast-wave 0.8s ease-in-out infinite;
 }
 
-@keyframes airhorn-bob {
-  0%, 100% { transform: translateY(0) rotate(-8deg); }
-  50% { transform: translateY(-8px) rotate(8deg); }
+.toy-btn.toy-weegee img {
+  animation: weegee-stare 0.8s ease-in-out infinite;
+}
+
+.toy-btn.toy-spaghetti img {
+  animation: spaghetti-vibrate 0.8s ease-in-out infinite;
+}
+
+.toy-btn.toy-michael-rosen img {
+  animation: rosen-noice 0.8s ease-in-out infinite;
+}
+
+@keyframes airhorn-blast {
+  0%, 100% { 
+    transform: translateY(0) rotate(-12deg) scale(1); 
+  }
+  10% { 
+    transform: translate(-4px, -3px) rotate(-5deg) scale(1.15); 
+  }
+  20% { 
+    transform: translate(4px, 2px) rotate(-18deg) scale(1.05); 
+  }
+  30% { 
+    transform: translate(-5px, 4px) rotate(-7deg) scale(1.2);
+  }
+  40% { 
+    transform: translate(5px, -2px) rotate(-16deg) scale(1.1); 
+  }
+  50% { 
+    transform: translate(-3px, -4px) rotate(-6deg) scale(1.18); 
+  }
+  60% { 
+    transform: translate(4px, 3px) rotate(-17deg) scale(1.08); 
+  }
+  70% { 
+    transform: translate(-5px, 1px) rotate(-8deg) scale(1.15); 
+  }
+  80% { 
+    transform: translate(3px, -3px) rotate(-15deg) scale(1.05); 
+  }
+  90% { 
+    transform: translate(-2px, 2px) rotate(-10deg) scale(1.02); 
+  }
 }
 
 @keyframes pingas-bounce {
@@ -480,6 +530,84 @@ h1 {
   }
   80% {
     transform: translateY(-2px) scale(1.04) rotate(2deg);
+  }
+}
+
+@keyframes weegee-stare {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg); 
+  }
+  20% { 
+    transform: scale(1.15) rotate(0deg); 
+  }
+  40% { 
+    transform: scale(1.3) rotate(-1deg); 
+  }
+  45% { 
+    transform: scale(1.3) rotate(1deg); 
+  }
+  50% { 
+    transform: scale(1.35) rotate(-1deg); 
+  }
+  55% { 
+    transform: scale(1.3) rotate(1deg); 
+  }
+  80% { 
+    transform: scale(1.3) rotate(0deg); 
+  }
+}
+
+@keyframes spaghetti-vibrate {
+  0%, 100% { 
+    transform: translate(0, 0) rotate(0deg) scale(1); 
+  }
+  10% { 
+    transform: translate(-3px, 2px) rotate(-3deg) scale(1.05); 
+  }
+  20% { 
+    transform: translate(3px, -1px) rotate(4deg) scale(0.95); 
+  }
+  30% { 
+    transform: translate(-4px, -2px) rotate(-4deg) scale(1.08); 
+  }
+  40% { 
+    transform: translate(4px, 3px) rotate(3deg) scale(0.97); 
+  }
+  50% { 
+    transform: translate(-2px, 1px) rotate(-5deg) scale(1.05); 
+  }
+  60% { 
+    transform: translate(3px, -3px) rotate(4deg) scale(1.02); 
+  }
+  70% { 
+    transform: translate(-4px, 2px) rotate(-3deg) scale(0.96); 
+  }
+  80% { 
+    transform: translate(2px, 3px) rotate(5deg) scale(1.07); 
+  }
+  90% { 
+    transform: translate(-1px, -2px) rotate(-2deg) scale(0.99); 
+  }
+}
+
+@keyframes rosen-noice {
+  0%, 100% { 
+    transform: scale(1) translateY(0) rotate(0deg); 
+  }
+  15% { 
+    transform: scale(0.9, 0.85) translateY(5px) rotate(-1deg); 
+  }
+  30% { 
+    transform: scale(1.35, 1.25) translateY(-15px) rotate(2deg); 
+  }
+  45% { 
+    transform: scale(1.1, 1.15) translateY(-4px) rotate(-2deg); 
+  }
+  65% { 
+    transform: scale(1.15, 1.1) translateY(-2px) rotate(1deg); 
+  }
+  85% { 
+    transform: scale(1.02) translateY(0) rotate(0deg); 
   }
 }
 
@@ -759,6 +887,99 @@ h1, .game-card h3 {
 
 .dvd-projects-btn:active {
   transform: scale(0.95);
+}
+
+/* =========================================
+   BEEG TOYBOX BUTTON (below DVD-R button)
+   ========================================= */
+.beeg-toybox-btn {
+  position: absolute;
+  top: 90px;
+  right: 20px;
+  z-index: 1002;
+}
+
+/* =========================================
+   BEEG TOYBOX VIEW
+   ========================================= */
+#beeg-toybox-view {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 160px 40px 60px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+#beeg-toybox-view::-webkit-scrollbar {
+  display: none;
+}
+
+body.beeg-toybox-active #beeg-toybox-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Hide all main content when BEEG TOYBOX is open, keep logos + h1 */
+body.beeg-toybox-active #toys-panel,
+body.beeg-toybox-active .game-container,
+body.beeg-toybox-active #readme-view {
+  display: none !important;
+}
+
+#beeg-toybox-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  border: 4px solid #333;
+  border-radius: 20px;
+  padding: 30px 40px 40px;
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(2px);
+  max-width: 95vw;
+  width: 100%;
+}
+
+#beeg-toybox-label {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 4rem;
+  letter-spacing: 0.05em;
+  -webkit-text-stroke: 2px #000;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  color: transparent !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: spin-text-rainbow 2s linear infinite;
+  white-space: nowrap;
+}
+
+#beeg-toys-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 40px 50px;
+}
+
+/* Beeg toys are bigger than mini toys */
+#beeg-toys-container .toy-btn {
+  width: 180px;
+}
+
+#beeg-toys-container .toy-btn img {
+  width: 160px;
 }
 
 /* =========================================

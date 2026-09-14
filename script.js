@@ -334,6 +334,19 @@ const TOYS = [
     // 👇 Add future toys here — no other changes needed!
 ];
 
+// =========================================
+// BEEG TOYBOX TOYS
+// Same toys as MINI TOYBOX by default, PLUS any future exclusives!
+// 👇 Add BEEG TOYBOX exclusive toys below the spread of TOYS!
+// =========================================
+const BEEG_TOYS = [
+    ...TOYS,
+    // 👇 BEEG TOYBOX exclusives go here — e.g.:
+    { id: 'weegee', label: 'WEEGEE', img: './hub-assets/Weegee-Head.png', sounds: ['./weegees-mansion/Audio/Weegee/weegee-isolated.mp3'], overlap: true, cssClass: 'toy-weegee' },
+    { id: 'spaghetti', label: 'SPAGHETTI', img: './hub-assets/Spaghetti.png', sounds: ['./hub-assets/spaghetti.mp3'], overlap: true, cssClass: 'toy-spaghetti' },
+    { id: 'michael-rosen', label: 'MICHAEL ROSEN', img: './big-meme-quiz/assets/memes/michael-rosen.png', sounds: ['./whack-a-meme/assets/sounds/nice-score.mp3'], overlap: true, cssClass: 'toy-michael-rosen' },
+];
+
 function buildToysPanel() {
     const panel = document.getElementById('toys-panel');
     if (!panel) return;
@@ -380,6 +393,62 @@ function playToy(toy) {
 if (!isPhone) buildToysPanel();
 
 // =========================================
+// BEEG TOYBOX
+// =========================================
+function buildBeegToybox() {
+    const container = document.getElementById('beeg-toys-container');
+    if (!container) return;
+
+    BEEG_TOYS.forEach(toy => {
+        const btn = document.createElement('div');
+        btn.className = `toy-btn ${toy.cssClass}`;
+        btn.title     = toy.label;
+        btn.setAttribute('aria-label', toy.label);
+        btn.setAttribute('role', 'button');
+        btn.setAttribute('tabindex', '0');
+
+        const img = document.createElement('img');
+        img.src = toy.img;
+        img.alt = toy.label;
+        btn.appendChild(img);
+
+        btn.addEventListener('click', () => playToy(toy));
+        btn.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') playToy(toy);
+        });
+
+        container.appendChild(btn);
+    });
+}
+
+let beegToyboxIsOpen  = false;
+let beegToyboxBuilt   = false;
+
+function setBeegToyboxOpen(open) {
+    beegToyboxIsOpen = open;
+    document.body.classList.toggle('beeg-toybox-active', open);
+
+    const btn = document.getElementById('beeg-toybox-toggle');
+    if (btn) {
+        btn.textContent = open ? '🎮 SHIT ASS TOYBOX' : '🧸 BEEG TOYBOX';
+    }
+
+    // Close About view if it's open
+    if (open && aboutIsOpen) setAboutOpen(false);
+
+    // Build the toybox contents on first open (lazy)
+    if (open && !beegToyboxBuilt) {
+        buildBeegToybox();
+        beegToyboxBuilt = true;
+    }
+}
+
+const beegToyboxToggleBtn = document.getElementById('beeg-toybox-toggle');
+if (beegToyboxToggleBtn && !isPhone) {
+    beegToyboxToggleBtn.addEventListener('click', () => setBeegToyboxOpen(!beegToyboxIsOpen));
+}
+
+// =========================================
 // ABOUT / README + WIKI VIEW
 // =========================================
 const aboutToggleBtn   = document.getElementById('about-toggle');
@@ -405,6 +474,8 @@ function setAboutOpen(open) {
     }
 
     if (open) {
+        // Close BEEG TOYBOX if it's open
+        if (beegToyboxIsOpen) setBeegToyboxOpen(false);
         // Always land on README when opening About
         showDoc('readme');
         if (!readmeHasLoaded) loadReadme();
@@ -622,8 +693,9 @@ function initGamepadNav() {
 
     // ---- Context ----
     function getContext() {
-        if (document.body.classList.contains('splash-active')) return 'splash';
-        if (document.body.classList.contains('about-active')) return 'about';
+        if (document.body.classList.contains('splash-active'))       return 'splash';
+        if (document.body.classList.contains('about-active'))        return 'about';
+        if (document.body.classList.contains('beeg-toybox-active'))  return 'beeg';
         return 'hub';
     }
 
@@ -631,6 +703,7 @@ function initGamepadNav() {
         const ctx = getContext();
         const about = document.getElementById('about-toggle');
         const music = document.getElementById('music-toggle');
+        const beeg  = document.getElementById('beeg-toybox-toggle');
 
         if (ctx === 'splash') {
             return [document.getElementById('splash-enter'), document.getElementById('splash-leave')]
@@ -639,8 +712,14 @@ function initGamepadNav() {
         if (ctx === 'about') {
             return [about, music].filter(Boolean);
         }
+        if (ctx === 'beeg') {
+            const els = [beeg, music].filter(Boolean);
+            document.querySelectorAll('#beeg-toys-container .toy-btn').forEach(el => els.push(el));
+            return els;
+        }
         const els = [];
         if (about) els.push(about);
+        if (beeg)  els.push(beeg);
         if (music) els.push(music);
         document.querySelectorAll('.toy-btn').forEach(el => els.push(el));
         document.querySelectorAll('.game-card').forEach(el => els.push(el));
@@ -727,6 +806,9 @@ function initGamepadNav() {
         enterGamepadMode();
         if (getContext() === 'about') {
             const btn = document.getElementById('about-toggle');
+            if (btn) btn.click();
+        } else if (getContext() === 'beeg') {
+            const btn = document.getElementById('beeg-toybox-toggle');
             if (btn) btn.click();
         }
     }
