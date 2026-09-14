@@ -118,6 +118,45 @@ body.mobile-blocked #mobile-block {
 }
 
 /* =========================================
+   SPOOF BLOCK SCREEN
+   Shown when "Request Desktop Site" spoofing is detected.
+   Mirrors mobile-block in size and position but uses PingasToy.png
+   and its own ban text. Hidden by default — script.js adds
+   body.spoof-blocked which is the only thing that reveals it.
+   ========================================= */
+
+#spoof-block {
+  display: none;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  z-index: 999999;
+  overflow: hidden;
+}
+
+body.spoof-blocked {
+  overflow: hidden;
+}
+
+/* Everything else on the page stays out of the way while spoofed */
+body.spoof-blocked #warning-splash,
+body.spoof-blocked #page-content,
+body.spoof-blocked .about-toggle-btn,
+body.spoof-blocked .music-toggle-btn,
+body.spoof-blocked .dvd-projects-btn,
+body.spoof-blocked #mobile-block {
+  display: none !important;
+}
+
+body.spoof-blocked #spoof-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================================
    WARNING SPLASH SCREEN
    ========================================= */
 

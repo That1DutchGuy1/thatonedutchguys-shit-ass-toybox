@@ -63,8 +63,14 @@ function getDeviceType() {
     return null;
 }
 
-const deviceType = getDeviceType() || getSpoofedDeviceType();
-const isPhone = deviceType !== null;
+const _uaDeviceType    = getDeviceType();
+const _spoofDeviceType = _uaDeviceType === null ? getSpoofedDeviceType() : null;
+// Also honour the ?spoof=1 flag passed by device-guard.js when it
+// bounces a spoofed visitor from a game page back to the hub.
+const _spoofParam      = new URLSearchParams(window.location.search).get('spoof') === '1';
+const deviceType       = _uaDeviceType || _spoofDeviceType || (_spoofParam ? 'phone' : null);
+const isSpoofed        = (_uaDeviceType === null && _spoofDeviceType !== null) || _spoofParam;
+const isPhone          = deviceType !== null;
 
 // =========================================
 // "REQUEST DESKTOP SITE" SPOOF DETECTION
@@ -111,82 +117,94 @@ function getSpoofedDeviceType() {
     return shortEdge <= 480 ? 'phone' : 'tablet';
 }
 
+// =========================================
+// Helper: wire up the tap-bounce + sound on any ban-screen image
+// =========================================
+function wireBanScreenImage(imgEl, soundSrc) {
+    if (!imgEl) return;
+    soundSrc = soundSrc || './hub-assets/splash-sound.mp3';
+    const hitTestCanvas = document.createElement('canvas');
+    const hitTestCtx = hitTestCanvas.getContext('2d', { willReadFrequently: true });
+    let hitTestReady = false;
+
+    function primeHitTestCanvas() {
+        hitTestCanvas.width = imgEl.naturalWidth;
+        hitTestCanvas.height = imgEl.naturalHeight;
+        hitTestCtx.drawImage(imgEl, 0, 0);
+        hitTestReady = true;
+    }
+
+    if (imgEl.complete && imgEl.naturalWidth > 0) {
+        primeHitTestCanvas();
+    } else {
+        imgEl.addEventListener('load', primeHitTestCanvas);
+    }
+
+    imgEl.addEventListener('click', (e) => {
+        if (!hitTestReady) return;
+        const rect = imgEl.getBoundingClientRect();
+        const scaleX = hitTestCanvas.width / rect.width;
+        const scaleY = hitTestCanvas.height / rect.height;
+        const px = Math.floor((e.clientX - rect.left) * scaleX);
+        const py = Math.floor((e.clientY - rect.top) * scaleY);
+        if (px < 0 || py < 0 || px >= hitTestCanvas.width || py >= hitTestCanvas.height) return;
+        const alpha = hitTestCtx.getImageData(px, py, 1, 1).data[3];
+        if (alpha === 0) return;
+        new Audio(soundSrc).play().catch(() => {});
+        imgEl.classList.remove('tap-bounce');
+        void imgEl.offsetWidth;
+        imgEl.classList.add('tap-bounce');
+    });
+}
+
 if (isPhone) {
     // Phone/tablet/iPad detected — lock the page down to just the block screen.
     // Nothing else in this file (splash, toys, about, music, logo spin)
     // gets wired up.
-    document.body.classList.add('mobile-blocked');
     const pageContentEl = document.getElementById('page-content');
     if (pageContentEl) pageContentEl.inert = true;
 
-    // Tapping/clicking the ban screen image plays splash-sound.mp3 —
-    // but only when the tap actually lands on a non-transparent pixel
-    // of splash-img.png. A hidden canvas holds the image's real pixel
-    // data so a click's on-screen position can be mapped back to a
-    // source-image pixel and its alpha value checked before playing.
-    // A brand new Audio instance is created on every qualifying tap so
-    // repeated taps overlap/stack instead of restarting a shared clip.
-    const mobileBlockImgEl = document.getElementById('mobile-block-img');
-    if (mobileBlockImgEl) {
-        const hitTestCanvas = document.createElement('canvas');
-        const hitTestCtx = hitTestCanvas.getContext('2d', { willReadFrequently: true });
-        let hitTestReady = false;
+    if (isSpoofed) {
+        // =============================================
+        // SPOOF DETECTED — "Request Desktop Site" mode
+        // Show the unique Pingas ban screen instead of
+        // the regular mobile block screen.
+        // =============================================
+        document.body.classList.add('spoof-blocked');
 
-        function primeHitTestCanvas() {
-            hitTestCanvas.width = mobileBlockImgEl.naturalWidth;
-            hitTestCanvas.height = mobileBlockImgEl.naturalHeight;
-            hitTestCtx.drawImage(mobileBlockImgEl, 0, 0);
-            hitTestReady = true;
+        // Populate the dynamic device name in the ban text
+        const spoofDeviceWordEl = document.getElementById('spoof-device-word');
+        if (spoofDeviceWordEl) {
+            spoofDeviceWordEl.textContent = deviceType === 'ipad'   ? 'IPAD'
+                                          : deviceType === 'tablet' ? 'TABLET'
+                                          : 'PHONE';
         }
 
-        if (mobileBlockImgEl.complete && mobileBlockImgEl.naturalWidth > 0) {
-            primeHitTestCanvas();
-        } else {
-            mobileBlockImgEl.addEventListener('load', primeHitTestCanvas);
-        }
+        wireBanScreenImage(document.getElementById('spoof-block-img'), './hub-assets/pingas.mp3');
 
-        mobileBlockImgEl.addEventListener('click', (e) => {
-            if (!hitTestReady) return;
-
-            const rect = mobileBlockImgEl.getBoundingClientRect();
-            // Map the click's on-screen position to a pixel coordinate
-            // in the image's native resolution, accounting for any
-            // CSS scaling between the rendered size and natural size.
-            const scaleX = hitTestCanvas.width / rect.width;
-            const scaleY = hitTestCanvas.height / rect.height;
-            const px = Math.floor((e.clientX - rect.left) * scaleX);
-            const py = Math.floor((e.clientY - rect.top) * scaleY);
-
-            if (px < 0 || py < 0 || px >= hitTestCanvas.width || py >= hitTestCanvas.height) return;
-
-            const alpha = hitTestCtx.getImageData(px, py, 1, 1).data[3];
-            if (alpha === 0) return; // fully transparent — ignore the tap
-
-            new Audio('./hub-assets/splash-sound.mp3').play().catch(() => {});
-
-            // Quick scale-up-and-back bounce on every qualifying tap.
-            // Restart the animation even on rapid repeat taps by
-            // removing the class, forcing a reflow, then re-adding it.
-            mobileBlockImgEl.classList.remove('tap-bounce');
-            void mobileBlockImgEl.offsetWidth;
-            mobileBlockImgEl.classList.add('tap-bounce');
-        });
-    }
-
-    if (deviceType === 'fridge') {
-        // Fridges get a fully custom line instead of the "PUT THAT DAMN
-        // ___ AWAY!" template — swap the whole line's content rather
-        // than just the device-word span.
-        const deviceMessageLineEl = document.getElementById('device-message-line');
-        if (deviceMessageLineEl) {
-            deviceMessageLineEl.textContent = 'SERIOUSLY? A\u00A0GODDAMN SMARTFRIDGE?!';
-        }
     } else {
-        const deviceWordEl = document.getElementById('device-word');
-        if (deviceWordEl) {
-            deviceWordEl.textContent = deviceType === 'ipad' ? 'IPAD'
-                : deviceType === 'tablet' ? 'TABLET'
-                : 'PHONE';
+        // =============================================
+        // Regular mobile / tablet / fridge detection
+        // =============================================
+        document.body.classList.add('mobile-blocked');
+
+        wireBanScreenImage(document.getElementById('mobile-block-img'));
+
+        if (deviceType === 'fridge') {
+            // Fridges get a fully custom line instead of the "PUT THAT DAMN
+            // ___ AWAY!" template — swap the whole line's content rather
+            // than just the device-word span.
+            const deviceMessageLineEl = document.getElementById('device-message-line');
+            if (deviceMessageLineEl) {
+                deviceMessageLineEl.textContent = 'SERIOUSLY? A\u00A0GODDAMN SMARTFRIDGE?!';
+            }
+        } else {
+            const deviceWordEl = document.getElementById('device-word');
+            if (deviceWordEl) {
+                deviceWordEl.textContent = deviceType === 'ipad' ? 'IPAD'
+                    : deviceType === 'tablet' ? 'TABLET'
+                    : 'PHONE';
+            }
         }
     }
 } else {

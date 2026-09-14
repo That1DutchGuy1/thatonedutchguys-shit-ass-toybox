@@ -113,13 +113,20 @@
         return shortEdge <= 480 ? 'phone' : 'tablet';
     }
 
-    const deviceType = getDeviceType() || getSpoofedDeviceType();
+    const _uaType    = getDeviceType();
+    const _spoofType = _uaType === null ? getSpoofedDeviceType() : null;
+    const deviceType = _uaType || _spoofType;
+    const isSpoofed  = _uaType === null && _spoofType !== null;
 
     if (deviceType !== null) {
         // Banned device on a game page — bounce straight back to the
         // hub's ban screen instead of letting the game load at all.
         // Every game HTML file lives one folder below the site root,
         // so "../index.html" always points back to the root page.
-        window.location.replace('../index.html');
+        // Append ?spoof=1 when "Request Desktop Site" spoofing is
+        // detected so the hub knows to show the unique Pingas ban screen
+        // instead of the regular mobile-block screen.
+        const dest = isSpoofed ? '../index.html?spoof=1' : '../index.html';
+        window.location.replace(dest);
     }
 })();
