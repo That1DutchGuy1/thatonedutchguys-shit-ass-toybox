@@ -104,7 +104,8 @@
 
 * CD-i Ganon has been added as a new driver! He will make your face the greatest in Koridai if you win as him! 🐷
 * Michael Rosen has been added as a new driver! He loves hot food just as much as winning! 🇬🇧
-* Unique voice lines for Ganon and Michael Rosen, of course! 🎙️
+* CD-i Link has been added as a new driver! He will let you know when it's boring around here! ⚔️
+* Unique voice lines for Ganon, Michael Rosen, and Link of course! 🎙️
 * Local multiplayer co-op mode can now fucking feature up to two CPU drivers to spice up the race with your friend... that is if you actually have any friends! 🙃
 * An actual fucking grass texture on the grass is now in the game! 🌱
 * A lot of fucking trees are now scattered outside the stadium! 🌲
