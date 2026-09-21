@@ -435,8 +435,9 @@ function setBeegToyboxOpen(open) {
         btn.textContent = open ? '🎮 SHIT ASS TOYBOX' : '🧸 BEEG TOYBOX';
     }
 
-    // Close About view if it's open
+    // Close About and Meme Art views if open
     if (open && aboutIsOpen) setAboutOpen(false);
+    if (open && memeArtIsOpen) setMemeArtOpen(false);
 
     // Build the toybox contents on first open (lazy)
     if (open && !beegToyboxBuilt) {
@@ -1092,8 +1093,8 @@ function setMemeArtOpen(open) {
 
     // Close other panels if open
     if (open) {
-        if (typeof setAboutOpen === 'function' && aboutIsOpen) setAboutOpen(false);
-        if (typeof setBeegToyboxOpen === 'function' && beegToyboxIsOpen) setBeegToyboxOpen(false);
+        if (aboutIsOpen) setAboutOpen(false);
+        if (beegToyboxIsOpen) setBeegToyboxOpen(false);
         renderMemeArt(memeArtIndex);
     }
 }
