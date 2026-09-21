@@ -1005,19 +1005,6 @@ body.meme-art-active .site-title {
   background: #111;
 }
 
-/* 9:16 portrait / phone wallpaper images */
-#meme-art-img.art-portrait {
-  height: 720px;
-  max-height: 65vh;
-  width: auto;
-  aspect-ratio: 9 / 16;
-  object-fit: contain;
-  border: 5px solid #333;
-  border-radius: 16px;
-  box-shadow: 8px 8px 0px rgba(0,0,0,0.35);
-  background: #111;
-}
-
 /* Catch-all for weird aspect ratios */
 #meme-art-img.art-weird {
   max-width: 70vw;
@@ -1034,7 +1021,7 @@ body.meme-art-active .site-title {
 #meme-art-title-label {
   font-family: 'Comic Sans MS', sans-serif;
   font-weight: bold;
-  font-size: 1.4rem;
+  font-size: 1.8rem;
   background: conic-gradient(
     from var(--spin-angle),
     red, orange, yellow, green, cyan, blue, magenta, red

@@ -1017,7 +1017,7 @@ function shuffleGameCards() {
 // =========================================
 // MEME ART GALLERY
 // Artwork array — swap in your real URLs here!
-// aspect: 'landscape' = 16:9 (4K/2K/1080p), 'portrait' = 9:16 (phone wallpaper), 'weird' = anything else
+// aspect: 'landscape' = 16:9 (4K/2K/1080p), 'weird' = anything else
 // =========================================
 const MEME_ARTWORKS = [
     {
@@ -1033,7 +1033,7 @@ const MEME_ARTWORKS = [
     {
         title: "CD-i Zelda Phone Wallpaper",
         url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/CD-i-Zelda-Phone-Wallpaper.png",
-        aspect: "portrait"
+        aspect: "weird"
     },
     {
         title: "2K Bliss With Weegee - Invasion Edition",
