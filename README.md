@@ -1,12 +1,4 @@
-<p><strong><font size="6"> 🕹️ That One Dutch Guy's Shit Ass Toybox</font></strong></p>
-
-<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 10px;">
-  <a href="https://www.youtube.com/@That1DutchGuy">
-    <img src="./hub-assets/That-One-Dutch-Guy-Channel-Logo-Circle.png" alt="My YouTube Channel" width="150" />
-  </a>
-  <br>
-  <img src="./hub-assets/That-One-Dutch-Guy-Logo-Text.png" alt="That One Dutch Guy" width="150" />
-</div>
+<img src="./hub-assets/social-preview.png" alt="Social preview" />
 
 ---
 
