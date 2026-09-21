@@ -43,6 +43,7 @@
 * Aggresive dynamic ban messages depending on the type of banned device! 💀
 * Eh, if they do figure a way around device-guard, then ENJOY THE BROKEN CSS! HA! 🤣
 * Native DualShock 4 page navigation support for absolutely no fucking reason! 🎮️
+* The gamecards get fucking shuffled each time you enter or return to the page for absolutely no fucking good reason lol! 🔀
 * And much more smart shit! Go check it out! NOW! 😁
 
 ---
@@ -123,6 +124,12 @@
 * DualShock 4 controller lightbars now change to glow red when you use the d-pad menu navigation to start the game! 🔴
 * Changed the fucking main font to good ol' Comic Sans! 😎
 * Updated the LORE and ABOUT tabs on the main menu with some new stuff! 📖
+
+---
+
+<p><strong><font size="4">☢️ SMALL HUB UPDATE!</font></strong></p>
+
+* The big ass gamecards now get shuffled around randomly every time you enter the chaos lol! 🔀
 
 ---
 

@@ -221,6 +221,7 @@ if (isPhone) {
         splashScreen.classList.add('splash-hidden');
         document.body.classList.remove('splash-active');
         if (pageContent) pageContent.inert = false;
+        shuffleGameCards();
         // Kick off music (user gesture already happened earlier this session)
         startMusic();
     } else {
@@ -234,6 +235,7 @@ if (isPhone) {
                 splashScreen.classList.add('splash-hidden');
                 document.body.classList.remove('splash-active');
                 if (pageContent) pageContent.inert = false;
+                shuffleGameCards();
                 startMusic();
             });
         }
@@ -988,5 +990,25 @@ function initGamepadNav() {
             if (target) target.scrollBy(dx, dy);
             else        window.scrollBy(dx, dy);
         }
+    }
+}
+
+// =========================================
+// GAME CARD SHUFFLE
+// Randomises the order of .game-card elements inside .game-container
+// every time the page is revealed (first visit & return visits).
+// Each card keeps its own class/styles — only DOM order changes.
+// =========================================
+function shuffleGameCards() {
+    const container = document.querySelector('.game-container');
+    if (!container) return;
+
+    const cards = Array.from(container.querySelectorAll('.game-card'));
+    // Fisher-Yates shuffle
+    for (let i = cards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        container.insertBefore(cards[j], cards[i]);
+        // Swap in our local array to keep indices accurate
+        [cards[i], cards[j]] = [cards[j], cards[i]];
     }
 }
