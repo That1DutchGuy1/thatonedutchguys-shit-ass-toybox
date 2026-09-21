@@ -1012,3 +1012,168 @@ function shuffleGameCards() {
         [cards[i], cards[j]] = [cards[j], cards[i]];
     }
 }
+
+// =========================================
+// MEME ART GALLERY
+// Artwork array — swap in your real URLs here!
+// aspect: 'landscape' = 16:9 (4K/2K/1080p), 'portrait' = 9:16 (phone wallpaper), 'weird' = anything else
+// =========================================
+const MEME_ARTWORKS = [
+    {
+        title: "4K Bliss With Weegee",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/4K_Bliss_With_Weegee.png",
+        aspect: "landscape"
+    },
+    {
+        title: "4K Bliss With Memes",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/Bliss-With-Memes.png",
+        aspect: "landscape"
+    },
+    {
+        title: "CD-i Zelda Phone Wallpaper",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/CD-i-Zelda-Phone-Wallpaper.png",
+        aspect: "portrait"
+    },
+    {
+        title: "2K Bliss With Weegee - Invasion Edition",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/2K-Bliss-Weegee-Invasion.png",
+        aspect: "landscape"
+    },
+    {
+        title: "Hotel Mario & King Harkinian Splitscreen",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/Hotel-Mario-King-Harkinian-Splitscreen.jpg",
+        aspect: "landscape"
+    },
+    {
+        title: "King Harkinian's Grand Dinner",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/King%20Harkinian's%20GRAND%20DINNER.png",
+        aspect: "landscape"
+    },
+    {
+        title: "King Harkinian's Big Ass Dinner",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/King-Harkinians-Big-Ass-Dinner.png",
+        aspect: "landscape"
+    },
+    {
+        title: "CD-i Pileup",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/Cd-i-Pileup.png",
+        aspect: "landscape"
+    },
+    {
+        title: "Bliss With Weegee - Phone Edition",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/Bliss-With-Weegee-Phone-Edition.png",
+        aspect: "weird"
+    },
+    {
+        title: "Shit Ass Toybox Social Preview",
+        url: "./hub-assets/social-preview.png",
+        aspect: "weird"
+    },
+];
+
+let memeArtIsOpen  = false;
+let memeArtIndex   = 0;
+
+const memeArtToggleBtn  = document.getElementById('meme-art-toggle');
+const memeArtView       = document.getElementById('meme-art-view');
+const memeArtImg        = document.getElementById('meme-art-img');
+const memeArtTitleLabel = document.getElementById('meme-art-title-label');
+const memeArtDownload   = document.getElementById('meme-art-download');
+const memeArtArrowLeft  = document.getElementById('meme-art-arrow-left');
+const memeArtArrowRight = document.getElementById('meme-art-arrow-right');
+
+function setMemeArtOpen(open) {
+    memeArtIsOpen = open;
+    document.body.classList.toggle('meme-art-active', open);
+
+    if (memeArtToggleBtn) {
+        memeArtToggleBtn.textContent = open ? '✖️ BACK TO TOYBOX' : '🎨 MEME ART';
+    }
+
+    // Close other panels if open
+    if (open) {
+        if (typeof setAboutOpen === 'function' && aboutIsOpen) setAboutOpen(false);
+        if (typeof setBeegToyboxOpen === 'function' && beegToyboxIsOpen) setBeegToyboxOpen(false);
+        renderMemeArt(memeArtIndex);
+    }
+}
+
+function renderMemeArt(idx) {
+    const art = MEME_ARTWORKS[idx];
+    if (!art) return;
+
+    // Set image src and aspect class
+    memeArtImg.src = art.url;
+    memeArtImg.alt = art.title;
+    memeArtImg.className = 'art-' + art.aspect;
+
+    // Title + counter
+    memeArtTitleLabel.textContent =
+        art.title + '  (' + (idx + 1) + ' / ' + MEME_ARTWORKS.length + ')';
+
+    // Download button — raw.githubusercontent.com has open CORS (access-control-allow-origin: *)
+    // so we can fetch it directly as a blob and trigger a real download. No proxy needed!
+    const filename = art.title.replace(/\s+/g, '_') + '.' + (art.url.split('.').pop() || 'png');
+    memeArtDownload.removeAttribute('href');
+    memeArtDownload.removeAttribute('download');
+    memeArtDownload.onclick = function(e) {
+        e.preventDefault();
+        const btn = memeArtDownload;
+        btn.textContent = '⏳ DOWNLOADING...';
+        fetch(art.url)
+            .then(res => {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return res.blob();
+            })
+            .then(blob => {
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+                btn.textContent = '⬇️ DOWNLOAD';
+            })
+            .catch(err => {
+                console.error('Meme art download failed:', err);
+                btn.textContent = '⬇️ DOWNLOAD';
+                // Last resort: open raw URL so they can right-click → Save As
+                window.open(art.url, '_blank', 'noopener,noreferrer');
+            });
+    };
+
+    // Dim arrows at the ends
+    memeArtArrowLeft.classList.toggle('arrow-inactive', idx === 0);
+    memeArtArrowRight.classList.toggle('arrow-inactive', idx === MEME_ARTWORKS.length - 1);
+}
+
+function memeArtPrev() {
+    if (memeArtIndex > 0) {
+        memeArtIndex--;
+        renderMemeArt(memeArtIndex);
+    }
+}
+
+function memeArtNext() {
+    if (memeArtIndex < MEME_ARTWORKS.length - 1) {
+        memeArtIndex++;
+        renderMemeArt(memeArtIndex);
+    }
+}
+
+if (memeArtToggleBtn && !isPhone) {
+    memeArtToggleBtn.addEventListener('click', () => setMemeArtOpen(!memeArtIsOpen));
+}
+
+if (memeArtArrowLeft)  memeArtArrowLeft.addEventListener('click',  memeArtPrev);
+if (memeArtArrowRight) memeArtArrowRight.addEventListener('click', memeArtNext);
+
+// Keyboard navigation while Meme Art is open
+document.addEventListener('keydown', e => {
+    if (!memeArtIsOpen) return;
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); memeArtPrev(); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); memeArtNext(); }
+    if (e.key === 'Escape')     { setMemeArtOpen(false); }
+});

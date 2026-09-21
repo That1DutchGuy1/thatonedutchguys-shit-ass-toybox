@@ -24,6 +24,7 @@
 * Mini Toybox side panel and a Beeg Toybox seperate panel for exclusive Mini Toyz! 🪀
 * Interactive Mini Toyz memes that move around like fucking maniacs constantly and make noise when clicked! 💥
 * A spinning rainbow conic gradient music toggle button that you wouldn't dare turn off, right? 🥺
+* A Meme Art button for viewing my fucking beautiful meme artwork from my "My Fucking Artwork" repository! 🖼️
 
 ---
 
@@ -36,7 +37,7 @@
 * Eh, if they do figure a way around device-guard, then ENJOY THE BROKEN CSS! HA! 🤣
 * Native DualShock 4 page navigation support for absolutely no fucking reason! 🎮️
 * The gamecards get fucking shuffled each time you enter or return to the page for absolutely no fucking good reason lol! 🔀
-* And much more smart shit! Go check it out! NOW! 😁
+* And much more smart shit! Go check it out! NOW! 🔫
 
 ---
 
@@ -79,7 +80,17 @@
 
 ---
 
-<p><strong><font size="4">🚨 BRAND NEW BETA GAME!</font></strong></p>
+<p><strong><font size="4">🚨 NEW SHIT ASS TOYBOX FEATURE!</font></strong></p>
+
+<p><strong><font size="2">🖼️ THE MEME ART GALLERY!</font></strong></p>  <br>
+
+* View my fucking meme artwork hosted on my "My Fucking Art" GitHub repository directly on the Shit Ass Toybox! 🎨
+* Too bad if you have a shitty internet connection, cuz they're all BIG MOTHERFUCKING FILES! 🤣
+* Integrated download buttons on all artworks so that you can download my abominations FOR FREE! 🤯
+
+---
+
+<p><strong><font size="4">🚨 NEW BETA GAME!</font></strong></p>
 
 <p><strong><font size="2">I.M. Meen's Book Shredding Simulator public Beta has arrived!</font></strong></p>  <br>
 

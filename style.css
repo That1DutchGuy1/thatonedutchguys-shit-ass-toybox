@@ -900,7 +900,189 @@ h1, .game-card h3 {
 }
 
 /* =========================================
-   BEEG TOYBOX VIEW
+   MEME ART BUTTON (below BEEG TOYBOX button)
+   ========================================= */
+.meme-art-btn {
+  position: absolute;
+  top: 160px;
+  right: 20px;
+  z-index: 1002;
+}
+
+/* =========================================
+   MEME ART VIEW
+   ========================================= */
+#meme-art-view {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 100px 40px 60px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+#meme-art-view::-webkit-scrollbar {
+  display: none;
+}
+
+body.meme-art-active #meme-art-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Hide main content when Meme Art is open */
+body.meme-art-active #toys-panel,
+body.meme-art-active .game-container,
+body.meme-art-active #readme-view,
+body.meme-art-active .brand-header,
+body.meme-art-active .site-title {
+  display: none !important;
+}
+
+#meme-art-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  border: 4px solid #333;
+  border-radius: 20px;
+  padding: 30px 40px 40px;
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(2px);
+  max-width: 95vw;
+  width: 100%;
+}
+
+#meme-art-label {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 4rem;
+  letter-spacing: 0.05em;
+  -webkit-text-stroke: 2px #000;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  color: transparent !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: spin-text-rainbow 2s linear infinite;
+  white-space: nowrap;
+}
+
+#meme-art-viewer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+}
+
+#meme-art-img-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/* 16:9 landscape images → rendered at 720p width */
+#meme-art-img.art-landscape {
+  width: 1280px;
+  max-width: 70vw;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  border: 5px solid #333;
+  border-radius: 16px;
+  box-shadow: 8px 8px 0px rgba(0,0,0,0.35);
+  background: #111;
+}
+
+/* 9:16 portrait / phone wallpaper images */
+#meme-art-img.art-portrait {
+  height: 720px;
+  max-height: 65vh;
+  width: auto;
+  aspect-ratio: 9 / 16;
+  object-fit: contain;
+  border: 5px solid #333;
+  border-radius: 16px;
+  box-shadow: 8px 8px 0px rgba(0,0,0,0.35);
+  background: #111;
+}
+
+/* Catch-all for weird aspect ratios */
+#meme-art-img.art-weird {
+  max-width: 70vw;
+  max-height: 65vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border: 5px solid #333;
+  border-radius: 16px;
+  box-shadow: 8px 8px 0px rgba(0,0,0,0.35);
+  background: #111;
+}
+
+#meme-art-title-label {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 1.4rem;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 1.5px #000;
+  animation: spin-text-rainbow 2s linear infinite;
+  display: inline-block;
+}
+
+/* The meme-art arrows inherit .doc-nav-arrow but we
+   override positioning: they sit inline, not sticky */
+.meme-art-arrow {
+  position: static !important;
+  margin-top: 0 !important;
+  align-self: center !important;
+  flex-shrink: 0;
+}
+
+/* Counter for "X / Y" — shown inside the title label */
+#meme-art-counter {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.meme-art-download-btn {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 1.3rem;
+  padding: 14px 36px;
+  border: 4px solid #333;
+  border-radius: 15px;
+  color: black !important;
+  -webkit-text-stroke: 0px;
+  text-shadow: none;
+  text-decoration: none;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.35);
+}
+
+.meme-art-download-btn:hover {
+  transform: scale(1.12);
+}
+
+/* BEEG TOYBOX VIEW
    ========================================= */
 #beeg-toybox-view {
   display: none;
