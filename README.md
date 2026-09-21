@@ -212,3 +212,12 @@
 * The circular profile pic logo from my channel spins when you hover over it with your cursor! 😯
 
 ---
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+<p><strong><font size="5">CLICK MY AVATAR PIC TO GO TO MY OLD YT CHANNEL!</font></strong></p>
+  <a href="https://www.youtube.com/@That1DutchGuy">
+    <img src="./hub-assets/That-One-Dutch-Guy-Channel-Logo-Circle.png" alt="My YouTube Channel" width="150" />
+  </a>
+  <br>
+  <img src="./hub-assets/That-One-Dutch-Guy-Logo-Text.png" alt="That One Dutch Guy" width="350" />
+</div>
