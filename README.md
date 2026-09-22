@@ -80,9 +80,25 @@
 
 ---
 
+**MEME ART GALLERY:**
+
+* Bliss With Weegee (4K)
+* Bliss With Memes (4K)
+* CD-i Zelda Phone Wallpaper
+* Bliss With Weegee - Invasion Edition (2K)
+* Hotel Mario & King Harkinian Splitscreen (4K)
+* King Harkinian's Grand Dinner (2K)
+* King Harkinian's Big Ass Dinner (2K)
+* CD-i Zelda Character Pileup (2K)
+* Bliss With Weegee - Phone Edition
+* Shit Ass Toybox Social Preview
+* Meme Mafia Wallpaper (2K)
+
+---
+
 <p><strong><font size="4">🚨 NEW SHIT ASS TOYBOX FEATURE!</font></strong></p>
 
-<p><strong><font size="2">🖼️ THE MEME ART GALLERY!</font></strong></p>  <br>
+<p><strong><font size="2">🖼️ THE MEME ART GALLERY!</font></strong></p>
 
 * View my fucking meme artwork hosted on my "My Fucking Art" GitHub repository directly on the Shit Ass Toybox! 🎨
 * Too bad if you have a shitty internet connection, cuz they're all BIG MOTHERFUCKING FILES! 🤣
@@ -92,7 +108,7 @@
 
 <p><strong><font size="4">🚨 NEW BETA GAME!</font></strong></p>
 
-<p><strong><font size="2">I.M. Meen's Book Shredding Simulator public Beta has arrived!</font></strong></p>  <br>
+<p><strong><font size="2">I.M. Meen's Book Shredding Simulator public Beta has arrived!</font></strong></p>
 
 * Help Ignatius Mortimer Meen destroy a bunch of books, including the Bible, in his brand new hyper modern industrial shredder! 📔
 * Click the fucking button to shred those goodie-goodie books! 😈
@@ -104,7 +120,7 @@
 
 <p><strong><font size="4">🚨 THE GRAND MEME PRIX UPDATE!</font></strong></p>
 
-<p><strong><font size="2">Grand Meme Prix 3D got a small lil update!</font></strong></p>  <br>
+<p><strong><font size="2">Grand Meme Prix 3D got a small lil update!</font></strong></p>
 
 * CD-i Ganon has been added as a new driver! He will make your face the greatest in Koridai if you win as him! 🐷
 * Michael Rosen has been added as a new driver! He loves hot food just as much as winning! 🇬🇧
@@ -120,7 +136,7 @@
 
 <p><strong><font size="4">🚨 WEEGEE'S MANSION 3D UPDATE!</font></strong></p>
 
-<p><strong><font size="2">Weegee's Mansion 3D got another fucking update!</font></strong></p>  <br>
+<p><strong><font size="2">Weegee's Mansion 3D got another fucking update!</font></strong></p>
 
 * Added a fucking settings menu! ⚙️
 * The settings menu had audio sliders for any of you pussies who are scared of the audio! 🔊

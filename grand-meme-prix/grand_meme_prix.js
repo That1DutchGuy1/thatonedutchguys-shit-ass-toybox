@@ -31,6 +31,7 @@ const CHARACTERS = [
   { name: "Ganon",          img: "assets/Ganon.png",           color: 0x3C0008, lightbarColor: 0x5D100A, voicelines: ['assets/voicelines/ganon-hit.mp3', 'assets/voicelines/ganon-win.mp3', 'assets/voicelines/ganon-lose.mp3'] }, // maroon
   { name: "Michael Rosen",     img: "assets/Michael-Rosen.png",    color: 0x708090, lightbarColor: 0xC0C0C0, voicelines: ['assets/voicelines/michael-rosen-hit.mp3', 'assets/voicelines/michael-rosen-win.mp3', 'assets/voicelines/michael-rosen-lose.mp3'] }, // grey
   { name: "Link",         img: "assets/Link.png",          color: 0x00FF00, lightbarColor: 0x00FF00, voicelines: ['assets/voicelines/link-hit.mp3', 'assets/voicelines/link-win.mp3', 'assets/voicelines/link-lose.mp3'] }, // bright green
+  { name: "Dr. Robotnik" , img: "assets/Dr-Robotnik.png", color: 0xFF0000, lightbarColor: 0xFF0000, voicelines: ['assets/voicelines/dr-robotnik-hit.mp3', 'assets/voicelines/dr-robotnik-win.mp3', 'assets/voicelines/dr-robotnik-lose.mp3'] }, // red
 ];
 
 // =============================================
@@ -1521,7 +1522,7 @@ function updateKartBumpPhysics(delta) {
       target.speed *= 0.4;
       starPlayer.speed *= 0.92;
       playSlipSound();
-      playCharacterVoiceline(target.charIndex, 'hit');
+      playHitVoicelineForPlayer(target);
     }
   }
 }
@@ -1985,21 +1986,66 @@ function playWinSound() {
 // ── CHARACTER VOICELINES ──
 // Plays the hit or win voiceline for a character if they have one.
 // type: 'hit' | 'win'
-// Runs via a fresh <audio> element each call so voicelines overlap freely
-// with existing Web Audio SFX (engine, shell, slip, etc.) and with each other.
-function playCharacterVoiceline(charIndex, type) {
+// pitch: optional semitone shift for chipmunk effect (default 0; positive = higher pitch, speed unchanged)
+// When pitch !== 0, routes through Web Audio API so only pitch shifts — not playback speed.
+// Falls back to a plain <audio> element (pitch = 0) so voicelines overlap freely.
+function playCharacterVoiceline(charIndex, type, pitch = 0) {
   const char = CHARACTERS[charIndex];
   if (!char || !char.voicelines || char.voicelines.length === 0) return;
   const line = char.voicelines.find(path => path.includes(type));
   if (!line) return;
-  const el = document.createElement('audio');
-  el.src = line;
-  el.volume = settings.voicelineVol / 100;
-  // Clean up the element once it finishes (or errors) so we don't leak DOM nodes
-  el.onended = () => el.remove();
-  el.onerror = () => el.remove();
-  document.body.appendChild(el);
-  el.play().catch(() => {});
+
+  const vol = settings.voicelineVol / 100;
+
+  if (pitch !== 0 && audioCtx) {
+    // Pitch-only shift via Web Audio API:
+    // AudioBufferSourceNode.detune is in cents (100 cents = 1 semitone).
+    // This raises pitch WITHOUT speeding up playback — true chipmunk mode 🐿️
+    fetch(line)
+      .then(r => r.arrayBuffer())
+      .then(buf => audioCtx.decodeAudioData(buf))
+      .then(decoded => {
+        const src    = audioCtx.createBufferSource();
+        src.buffer   = decoded;
+        src.detune.value = pitch * 100; // pitch is in semitones; detune is in cents
+
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = vol;
+
+        src.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        src.start(0);
+      })
+      .catch(() => {
+        // If fetch/decode fails, fall back to plain audio element at normal pitch
+        const el = document.createElement('audio');
+        el.src = line;
+        el.volume = vol;
+        el.onended = () => el.remove();
+        el.onerror  = () => el.remove();
+        document.body.appendChild(el);
+        el.play().catch(() => {});
+      });
+  } else {
+    // No pitch shift — plain <audio> element, no speed change
+    const el = document.createElement('audio');
+    el.src = line;
+    el.volume = vol;
+    // Clean up the element once it finishes (or errors) so we don't leak DOM nodes
+    el.onended = () => el.remove();
+    el.onerror  = () => el.remove();
+    document.body.appendChild(el);
+    el.play().catch(() => {});
+  }
+}
+
+// Convenience wrapper: plays a hit voiceline for a player object,
+// automatically applying chipmunk pitch (+7 semitones) if they're currently
+// lightning-shrunk. Pitch-only — playback speed stays the same 🐿️
+// Wears off the moment _lightningPitchShift goes false.
+function playHitVoicelineForPlayer(player) {
+  const pitch = player._lightningPitchShift ? 7 : 0; // semitones; 0 = no shift
+  playCharacterVoiceline(player.charIndex, 'hit', pitch);
 }
 
 function updateEngineAudio() {
@@ -3724,7 +3770,7 @@ function updateBananaPeels(delta, playersArr) {
         player.speed       *= 0.4;
         showSlipEffect(player);
         playSlipSound();
-        playCharacterVoiceline(player.charIndex, 'hit');
+        playHitVoicelineForPlayer(player);
       }
     }
   });
@@ -4137,7 +4183,8 @@ function applyLightningToPlayer(target) {
   };
 
   target._lightningPitchShift = true;
-  playCharacterVoiceline(target.charIndex, 'hit');
+  // Flag is already true above, so the helper will auto-apply 1.6× chipmunk pitch 🐿️
+  playHitVoicelineForPlayer(target);
 
   // Screen flash for human players
   const isHuman = gameMode === 'solo'
@@ -4288,7 +4335,7 @@ function launchPlayerFromBomb(player, origin) {
   player.stunTimer = BOMB_AIRBORNE_DURATION;
   player.spinoutTimer = 0;
   player.kart.rotation.z = 0;
-  playCharacterVoiceline(player.charIndex, 'hit');
+  playHitVoicelineForPlayer(player);
 }
 
 function explodeBomb(bomb) {
@@ -4593,7 +4640,7 @@ function updateRedShells(delta) {
       shell.target.stunTimer    = 3.0;
       shell.target.speed       *= 0.3;
       playShellHitSound();
-      playCharacterVoiceline(shell.target.charIndex, 'hit');
+      playHitVoicelineForPlayer(shell.target);
       destroyRedShell(shell);
     }
   });
