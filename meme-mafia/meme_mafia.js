@@ -103,7 +103,8 @@ const AGGRESSIVE_ROASTS = [
     "You were so bad, the Gen Alpha Meme Family is now laughing at your corpse. You have been utterly humiliated.",
     "The streets are laughing at you. Try mashing that spacebar like you actually want to live.",
     "Don Skibidi looked at your reaction time and laughed his head off. Try again, loser.",
-    "The CD-i universe crumbled back into the shadows of history. All because you couldn't handle simple coordination."
+    "The CD-i universe crumbled back into the shadows of history. All because you couldn't handle simple coordination.",
+    "Wow, you suck. You gonna cry? It won't help, because the Don is dead"
 ];
 
 // Web Audio API Synthesizer Context
