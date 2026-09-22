@@ -41,7 +41,7 @@ const ASSETS_CONFIG = {
         { name: 'Ohio Overlord', img: 'assets/memes/Gen-Alpha-meme-family/ohio.png' },
         { name: 'Sigma Grimace', img: 'assets/memes/Gen-Alpha-meme-family/sigma.png' },
         { name: 'Mewing Chad', img: 'assets/memes/Gen-Alpha-meme-family/mewing.png' },
-        { name: 'hawk_tua', img: 'assets/memes/Gen-Alpha-meme-family/hawk_tuah.png' },
+        { name: 'Hawk Tuah', img: 'assets/memes/Gen-Alpha-meme-family/hawk_tuah.png' },
     ],
 
     boss: {
