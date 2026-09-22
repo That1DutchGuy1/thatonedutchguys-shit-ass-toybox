@@ -1073,6 +1073,11 @@ const MEME_ARTWORKS = [
         url: "./hub-assets/social-preview.png",
         aspect: "weird"
     },
+    {
+        title: "2K Meme Mafia Desktop Wallpaper",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/meme-mafia-desktop-wallpaper.png",
+        aspect: "landscape"
+    },
 ];
 
 let memeArtIsOpen  = false;
