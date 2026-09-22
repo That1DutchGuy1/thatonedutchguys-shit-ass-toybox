@@ -46,22 +46,21 @@ body.mobile-blocked #mobile-block {
 .mobile-block-content {
   width: 100%;
   height: 100%;
-  max-width: 100vw;
-  /* Enforce a standard 9:16 vertical phone canvas, centered and
-     letterboxed on anything wider/taller than that ratio. */
-  aspect-ratio: 9 / 16;
-  margin: 0 auto;
+  /* Fully adaptive — fills whatever screen the banned device has.
+     No hardcoded aspect ratio so nothing clips on phones, tablets,
+     iPads (including the big-ass 13" Pro), or fridges. */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3vh;
-  padding: 5vh 6vw;
+  gap: clamp(8px, 2.5vh, 28px);
+  padding: clamp(12px, 4vh, 48px) clamp(16px, 5vw, 60px);
   box-sizing: border-box;
   text-align: center;
   font-family: 'Comic Sans MS', sans-serif;
   font-weight: bold;
   color: #ff0000;
+  overflow: hidden;
 }
 
 .mobile-block-line {
@@ -86,16 +85,17 @@ body.mobile-blocked #mobile-block {
 }
 
 .mobile-block-line.line-1 {
-  font-size: 11vw;
+  /* Scales up from phones to big iPads, but never gets ridiculous */
+  font-size: clamp(2rem, 9vmin, 6rem);
 }
 
 .mobile-block-line.line-2 {
-  font-size: 8vw;
+  font-size: clamp(1.1rem, 6vmin, 3.5rem);
 }
 
 .mobile-block-img {
-  width: 60vw;
-  max-width: 320px;
+  /* Size relative to the shorter screen edge so it always fits */
+  width: clamp(120px, 40vmin, 320px);
   height: auto;
   aspect-ratio: 1 / 1;
   object-fit: contain;

@@ -47,6 +47,7 @@
             [834, 1194],   // iPad Pro 11"
             [834, 1112],   // iPad Air (10.5")
             [1024, 1366],  // iPad Pro 12.9"
+            [1032, 1376],  // iPad Pro 13" (M4)
         ];
         const matchesIpadViewport = () => {
             const w = window.screen.width, h = window.screen.height;
@@ -99,11 +100,13 @@
 
         // Real phone/tablet panels max out well under typical monitor
         // resolutions on at least one axis.
-        if (shortEdge > 1024 || longEdge > 1366) return null;
+        // Upper bound raised to 1376 to catch iPad Pro 13" (1032×1376).
+        if (shortEdge > 1032 || longEdge > 1376) return null;
 
         const IPAD_VIEWPORT_SIZES = [
             [768, 1024], [810, 1080], [820, 1180],
             [834, 1194], [834, 1112], [1024, 1366],
+            [1032, 1376],  // iPad Pro 13" (M4)
         ];
         const isIpadSized = IPAD_VIEWPORT_SIZES.some(
             ([a, b]) => (shortEdge === a && longEdge === b) || (shortEdge === b && longEdge === a)
