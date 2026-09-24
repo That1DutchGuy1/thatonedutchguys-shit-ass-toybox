@@ -350,6 +350,7 @@ const BEEG_TOYS = [
     { id: 'weegee', label: 'WEEGEE', img: './hub-assets/Weegee-Head.png', sounds: ['./weegees-mansion/Audio/Weegee/weegee-isolated.mp3'], overlap: true, cssClass: 'toy-weegee' },
     { id: 'spaghetti', label: 'SPAGHETTI', img: './hub-assets/Spaghetti.png', sounds: ['./hub-assets/spaghetti.mp3'], overlap: true, cssClass: 'toy-spaghetti' },
     { id: 'michael-rosen', label: 'MICHAEL ROSEN', img: './big-meme-quiz/assets/memes/michael-rosen.png', sounds: ['./whack-a-meme/assets/sounds/nice-score.mp3'], overlap: true, cssClass: 'toy-michael-rosen' },
+    { id: 'morshu', label: 'MORSHU', img: './cd-i-meme-soundboard/assets/images/Morshu-CD-i.png', sounds: ['./cd-i-meme-soundboard/assets/soundeffects/Lamp-Oil.mp3'], overlap: true, cssClass: 'toy-morshu' },
 ];
 
 function buildToysPanel() {
