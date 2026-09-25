@@ -209,9 +209,6 @@
 > **Q: Which operating system do you work on?** <br>
 > **A:** A system I delightfully call "The Cinnamon XP Meme Machine"! It's a very dedicated mod collection to make Linux Mint 22 Cinnamon Edition look and sound like Windows XP! 😁
 
-> **Q: What are your computer's specs?** <br>
-> **A:** RTX 2070 Super - Ryzen 5 5600X - ASRock B550 Steel Legend motherboard <br> 32 GB DDR4 RAM - 256 GB SATA III portable SSD (OS) <br> 512 GB NVMe SSD (for large 3D games) - 4 TB HDD (old games and misc) 🖥️
-
 > **Q: Do you have an OnlyFans account?** <br>
 > **A:** Oh, you wish I had for sure! But OnlyFans thinks I'm too fabulous for their platform! 🦄
 
