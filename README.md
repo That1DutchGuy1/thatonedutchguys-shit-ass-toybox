@@ -155,7 +155,7 @@
 
 <p><strong><font size="4">📀 THE DVD-R ISO HANGAR!</font></strong></p>
 
-<p><strong><font size="2">AYO! I made a sideproject that's gonna host ISO files for burning onto DVD-R discs! 🤯</font></strong></p> <br>
+<p><strong><font size="2">AYO! I made a sideproject that's gonna host ISO files for burning onto DVD-R discs! 🤯</font></strong></p>
 
 * It's still in development, but eventually you'll be able to SQUADALA some DVD ISO files from it! 😂
 * It's mainly a preservation project for old YTP! 😎
@@ -174,9 +174,9 @@
 ---
 
 <p><strong><font size="3">📝 Project Overview</font></strong></p>
-<p><strong><font size="2">I do this as a hobby just for my own amusement, </font></strong></p>
+<p><strong><font size="2">I do this as a hobby just for my own amusement. You can give contructive feedback and critism for sure, but don't be an asshole, okay?</font></strong></p>
 
-<p><strong><font size="2">For those who don't know me, I am a retired YouTuber known as That One Dutch Guy. <br> If you want a quick laugh and lose even more of your small amount of braincells simultaneously, the watch my fucking old videos! More interactive toys and games will be continually added here in the future.</font></strong></p>
+<p><strong><font size="2">For those who don't know me, I am a retired YouTuber known as That One Dutch Guy. <br> If you want a quick laugh and lose even more of your small amount of braincells simultaneously, the watch my fucking old videos! More interactive toys and games will be continually added here in the future probably!</font></strong></p>
 
 ---
 
@@ -189,7 +189,7 @@
 > **A:** Honestly? I don't know. Maybe when I run out of inspiration, but that ain't gonna happen anytime soon! 👍🏻
 
 > **Q: Is the code AI generated?**  <br>
-> **A:** Partially, yep. So fucking what? I came up with all the ideas myself. Debugging and making small fixes is faster with AI than doing it manually and eventually shitting yourself cuz the code won't cooperate lol! 😎
+> **A:** I'll be completely honest. Mostly, yep, and I'm not ashamed of it. Why? Because the Shit Ass Toybox is different than the stereotypical AI slop sites. I'm not lazy about it. All of the ideas came from me, not from an AI. I check all the code that the AI gives me. If it looks good, I implement it and test it on a local host live server with the error console open at all times. When I find something that doesn't work as intended or something I don't like, I explain that back to the AI in detail with screenshots and everything. It's more like, me and the AI work together to get turn my vision into stable code. There's a good difference between lazy vibecoders who just prompt and pray, and the vibecoders like me who actually WANT to learn web development. I know that this question is a little less chaotic than the rest of the Q & A, but I just had to be fully honest here since I recently got harassed on Reddit by some elitist asshole for using AI assisted coding, even after I reasonably and level-headedly explained my workflow. At the end of the day, the Shit Ass Toybox is just a harmless non-profit non-corporate hobby project designed to make people who love old memes and YTP laugh. 
 
 > **Q: Will you ever return to making YouTube videos?**  <br>
 > **A:** No, not fully! But recently, I have been experimenting with video editing again! I'll admit that, you info-hungry gremlins! 😂
