@@ -45,13 +45,13 @@
 
 **GAMES:**
 
+* Whack A Meme (Finished, unless I come up with some big brain additions)
 * Bup The Super Awesome Clicker Game (Finished, unless I come up with some big brain additions)
 * Philips CD-i Meme Soundboard (Finished, unless I come up with some big brain additions)
 * Rick Roller 2D (Finished, unless I come up with some big brain additions)
 * Weegee Memory Match (Finished, unless I come up with some big brain additions)
 * Weegee Town XP (Finished, no unless, no buts, I'm done)
 * Weegee's Mansion 3D (Finished, unless I come up with some big brain additions)
-* Whack A Meme (Finished, unless I come up with some big brain additions)
 * King Harkinian's Personal Chef Simulator (Finished, unless I come up with some big brain additions)
 * CD-i Tinder (Alpha / WIP)
 * Meme Claw Machine (I dunno, stable, logic works, but might add more shit in the future)
@@ -192,7 +192,7 @@
 > **A:** Partially, yep. So fucking what? I came up with all the ideas myself. Debugging and making small fixes is faster with AI than doing it manually and eventually shitting yourself cuz the code won't cooperate lol! 😎
 
 > **Q: Will you ever return to making YouTube videos?**  <br>
-> **A:** Highly unlikely! However, I might consider creating new content if I ever find myself with an abundance of free time down the road. If I do make a return, the content will likely focus on web development topics! 🌐
+> **A:** No, not fully! But recently, I have been experimenting with video editing again! I'll admit that, you info-hungry gremlins! 😂
 
 > **Q: How do you come up with this beautiful shit?** <br>
 > **A:** Having both autism and ADHD, and having hyperfocuses on both stupid old memes and webdevelopment! Trust me, it's a superpower for shit like this! Not a limitation! 😜
@@ -232,6 +232,7 @@
 <p><strong><font size="3">ℹ️ RANDOM FACTS AND HISTORY ABOUT THE SHIT ASS TOYBOX</font></strong></p>
 
 * Did you know that the Shit Ass Toybox used to be called That One Dutch Guy's Mini-Game Hub in the earlier days? 😯
+* The initial commit date of the old Mini-Game Hub repository was on April 22nd 2026! 😯
 * The gamecards used to be completely white and displayed in horizontal rows on the old Mini-Game Hub! They now all have unique images and are displayed vertically on the right side of the screen, with two cards horizontally per row!
 * I made the early Beta of Bup The Super Awesome Clicker Game way before even the old Mini-Game Hub existed on a school computer! It was the first web-game I ever made! 😯
 * The old Mini-Game Hub used to have JavaScript synthesized background music instead of the current remixed Hotel Mario main theme WAV file!
