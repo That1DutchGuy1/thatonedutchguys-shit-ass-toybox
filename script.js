@@ -336,7 +336,6 @@ const TOYS = [
         overlap:  true,
         cssClass: 'toy-mario-toast',
     }
-    // 👇 Add future toys here — no other changes needed!
 ];
 
 // =========================================

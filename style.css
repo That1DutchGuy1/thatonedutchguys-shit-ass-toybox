@@ -619,15 +619,12 @@ h1 {
     transform: translateY(0) scaleY(1); 
   }
   20% { 
-    /* Deep squash forward on "Lamp" */
     transform: translateY(14px) scaleY(0.75) scaleX(1.15); 
   }
   45% { 
-    /* Rebound slightly on "oil" */
     transform: translateY(-4px) scaleY(1.05) scaleX(0.95); 
   }
   70% { 
-    /* Rapid return to normal */
     transform: translateY(2px) scaleY(0.98); 
   }
 }
