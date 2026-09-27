@@ -1078,6 +1078,11 @@ const MEME_ARTWORKS = [
         url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/meme-mafia-desktop-wallpaper.png",
         aspect: "landscape"
     },
+    {
+        title: "PAL DVD Menu Background",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/DVD-menu-background.png",
+        aspect: "weird"
+    },
 ];
 
 let memeArtIsOpen  = false;
