@@ -170,7 +170,7 @@
 
 ---
 
-> 👉🏻 [Go check it out live, OR ELSE! 🔫](https://that1dutchguy1.github.io/thatonedutchguys-shit-ass-toybox/)
+> [Go check it out live, OR ELSE! 🔫](https://that1dutchguy1.github.io/thatonedutchguys-shit-ass-toybox/)
 
 ---
 
