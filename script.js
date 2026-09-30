@@ -1083,6 +1083,11 @@ const MEME_ARTWORKS = [
         url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/DVD-menu-background.png",
         aspect: "weird"
     },
+    {
+        title: "King Harkinian's Personal Chef Simulator Main Menu Background",
+        url: "./king-harkinians-personal-chef-simulator/assets/backdrops/menu-background.png",
+        aspect: "landscape"
+    },
 ];
 
 let memeArtIsOpen  = false;

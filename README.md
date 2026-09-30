@@ -95,6 +95,7 @@
 * Shit Ass Toybox Social Preview
 * Meme Mafia Wallpaper (2K)
 * PAL DVD Menu Background
+* King Harkinian's Personal Chef Simulator Main Menu Background
 
 ---
 
