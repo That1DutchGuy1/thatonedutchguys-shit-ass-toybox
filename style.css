@@ -1567,3 +1567,351 @@ body.about-active .game-container {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+/* =========================================
+   YTP TV BUTTON (below MEME ART button)
+   ========================================= */
+.ytp-tv-btn {
+  position: absolute;
+  top: 230px;
+  right: 20px;
+  z-index: 1002;
+}
+
+/* =========================================
+   YTP TV VIEW
+   Mirrors the meme-art-view pattern exactly
+   ========================================= */
+#ytp-tv-view {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 100px 40px 60px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+#ytp-tv-view::-webkit-scrollbar {
+  display: none;
+}
+
+body.ytp-tv-active #ytp-tv-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Hide main content when YTP TV is open */
+body.ytp-tv-active #toys-panel,
+body.ytp-tv-active .game-container,
+body.ytp-tv-active #readme-view,
+body.ytp-tv-active .brand-header,
+body.ytp-tv-active .site-title {
+  display: none !important;
+}
+
+/* =========================================
+   YTP TV PANEL
+   ========================================= */
+#ytp-tv-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  border: 4px solid #333;
+  border-radius: 20px;
+  padding: 30px 40px 40px;
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(2px);
+  max-width: 95vw;
+  width: 100%;
+}
+
+/* Big spinning rainbow "YTP TV" header */
+#ytp-tv-label {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 4rem;
+  letter-spacing: 0.08em;
+  -webkit-text-stroke: 2px #000;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  color: transparent !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: spin-text-rainbow 2s linear infinite;
+  white-space: nowrap;
+}
+
+/* Row: left arrow | video | right arrow */
+#ytp-tv-viewer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  width: 100%;
+}
+
+/* Column: title + player */
+#ytp-tv-video-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Spinning rainbow video title + counter */
+#ytp-tv-title-label {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 1.8rem;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 1.5px #000;
+  animation: spin-text-rainbow 2s linear infinite;
+  display: inline-block;
+  text-align: center;
+}
+
+/* =========================================
+   VIDEO PLAYER WRAPPER
+   Fixed 1280×720 box — video fills it
+   ========================================= */
+#ytp-tv-player-wrap {
+  position: relative;
+  width: 1280px;
+  max-width: 70vw;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border: 5px solid #333;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.45);
+}
+
+#ytp-tv-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  /* Hide the browser's own ugly controls */
+  pointer-events: none;
+}
+
+/* Click-to-play overlay — invisible but covers the video */
+#ytp-tv-player-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+/* =========================================
+   CUSTOM CONTROLS OVERLAY
+   Slides up from the bottom of the player
+   ========================================= */
+#ytp-tv-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 10px 16px 14px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.82));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+/* Show controls on hover or when paused */
+#ytp-tv-player-wrap:hover #ytp-tv-controls,
+#ytp-tv-player-wrap.is-paused #ytp-tv-controls {
+  opacity: 1;
+}
+
+/* ---- PROGRESS BAR ---- */
+#ytp-tv-progress-bar-wrap {
+  width: 100%;
+}
+
+#ytp-tv-progress-bar-bg {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  border-radius: 6px;
+  /* Spinning conic gradient — same energy as the rest of the site 😎 */
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  animation: spin-text-rainbow 2s linear infinite;
+  cursor: pointer;
+}
+
+#ytp-tv-progress-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+  pointer-events: none;
+  transition: width 0.1s linear;
+}
+
+/* The real input[range] sits on top, invisible, for scrubbing */
+#ytp-tv-scrubber {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ---- BUTTON ROW ---- */
+#ytp-tv-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+/* Comic Sans rainbow control buttons */
+.ytp-ctrl-btn {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 1.1rem;
+  padding: 6px 14px;
+  border: 3px solid #333;
+  border-radius: 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+  /* Same rainbow as the play buttons */
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  color: #000 !important;
+  -webkit-text-stroke: 0px;
+  text-shadow: none;
+  animation: spin-text-rainbow 2s linear infinite;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.4);
+  line-height: 1;
+}
+
+.ytp-ctrl-btn:hover {
+  transform: scale(1.12);
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.5);
+}
+
+.ytp-ctrl-btn:active {
+  transform: scale(0.92);
+}
+
+/* Time display */
+#ytp-tv-time-display {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  font-size: 0.95rem;
+  color: #fff;
+  -webkit-text-stroke: 0.5px #000;
+  white-space: nowrap;
+  flex-shrink: 0;
+  /* push the mute+vol to the right */
+  margin-right: auto;
+}
+
+/* Volume slider */
+#ytp-tv-vol-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 90px;
+  height: 8px;
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  animation: spin-text-rainbow 2s linear infinite;
+}
+
+#ytp-tv-vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #333;
+  cursor: pointer;
+}
+
+#ytp-tv-vol-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #333;
+  cursor: pointer;
+}
+
+/* YTP TV arrows — same class as meme-art-arrow, no extra style needed
+   since .meme-art-arrow already overrides .doc-nav-arrow positioning  */
+.ytp-tv-arrow {
+  position: static !important;
+  margin-top: 0 !important;
+  align-self: center !important;
+  flex-shrink: 0;
+}
+/* =========================================
+   YTP TV THUMBNAIL
+   ========================================= */
+#ytp-tv-thumbnail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+  display: block;
+  transition: opacity 0.25s ease;
+}
+
+/* Hide thumbnail once video is playing */
+#ytp-tv-player-wrap.is-playing #ytp-tv-thumbnail {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Also hide it if there's no thumbnail */
+#ytp-tv-thumbnail[src=""] {
+  display: none;
+}

@@ -47,6 +47,8 @@
 
     <button id="meme-art-toggle" class="dvd-projects-btn meme-art-btn" type="button">🎨 MEME ART</button>
 
+    <button id="ytp-tv-toggle" class="dvd-projects-btn ytp-tv-btn" type="button">📺 YTP TV</button>
+
     <!-- MEME ART VIEW — hidden until toggle is clicked -->
     <div id="meme-art-view">
         <div id="meme-art-panel">
@@ -60,6 +62,41 @@
                 <button id="meme-art-arrow-right" class="doc-nav-arrow doc-arrow-right meme-art-arrow" aria-label="Next artwork">▶</button>
             </div>
             <a id="meme-art-download" class="play-button meme-art-download-btn" href="#" download target="_blank" rel="noopener noreferrer">⬇️ DOWNLOAD</a>
+        </div>
+    </div>
+
+    <!-- YTP TV VIEW — hidden until toggle is clicked -->
+    <div id="ytp-tv-view">
+        <div id="ytp-tv-panel">
+            <div id="ytp-tv-label">📺️ YTP TV 📺️</div>
+            <div id="ytp-tv-viewer">
+                <button id="ytp-tv-arrow-left"  class="doc-nav-arrow doc-arrow-left  meme-art-arrow ytp-tv-arrow" aria-label="Previous video">◀</button>
+                <div id="ytp-tv-video-wrap">
+                    <div id="ytp-tv-title-label"></div>
+                    <div id="ytp-tv-player-wrap">
+                        <img id="ytp-tv-thumbnail" src="" alt="Video thumbnail">
+                        <video id="ytp-tv-video" preload="metadata" playsinline></video>
+                        <!-- Custom controls overlay -->
+                        <div id="ytp-tv-controls">
+                            <div id="ytp-tv-progress-bar-wrap">
+                                <div id="ytp-tv-progress-bar-bg">
+                                    <div id="ytp-tv-progress-bar-fill"></div>
+                                    <input id="ytp-tv-scrubber" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek">
+                                </div>
+                            </div>
+                            <div id="ytp-tv-btn-row">
+                                <button id="ytp-tv-play-btn"    class="ytp-ctrl-btn" aria-label="Play / Pause">▶</button>
+                                <button id="ytp-tv-restart-btn" class="ytp-ctrl-btn" aria-label="Restart">⏮</button>
+                                <div id="ytp-tv-time-display">0:00 / 0:00</div>
+                                <button id="ytp-tv-mute-btn"    class="ytp-ctrl-btn" aria-label="Mute / Unmute">🔊</button>
+                                <input  id="ytp-tv-vol-slider"  type="range" min="0" max="100" value="100" step="1" aria-label="Volume">
+                                <button id="ytp-tv-fullscreen-btn" class="ytp-ctrl-btn" aria-label="Fullscreen">⛶</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button id="ytp-tv-arrow-right" class="doc-nav-arrow doc-arrow-right meme-art-arrow ytp-tv-arrow" aria-label="Next video">▶</button>
+            </div>
         </div>
     </div>
 

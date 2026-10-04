@@ -25,6 +25,7 @@
 * Interactive Mini Toyz memes that move around like fucking maniacs constantly and make noise when clicked! 💥
 * A spinning rainbow conic gradient music toggle button that you wouldn't dare turn off, right? 🥺
 * A Meme Art button for viewing my fucking beautiful meme artwork from my "My Fucking Artwork" repository! 🖼️
+* A YTP TV button where you can watch my YTP videos on-site with custom RAINBOW player controls! 📺️
 
 ---
 
@@ -122,6 +123,19 @@
 * CD-i WhatsApp Sticker Pack README
 * My Fucking Artwork README
 * Soundbuttons README
+
+<p><strong><font size="2">📺️ YTP TV PANEL!</font></strong></p>
+
+* You can now watch TWO of my old YTP videos from my inactive YTP channel, plus a brand new one made in Shotcut, directly on-site! 🤯
+* Custom unhinged rainbow controls for the video player! 🌈
+* Each video has a unique thumbnail! 🖼️
+* More videos will be added in the future! 📼
+
+**Currently available YTPs:**
+
+* The King Hates Bad Shrek Toys (new one made by me!)
+* Rick Astley Doesn't Give A Fuck (old one)
+* Hotel Mario Insanity (old one)
 
 ---
 

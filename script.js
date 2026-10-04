@@ -1326,3 +1326,235 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') { e.preventDefault(); memeArtNext(); }
     if (e.key === 'Escape')     { setMemeArtOpen(false); }
 });
+
+// =========================================
+// YTP TV
+// =========================================
+
+// ---- VIDEO LIBRARY — drop your GitHub-hosted MP4 URLs in here! ----
+const YTP_VIDEOS = [
+    {
+        title: "The King Hates Bad Shrek Toys",
+        url: "https://that1dutchguy1.github.io/My-YTP-videos/cd-i-zelda-youtube-poop.mp4",
+        thumbnail: "https://that1dutchguy1.github.io/My-YTP-videos/cd-i-zelda-youtube-poop-thumbnail.png"
+    },
+    {
+        title: "Rick Astley Doesn't Give A Fuck",
+        url: "https://that1dutchguy1.github.io/My-YTP-videos/rick-astley-ytp.mp4",
+        thumbnail: "https://that1dutchguy1.github.io/My-YTP-videos/rick-astley-ytp-thumbnail.png"
+    },
+    {
+        title: "Hotel Mario Insanity",
+        url: "https://that1dutchguy1.github.io/My-YTP-videos/hotel-mario-insanity.mp4",
+        thumbnail: "https://that1dutchguy1.github.io/My-YTP-videos/hotel-mario-insanity-thumbnail.png"
+    },
+    // Add more entries here whenever you want, no other changes needed!
+];
+
+let ytpTvIsOpen = false;
+let ytpTvIndex  = 0;
+
+// ---- DOM refs ----
+const ytpTvToggleBtn  = document.getElementById('ytp-tv-toggle');
+const ytpTvView       = document.getElementById('ytp-tv-view');
+const ytpTvTitleLabel = document.getElementById('ytp-tv-title-label');
+const ytpTvArrowLeft  = document.getElementById('ytp-tv-arrow-left');
+const ytpTvArrowRight = document.getElementById('ytp-tv-arrow-right');
+const ytpTvPlayerWrap = document.getElementById('ytp-tv-player-wrap');
+
+// Video element
+const ytpVideo        = document.getElementById('ytp-tv-video');
+
+// Custom controls
+const ytpPlayBtn      = document.getElementById('ytp-tv-play-btn');
+const ytpRestartBtn   = document.getElementById('ytp-tv-restart-btn');
+const ytpMuteBtn      = document.getElementById('ytp-tv-mute-btn');
+const ytpVolSlider    = document.getElementById('ytp-tv-vol-slider');
+const ytpScrubber     = document.getElementById('ytp-tv-scrubber');
+const ytpFill         = document.getElementById('ytp-tv-progress-bar-fill');
+const ytpTimeDisplay  = document.getElementById('ytp-tv-time-display');
+const ytpFullscreenBtn = document.getElementById('ytp-tv-fullscreen-btn');
+const ytpThumbnail     = document.getElementById('ytp-tv-thumbnail');
+
+// ---- Helper: format seconds as m:ss ----
+function ytpFormatTime(secs) {
+    if (!isFinite(secs)) return '0:00';
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+// ---- Load a video by index ----
+function ytpLoadVideo(idx) {
+    const vid = YTP_VIDEOS[idx];
+    if (!vid) return;
+
+    // Title + counter
+    ytpTvTitleLabel.textContent = vid.title + '  (' + (idx + 1) + ' / ' + YTP_VIDEOS.length + ')';
+
+    // Swap src
+    ytpVideo.pause();
+    ytpVideo.src = vid.url;
+    ytpVideo.load();
+
+    // Reset controls
+    ytpFill.style.width        = '0%';
+    ytpScrubber.value          = 0;
+    ytpTimeDisplay.textContent = '0:00 / 0:00';
+    ytpPlayBtn.textContent     = '▶';
+    ytpTvPlayerWrap.classList.add('is-paused');
+    ytpTvPlayerWrap.classList.remove('is-playing');
+
+    // Show thumbnail if available
+    ytpThumbnail.src = vid.thumbnail || '';
+
+    // Dim arrows at ends
+    ytpTvArrowLeft.classList.toggle('arrow-inactive',  idx === 0);
+    ytpTvArrowRight.classList.toggle('arrow-inactive', idx === YTP_VIDEOS.length - 1);
+}
+
+// ---- Open / close the panel ----
+function setYtpTvOpen(open) {
+    ytpTvIsOpen = open;
+    document.body.classList.toggle('ytp-tv-active', open);
+
+    if (ytpTvToggleBtn) {
+        ytpTvToggleBtn.textContent = open ? '✖️ BACK TO TOYBOX' : '📺 YTP TV';
+    }
+
+    if (open) {
+        // Close every other panel
+        if (typeof setAboutOpen      === 'function' && aboutIsOpen)      setAboutOpen(false);
+        if (typeof setBeegToyboxOpen === 'function' && beegToyboxIsOpen) setBeegToyboxOpen(false);
+        if (typeof setMemeArtOpen    === 'function' && memeArtIsOpen)    setMemeArtOpen(false);
+        ytpLoadVideo(ytpTvIndex);
+    } else {
+        // Pause when closing
+        ytpVideo.pause();
+        ytpPlayBtn.textContent = '▶';
+        ytpTvPlayerWrap.classList.add('is-paused');
+    }
+}
+
+// ---- Navigation ----
+function ytpPrev() {
+    if (ytpTvIndex > 0) {
+        ytpTvIndex--;
+        ytpLoadVideo(ytpTvIndex);
+    }
+}
+
+function ytpNext() {
+    if (ytpTvIndex < YTP_VIDEOS.length - 1) {
+        ytpTvIndex++;
+        ytpLoadVideo(ytpTvIndex);
+    }
+}
+
+// ---- Play / Pause ----
+function ytpTogglePlay() {
+    if (ytpVideo.paused) {
+        ytpVideo.play().catch(() => {});
+    } else {
+        ytpVideo.pause();
+    }
+}
+
+// Sync play button & paused class with actual video state
+ytpVideo.addEventListener('play', () => {
+    ytpPlayBtn.textContent = '⏸';
+    ytpTvPlayerWrap.classList.remove('is-paused');
+    ytpTvPlayerWrap.classList.add('is-playing');
+});
+ytpVideo.addEventListener('pause', () => {
+    ytpPlayBtn.textContent = '▶';
+    ytpTvPlayerWrap.classList.add('is-paused');
+});
+
+// ---- Progress bar ----
+ytpVideo.addEventListener('timeupdate', () => {
+    if (!ytpVideo.duration) return;
+    const pct = (ytpVideo.currentTime / ytpVideo.duration) * 100;
+    ytpFill.style.width        = pct + '%';
+    ytpScrubber.value          = Math.round((ytpVideo.currentTime / ytpVideo.duration) * 1000);
+    ytpTimeDisplay.textContent = ytpFormatTime(ytpVideo.currentTime) + ' / ' + ytpFormatTime(ytpVideo.duration);
+});
+
+// ---- Scrub ----
+ytpScrubber.addEventListener('input', () => {
+    if (!ytpVideo.duration) return;
+    ytpVideo.currentTime = (ytpScrubber.value / 1000) * ytpVideo.duration;
+});
+
+// ---- Volume ----
+ytpVolSlider.addEventListener('input', () => {
+    ytpVideo.volume = ytpVolSlider.value / 100;
+    ytpVideo.muted  = ytpVideo.volume === 0;
+    ytpMuteBtn.textContent = ytpVideo.muted ? '🔇' : '🔊';
+});
+
+// ---- Mute toggle ----
+ytpMuteBtn.addEventListener('click', () => {
+    ytpVideo.muted = !ytpVideo.muted;
+    ytpMuteBtn.textContent = ytpVideo.muted ? '🔇' : '🔊';
+    if (!ytpVideo.muted && ytpVideo.volume === 0) {
+        ytpVideo.volume = 0.5;
+        ytpVolSlider.value = 50;
+    }
+});
+
+// ---- Restart ----
+ytpRestartBtn.addEventListener('click', () => {
+    ytpVideo.currentTime = 0;
+    ytpVideo.play().catch(() => {});
+});
+
+// ---- Fullscreen ----
+ytpFullscreenBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+        ytpTvPlayerWrap.requestFullscreen().catch(() => {});
+    } else {
+        document.exitFullscreen().catch(() => {});
+    }
+});
+
+document.addEventListener('fullscreenchange', () => {
+    ytpFullscreenBtn.textContent = document.fullscreenElement ? '⛶✖' : '⛶';
+});
+
+// ---- Click on video area to toggle play ----
+ytpTvPlayerWrap.addEventListener('click', (e) => {
+    // Ignore clicks on actual control buttons
+    if (e.target.closest('#ytp-tv-controls')) return;
+    ytpTogglePlay();
+});
+
+// ---- Play button ----
+ytpPlayBtn.addEventListener('click', ytpTogglePlay);
+
+// ---- Auto-advance to next video when done ----
+ytpVideo.addEventListener('ended', () => {
+    if (ytpTvIndex < YTP_VIDEOS.length - 1) {
+        ytpNext();
+        // Small delay so the video element has time to swap src
+        setTimeout(() => ytpVideo.play().catch(() => {}), 150);
+    }
+});
+
+// ---- Wire up toggle button ----
+if (ytpTvToggleBtn && !isPhone) {
+    ytpTvToggleBtn.addEventListener('click', () => setYtpTvOpen(!ytpTvIsOpen));
+}
+
+// ---- Wire up nav arrows ----
+if (ytpTvArrowLeft)  ytpTvArrowLeft.addEventListener('click',  ytpPrev);
+if (ytpTvArrowRight) ytpTvArrowRight.addEventListener('click', ytpNext);
+
+// ---- Keyboard navigation while YTP TV is open ----
+document.addEventListener('keydown', e => {
+    if (!ytpTvIsOpen) return;
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); ytpPrev(); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); ytpNext(); }
+    if (e.key === ' ')          { e.preventDefault(); ytpTogglePlay(); }
+    if (e.key === 'Escape')     { setYtpTvOpen(false); }
+});
