@@ -472,6 +472,7 @@ const EXTERNAL_DOCS = [
 { label: '🤪 CD-i WhatsApp Sticker Pack', url: 'https://raw.githubusercontent.com/That1DutchGuy1/Funny-CD-i-Themed-WhatsApp-Sticker-Pack/refs/heads/main/README.md' },
 { label: '🖼️ My Fucking Artwork', url: 'https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/refs/heads/main/README.md' },
 { label: '🔊 Soundbuttons', url: 'https://raw.githubusercontent.com/That1DutchGuy1/That-One-Dutch-Guys-Soundbuttons/refs/heads/main/README.md' },
+{ label: '📼 My YTP Videos', url: 'https://raw.githubusercontent.com/That1DutchGuy1/My-YTP-videos/refs/heads/main/README.md' }
 ];
 
 // =========================================
