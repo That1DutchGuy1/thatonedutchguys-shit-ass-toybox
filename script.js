@@ -1088,6 +1088,11 @@ const MEME_ARTWORKS = [
         url: "./king-harkinians-personal-chef-simulator/assets/backdrops/menu-background.png",
         aspect: "landscape"
     },
+    {
+        title: "2K Hotel Mario Desktop Wallpaper",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/hotel-mario-wallpaper.png",
+        aspect: "landscape"
+    },
 ];
 
 let memeArtIsOpen  = false;

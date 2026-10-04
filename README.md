@@ -96,6 +96,7 @@
 * Meme Mafia Wallpaper (2K)
 * PAL DVD Menu Background
 * King Harkinian's Personal Chef Simulator Main Menu Background
+* 2K Hotel Mario Desktop Wallpaper
 
 ---
 
