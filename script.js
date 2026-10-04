@@ -457,6 +457,28 @@ if (beegToyboxToggleBtn && !isPhone) {
 // =========================================
 // ABOUT / README + WIKI VIEW
 // =========================================
+
+// =========================================
+// EXTERNAL DOCS
+// These are hosted externally on my other GitHub repos, and are loaded dynamically into the About viewer!
+// They'll show up as extra pages after README and Wiki in the About viewer,
+// navigated with the same left/right arrows. Easy peasy! 🎉
+// =========================================
+const EXTERNAL_DOCS = [
+    // 👇 Drop your external Markdown doc URLs here!
+{ label: '📀 DVD-R ISO Hangar', url: 'https://raw.githubusercontent.com/That1DutchGuy1/That-One-Dutch-Guys-DVD-R-ISO-Hangar/refs/heads/main/README.md' },
+{ label: '👑 King Harkinian Desktop Pet', url: 'https://raw.githubusercontent.com/That1DutchGuy1/King-Harkinian-Desktop-Pet/refs/heads/main/README.md' },
+{ label: '🦠 Weegee Virus Prank App', url: 'https://raw.githubusercontent.com/That1DutchGuy1/The-Weegee-Virus-Prank/refs/heads/main/README.md' },
+{ label: '🤪 CD-i WhatsApp Sticker Pack', url: 'https://raw.githubusercontent.com/That1DutchGuy1/Funny-CD-i-Themed-WhatsApp-Sticker-Pack/refs/heads/main/README.md' },
+{ label: '🖼️ My Fucking Artwork', url: 'https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/refs/heads/main/README.md' },
+{ label: '🔊 Soundbuttons', url: 'https://raw.githubusercontent.com/That1DutchGuy1/That-One-Dutch-Guys-Soundbuttons/refs/heads/main/README.md' },
+];
+
+// =========================================
+// DOC SYSTEM — README (index 0) + Wiki (index 1) are hardcoded local files.
+// Any entries in EXTERNAL_DOCS get appended after them as indices 2, 3, 4...
+// The left/right arrows navigate through ALL of them in order.
+// =========================================
 const aboutToggleBtn   = document.getElementById('about-toggle');
 const readmeContentEl  = document.getElementById('readme-content');
 const wikiContentEl    = document.getElementById('wiki-content');
@@ -464,11 +486,25 @@ const docTitleLabel    = document.getElementById('doc-title-label');
 const arrowLeft        = document.getElementById('doc-arrow-left');
 const arrowRight       = document.getElementById('doc-arrow-right');
 
-let aboutIsOpen      = false;
-let readmeHasLoaded  = false;
-let wikiHasLoaded    = false;
-// 'readme' | 'wiki'
-let currentDoc       = 'readme';
+// Build the full doc list: README (0), Wiki (1), then external docs (2+)
+const DOC_LIST = [
+    { id: 'readme', label: '📖 README.md',  local: true  },
+    { id: 'wiki',   label: '📚 Wiki.md',    local: true  },
+    ...EXTERNAL_DOCS.map((d, i) => ({
+        id:    'ext-' + i,
+        label: d.label,
+        url:   d.url,
+        local: false,
+    })),
+];
+
+let aboutIsOpen  = false;
+let currentDocIndex = 0;
+
+// Per-doc load state: null = not loaded, 'loading', 'done', 'error'
+const docLoadState = {};
+// Cache for fetched external markdown HTML (keyed by doc id)
+const docContentCache = {};
 
 function setAboutOpen(open) {
     aboutIsOpen = open;
@@ -483,66 +519,155 @@ function setAboutOpen(open) {
         // Close BEEG TOYBOX if it's open
         if (beegToyboxIsOpen) setBeegToyboxOpen(false);
         // Always land on README when opening About
-        showDoc('readme');
-        if (!readmeHasLoaded) loadReadme();
+        navigateToDoc(0);
     }
 }
 
-function showDoc(doc) {
-    currentDoc = doc;
+function navigateToDoc(index) {
+    if (index < 0 || index >= DOC_LIST.length) return;
+    currentDocIndex = index;
+    const doc = DOC_LIST[index];
 
-    if (doc === 'readme') {
+    // Update title bar
+    if (docTitleLabel) docTitleLabel.textContent = doc.label;
+
+    // Arrow states — dim at the ends
+    if (arrowLeft)  arrowLeft.classList.toggle('arrow-inactive',  index === 0);
+    if (arrowRight) arrowRight.classList.toggle('arrow-inactive', index === DOC_LIST.length - 1);
+
+    // Update arrows' tooltip titles so hovering shows what's next/prev
+    if (arrowLeft)  arrowLeft.title  = index > 0                      ? DOC_LIST[index - 1].label : '';
+    if (arrowRight) arrowRight.title = index < DOC_LIST.length - 1    ? DOC_LIST[index + 1].label : '';
+
+    // Show/hide the right content container and load if needed
+    if (doc.id === 'readme') {
         readmeContentEl.style.display = '';
         wikiContentEl.style.display   = 'none';
-        if (docTitleLabel) docTitleLabel.textContent = '📖 README.md';
-        if (arrowLeft)  arrowLeft.classList.add('arrow-inactive');
-        if (arrowRight) arrowRight.classList.remove('arrow-inactive');
-    } else {
+        hideAllExternalDocEls();
+        if (!docLoadState['readme']) loadLocalDoc('readme');
+    } else if (doc.id === 'wiki') {
         readmeContentEl.style.display = 'none';
         wikiContentEl.style.display   = '';
-        if (docTitleLabel) docTitleLabel.textContent = '📚 Wiki.md';
-        if (arrowLeft)  arrowLeft.classList.remove('arrow-inactive');
-        if (arrowRight) arrowRight.classList.add('arrow-inactive');
-        if (!wikiHasLoaded) loadWiki();
+        hideAllExternalDocEls();
+        if (!docLoadState['wiki']) loadLocalDoc('wiki');
+    } else {
+        // External doc
+        readmeContentEl.style.display = 'none';
+        wikiContentEl.style.display   = 'none';
+        showExternalDoc(doc);
     }
 }
 
-function loadReadme() {
-    fetch('README.md')
+// Hide all dynamically created external doc elements
+function hideAllExternalDocEls() {
+    document.querySelectorAll('.ext-doc-content').forEach(el => el.style.display = 'none');
+}
+
+// ── Local doc loader (README + Wiki stay exactly as before) ──────────────────
+
+function loadLocalDoc(which) {
+    docLoadState[which] = 'loading';
+    const el       = which === 'readme' ? readmeContentEl : wikiContentEl;
+    const filename = which === 'readme' ? 'README.md' : 'Wiki.md';
+
+    fetch(filename)
         .then(res => {
             if (!res.ok) throw new Error('status ' + res.status);
             return res.text();
         })
         .then(markdown => {
-            readmeContentEl.innerHTML = marked.parse(markdown);
-            readmeHasLoaded = true;
+            el.innerHTML = marked.parse(markdown);
+            docLoadState[which] = 'done';
         })
         .catch(err => {
-            readmeContentEl.innerHTML =
-                '<p>Could not load README.md (' + err.message + '). ' +
-                'Make sure README.md sits in the same folder as index.html, ' +
+            el.innerHTML =
+                '<p>Could not load ' + filename + ' (' + err.message + '). ' +
+                'Make sure ' + filename + ' sits in the same folder as index.html, ' +
                 'and that you\'re viewing this over a local/real server rather ' +
                 'than opening the file directly.</p>';
+            docLoadState[which] = 'error';
         });
 }
 
-function loadWiki() {
-    wikiContentEl.innerHTML = '<p class="readme-loading">loading wiki.md ...</p>';
-    fetch('Wiki.md')
+// ── External doc loader ───────────────────────────────────────────────────────
+
+// Rewrites relative URLs in a rendered external doc so that repo-relative
+// image paths (e.g. ./king-pet/King.png or ../assets/foo.png) resolve correctly
+// against the raw.githubusercontent.com base URL of the doc, instead of
+// trying to load from the Toybox domain and 404ing. Also fixes relative
+// anchor hrefs so in-repo links open on GitHub rather than going nowhere.
+function rewriteRelativeUrls(containerEl, docUrl) {
+    // Build a base URL from the doc's raw URL.
+    // e.g. https://raw.githubusercontent.com/User/Repo/refs/heads/main/README.md
+    //   →  https://raw.githubusercontent.com/User/Repo/refs/heads/main/
+    const base = docUrl.substring(0, docUrl.lastIndexOf('/') + 1);
+
+    // For anchor hrefs pointing to other .md files or relative paths,
+    // we'll link to the GitHub HTML view instead of raw so it's readable.
+    // e.g. raw.githubusercontent.com/User/Repo/refs/heads/main/
+    //   →  github.com/User/Repo/blob/main/
+    const githubBase = base
+        .replace('https://raw.githubusercontent.com/', 'https://github.com/')
+        .replace('/refs/heads/', '/blob/');
+
+    // Fix <img src="..."> — load images from raw.githubusercontent.com
+    containerEl.querySelectorAll('img').forEach(img => {
+        const src = img.getAttribute('src');
+        if (src && !src.match(/^(https?:|data:|\/\/)/)) {
+            img.src = new URL(src, base).href;
+        }
+    });
+
+    // Fix <a href="..."> — open relative links on GitHub in a new tab
+    containerEl.querySelectorAll('a').forEach(a => {
+        const href = a.getAttribute('href');
+        if (href && !href.match(/^(https?:|mailto:|#|\/\/)/)) {
+            a.href   = new URL(href, githubBase).href;
+            a.target = '_blank';
+            a.rel    = 'noopener noreferrer';
+        }
+    });
+}
+
+function showExternalDoc(doc) {
+    hideAllExternalDocEls();
+
+    // Get or create a content div for this external doc
+    let el = document.getElementById('ext-doc-' + doc.id);
+    if (!el) {
+        el = document.createElement('div');
+        el.id        = 'ext-doc-' + doc.id;
+        el.className = 'ext-doc-content';
+        // Insert it after wiki-content inside readme-panel
+        const panel = document.getElementById('readme-panel');
+        if (panel) panel.appendChild(el);
+    }
+
+    el.style.display = '';
+
+    // Already loaded — nothing to do!
+    if (docLoadState[doc.id] === 'done' || docLoadState[doc.id] === 'loading') return;
+
+    // Kick off the fetch
+    docLoadState[doc.id] = 'loading';
+    el.innerHTML = '<p class="readme-loading">loading ' + doc.label + ' ...</p>';
+
+    fetch(doc.url)
         .then(res => {
-            if (!res.ok) throw new Error('status ' + res.status);
+            if (!res.ok) throw new Error('HTTP ' + res.status);
             return res.text();
         })
         .then(markdown => {
-            wikiContentEl.innerHTML = marked.parse(markdown);
-            wikiHasLoaded = true;
+            el.innerHTML = marked.parse(markdown);
+            rewriteRelativeUrls(el, doc.url);
+            docLoadState[doc.id] = 'done';
         })
         .catch(err => {
-            wikiContentEl.innerHTML =
-                '<p>Could not load Wiki.md (' + err.message + '). ' +
-                'Make sure Wiki.md sits in the same folder as index.html, ' +
-                'and that you\'re viewing this over a local/real server rather ' +
-                'than opening the file directly.</p>';
+            el.innerHTML =
+                '<p>Could not load <strong>' + doc.label + '</strong> (' + err.message + '). ' +
+                'Make sure the URL is a raw Markdown URL (raw.githubusercontent.com) ' +
+                'and not a regular GitHub page URL.</p>';
+            docLoadState[doc.id] = 'error';
         });
 }
 
@@ -552,13 +677,13 @@ if (aboutToggleBtn && !isPhone) {
 
 if (arrowRight && !isPhone) {
     arrowRight.addEventListener('click', () => {
-        if (currentDoc !== 'wiki') showDoc('wiki');
+        if (currentDocIndex < DOC_LIST.length - 1) navigateToDoc(currentDocIndex + 1);
     });
 }
 
 if (arrowLeft && !isPhone) {
     arrowLeft.addEventListener('click', () => {
-        if (currentDoc !== 'readme') showDoc('readme');
+        if (currentDocIndex > 0) navigateToDoc(currentDocIndex - 1);
     });
 }
 
@@ -819,23 +944,23 @@ function initGamepadNav() {
         }
     }
 
-    // L1 in About context = switch to README (left arrow)
+    // L1 in About context = previous doc (left arrow)
     function docNavLeft() {
         enterGamepadMode();
         if (getContext() !== 'about') return;
-        if (typeof showDoc === 'function' && currentDoc !== 'readme') {
-            showDoc('readme');
-            showToast('📖 README.md');
+        if (currentDocIndex > 0) {
+            navigateToDoc(currentDocIndex - 1);
+            showToast(DOC_LIST[currentDocIndex].label);
         }
     }
 
-    // R1 in About context = switch to Wiki (right arrow)
+    // R1 in About context = next doc (right arrow)
     function docNavRight() {
         enterGamepadMode();
         if (getContext() !== 'about') return;
-        if (typeof showDoc === 'function' && currentDoc !== 'wiki') {
-            showDoc('wiki');
-            showToast('📚 Wiki.md');
+        if (currentDocIndex < DOC_LIST.length - 1) {
+            navigateToDoc(currentDocIndex + 1);
+            showToast(DOC_LIST[currentDocIndex].label);
         }
     }
 

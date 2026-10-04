@@ -20,7 +20,7 @@
 * A ban screen featuring Mario threating you with a shotgun! 🔫
 * A warning splash screen for PC, indicating that braincell loss is guaranteed! 🧠
 * GIANT game cards for each individual game, each with a unique background image inside the card! 🖼️
-* On-site README.md and Wiki.md rendering in the ABOUT tab, using a bundled copy of marked.min.js! ℹ️
+* On-site Markdown document rendering in the ABOUT tab, using a bundled copy of marked.min.js! ℹ️
 * Mini Toybox side panel and a Beeg Toybox seperate panel for exclusive Mini Toyz! 🪀
 * Interactive Mini Toyz memes that move around like fucking maniacs constantly and make noise when clicked! 💥
 * A spinning rainbow conic gradient music toggle button that you wouldn't dare turn off, right? 🥺
@@ -100,13 +100,28 @@
 
 ---
 
-<p><strong><font size="4">🚨 NEW SHIT ASS TOYBOX FEATURE!</font></strong></p>
+<p><strong><font size="4">🚨 NEW SHIT ASS TOYBOX FEATURES!</font></strong></p>
 
 <p><strong><font size="2">🖼️ THE MEME ART GALLERY!</font></strong></p>
 
 * View my fucking meme artwork hosted on my "My Fucking Art" GitHub repository directly on the Shit Ass Toybox! 🎨
 * Too bad if you have a shitty internet connection, cuz they're all BIG MOTHERFUCKING FILES! 🤣
 * Integrated download buttons on all artworks so that you can download my abominations FOR FREE! 🤯
+
+<p><strong><font size="2">📄 REVISED DOCUMENTATION RENDERER!</font></strong></p>
+
+* The thing now fetches the files of my other Markdown documents from my other projects on GitHub! 🤯
+* It also fetches the embedded images from that repo via a clever trick! 😎
+* All of course with custom styling to make it an absolute FEAST to READ! 🤪
+
+**Currently linked documents:**
+
+* DVD-R ISO Hangar README
+* King Harkinian Desktop Pet README
+* Weegee Virus Prank App README
+* CD-i WhatsApp Sticker Pack README
+* My Fucking Artwork README
+* Soundbuttons README
 
 ---
 
