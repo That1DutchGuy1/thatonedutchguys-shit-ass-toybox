@@ -1466,6 +1466,13 @@ ytpVideo.addEventListener('play', () => {
     ytpPlayBtn.textContent = '⏸';
     ytpTvPlayerWrap.classList.remove('is-paused');
     ytpTvPlayerWrap.classList.add('is-playing');
+
+    // Pause the hub music when a video starts playing
+    if (isMusicPlaying && hubTheme) {
+        hubTheme.pause();
+        isMusicPlaying = false;
+        updateMusicToggleBtn();
+    }
 });
 ytpVideo.addEventListener('pause', () => {
     ytpPlayBtn.textContent = '▶';

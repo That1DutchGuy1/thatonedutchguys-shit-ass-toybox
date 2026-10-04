@@ -129,7 +129,8 @@
 
 * You can now watch TWO of my old YTP videos from my inactive YTP channel, plus a brand new one made in Shotcut, directly on-site! 🤯
 * Custom unhinged rainbow controls for the video player! 🌈
-* Each video has a unique thumbnail! 🖼️
+* Each video has a unique fucking thumbnail! 🖼️
+* The music automatically gets paused when you click play! 🔇
 * More videos will be added in the future! 📼
 
 **Currently available YTPs:**
