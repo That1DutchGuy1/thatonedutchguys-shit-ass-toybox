@@ -31,7 +31,7 @@ const CHARACTERS = [
   { name: "Ganon",          img: "assets/Ganon.png",           color: 0x3C0008, lightbarColor: 0x5D100A, voicelines: ['assets/voicelines/ganon-hit.mp3', 'assets/voicelines/ganon-win.mp3', 'assets/voicelines/ganon-lose.mp3'] }, // maroon
   { name: "Michael Rosen",     img: "assets/Michael-Rosen.png",    color: 0x708090, lightbarColor: 0xC0C0C0, voicelines: ['assets/voicelines/michael-rosen-hit.mp3', 'assets/voicelines/michael-rosen-win.mp3', 'assets/voicelines/michael-rosen-lose.mp3'] }, // grey
   { name: "Link",         img: "assets/Link.png",          color: 0x00FF00, lightbarColor: 0x00FF00, voicelines: ['assets/voicelines/link-hit.mp3', 'assets/voicelines/link-win.mp3', 'assets/voicelines/link-lose.mp3'] }, // bright green
-  { name: "Dr. Robotnik" , img: "assets/Dr-Robotnik.png", color: 0xFF0000, lightbarColor: 0xFF0000, voicelines: ['assets/voicelines/dr-robotnik-hit.mp3', 'assets/voicelines/dr-robotnik-win.mp3', 'assets/voicelines/dr-robotnik-lose.mp3'] }, // red
+  { name: "Dr. Robotnik" , img: "assets/Dr-Robotnik.png", color: 0xfc5a03, lightbarColor: 0xff5900, voicelines: ['assets/voicelines/dr-robotnik-hit.mp3', 'assets/voicelines/dr-robotnik-win.mp3', 'assets/voicelines/dr-robotnik-lose.mp3'] }, // red
 ];
 
 // =============================================
