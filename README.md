@@ -60,6 +60,7 @@
 * Meme Mafia (Finished, unless I come up with some big brain additions)
 * Grand Meme Prix 3D (Finished, unless I come up with some big brain additions)
 * I.M. Meen's Book Shredding Simulator (Beta / WIP)
+* Meme Solitaire (Beta / WIP)
 
 ---
 
@@ -98,6 +99,15 @@
 * PAL DVD Menu Background
 * King Harkinian's Personal Chef Simulator Main Menu Background
 * 2K Hotel Mario Desktop Wallpaper
+
+---
+
+<p><strong><font size="4">🚨 NEW BETA GAME!</font></strong></p>
+
+<p><strong><font size="2">🃏 MEME SOLITAIRE!</font></strong></p>
+
+* Just boring old Solitaire, but with meme cards instead! ♠️
+* Isn't really functioning well currently unlike the other Betas, but I don't give a fuck! 🙃
 
 ---
 

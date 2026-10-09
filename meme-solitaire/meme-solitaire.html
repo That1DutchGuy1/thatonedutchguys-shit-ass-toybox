@@ -1,0 +1,109 @@
+<html lang="en">
+<head>
+  <script src="../device-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Mah boi, this game of Solitaire is what all true memers strive for!">
+  <title>Meme Solitaire</title>
+  <link rel="stylesheet" href="meme-solitaire.css">
+  <link rel="icon" href="meme-solitaire.ico" type="image/x-icon">
+</head>
+<body>
+
+<!-- ════════════════════════════════ START MENU ════════════════════════════════ -->
+<div id="start-menu">
+  <div class="menu-scanlines"></div>
+
+  <div class="menu-title-wrap">
+    <div class="menu-title">MEME SOLITAIRE</div>
+    <div class="menu-subtitle">Mah boi, this game of Solitaire is what all true memers strive for!</div>
+  </div>
+
+  <div class="menu-meme-strip">
+    <span class="menu-meme-icon">🐸</span>
+    <span class="menu-meme-icon">😂</span>
+    <span class="menu-meme-icon">🌚</span>
+    <span class="menu-meme-icon">🃏</span>
+    <span class="menu-meme-icon">👁️</span>
+  </div>
+  
+  <div class="menu-buttons">
+    <button class="menu-btn menu-btn-start" onclick="startGame()">▶ START GAME</button>
+    <button class="menu-btn menu-btn-how"   onclick="showHowToPlay()">📖 HOW TO PLAY</button>
+  </div>
+
+  <div class="menu-credits">
+    <p>🎴 VS A CPU OPPONENT • KLONDIKE SOLITAIRE • MEME EDITION 🎴</p>
+    <p style="margin-top:4px;">A WIP — IMAGE &amp; AUDIO ASSETS COMING SOON™</p>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ HOW TO PLAY ═══════════════════════════════ -->
+<div id="how-to-play">
+  <div class="how-to-box">
+    <h2>📖 HOW TO PLAY (LORE DROP)</h2>
+
+    <h3>🎯 THE GOAL</h3>
+    <p>Move ALL 52 cards to the 4 Foundation piles (♠ ♥ ♦ ♣), each built from Ace up to King in the same suit. <strong>First player to complete their foundations WINS.</strong></p>
+
+    <h3>🃏 YOUR BOARD</h3>
+    <ul>
+      <li><strong>Tableau:</strong> 7 columns of cards. Move cards in <em>descending rank, alternating color</em> (e.g. red 7 on black 8).</li>
+      <li><strong>Stock (deck):</strong> Click it to draw a card to the Waste pile.</li>
+      <li><strong>Waste pile:</strong> Top card is playable. Click it to select.</li>
+      <li><strong>Foundations:</strong> Build Ace → King per suit. Click a selected card then click a foundation to move it there.</li>
+      <li><strong>Empty columns:</strong> Only Kings can go here.</li>
+      <li><strong>Face-down cards:</strong> Click the top face-down card to flip it.</li>
+    </ul>
+
+    <h3>🖱️ CONTROLS</h3>
+    <ul>
+      <li>Click a face-up card to <strong>select</strong> it (glows yellow).</li>
+      <li>Click a tableau column to <strong>place</strong> your selection there (if legal).</li>
+      <li>Click a foundation slot to <strong>send</strong> your selected card there.</li>
+      <li>Click the <strong>Stock</strong> to draw. When empty, it cycles the Waste back.</li>
+      <li>Click <strong>END TURN</strong> to hand control to the CPU.</li>
+    </ul>
+
+    <h3>💻 CPU OPPONENT</h3>
+    <p>The CPU plays on its own board simultaneously. It takes 1–3 moves per turn, has a 18% blunder chance, and occasionally skips foundation plays — so it's beatable! When you click END TURN, the CPU does its thing, then it's your turn again.</p>
+
+    <h3>🏆 SCORING</h3>
+    <ul>
+      <li>+10 pts — Card moved to Foundation</li>
+      <li>+5 pts — Card flipped face-up</li>
+      <li>+5 pts — Waste card moved to Tableau</li>
+      <li>Time bonus on win: 700,000 ÷ seconds elapsed</li>
+    </ul>
+
+    <button class="close-btn" onclick="hideHowToPlay()">CLOSE ✕</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ GAME AREA ═════════════════════════════════ -->
+<div id="game-container">
+  <!-- Built dynamically by JS buildGameDOM() -->
+</div>
+
+<!-- ════════════════════════════════ END SCREEN ════════════════════════════════ -->
+<div id="end-screen">
+  <div class="end-meme" id="end-meme">🏆</div>
+  <div class="end-title win" id="end-title">YOU WIN!</div>
+  <div class="end-subtitle" id="end-subtitle">GG EZ LMAO</div>
+  <div class="end-scores">
+    <div class="end-score-block">
+      <div class="end-score-label">YOUR SCORE</div>
+      <div class="end-score-val p" id="end-player-score">0</div>
+    </div>
+    <div class="end-score-block">
+      <div class="end-score-label">CPU SCORE</div>
+      <div class="end-score-val c" id="end-cpu-score">0</div>
+    </div>
+  </div>
+  <button class="end-btn" onclick="startGame()">PLAY AGAIN? 🔄</button>
+  <button class="end-btn" style="background:#ff00cc;box-shadow:4px 4px 0 #000,0 0 20px #ff00cc;margin-top:0;" onclick="goToMenu()">MAIN MENU 🏠</button>
+</div>
+
+<script src="meme-solitaire.js"></script>
+</body>
+</html>
