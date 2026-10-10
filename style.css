@@ -917,6 +917,7 @@ h1, .game-card h3 {
   top: 90px;
   right: 20px;
   z-index: 1002;
+  cursor: pointer;
 }
 
 /* =========================================
@@ -927,6 +928,7 @@ h1, .game-card h3 {
   top: 160px;
   right: 20px;
   z-index: 1002;
+  cursor: pointer;
 }
 
 /* =========================================
@@ -1579,6 +1581,7 @@ body.about-active .game-container {
   top: 230px;
   right: 20px;
   z-index: 1002;
+  cursor: pointer;
 }
 
 /* =========================================

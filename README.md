@@ -134,6 +134,8 @@
 * My Fucking Artwork README
 * Soundbuttons README
 * My YTP Videos README
+* GTA 5 YTP T-shirts For Franklin README
+* Harkinitux Desktop Companion README
 
 <p><strong><font size="2">📺️ YTP TV PANEL!</font></strong></p>
 

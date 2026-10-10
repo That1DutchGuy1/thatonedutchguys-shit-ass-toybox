@@ -468,7 +468,9 @@ const EXTERNAL_DOCS = [
     // 👇 Drop your external Markdown doc URLs here!
 { label: '📀 DVD-R ISO Hangar', url: 'https://raw.githubusercontent.com/That1DutchGuy1/That-One-Dutch-Guys-DVD-R-ISO-Hangar/refs/heads/main/README.md' },
 { label: '👑 King Harkinian Desktop Pet', url: 'https://raw.githubusercontent.com/That1DutchGuy1/King-Harkinian-Desktop-Pet/refs/heads/main/README.md' },
+{ label: '🐧 Harkinitux Desktop Companion', url: 'https://raw.githubusercontent.com/That1DutchGuy1/Harkinitux-Desktop-Companion/refs/heads/main/README.md' },
 { label: '🦠 Weegee Virus Prank App', url: 'https://raw.githubusercontent.com/That1DutchGuy1/The-Weegee-Virus-Prank/refs/heads/main/README.md' },
+{ label: '👕 GTA 5 YTP T-shirts', url: 'https://raw.githubusercontent.com/That1DutchGuy1/Gta-5-YTP-themed-t-shirts-for-Franklin/refs/heads/main/README.md' },
 { label: '🤪 CD-i WhatsApp Sticker Pack', url: 'https://raw.githubusercontent.com/That1DutchGuy1/Funny-CD-i-Themed-WhatsApp-Sticker-Pack/refs/heads/main/README.md' },
 { label: '🖼️ My Fucking Artwork', url: 'https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/refs/heads/main/README.md' },
 { label: '🔊 Soundbuttons', url: 'https://raw.githubusercontent.com/That1DutchGuy1/That-One-Dutch-Guys-Soundbuttons/refs/heads/main/README.md' },
