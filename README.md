@@ -127,15 +127,17 @@
 
 **Currently linked documents:**
 
+* Profile README
 * DVD-R ISO Hangar README
 * King Harkinian Desktop Pet README
 * Weegee Virus Prank App README
+* Harkinitux Desktop Companion README
 * CD-i WhatsApp Sticker Pack README
 * My Fucking Artwork README
 * Soundbuttons README
 * My YTP Videos README
 * GTA 5 YTP T-shirts For Franklin README
-* Harkinitux Desktop Companion README
+* Funny Error Messages for Linux Mint 22 README
 
 <p><strong><font size="2">📺️ YTP TV PANEL!</font></strong></p>
 
