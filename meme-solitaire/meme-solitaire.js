@@ -4,6 +4,29 @@
 
 'use strict';
 
+// ─── AUDIO ─────────────────────────────────────────────────────────────────────
+const bgMusic  = new Audio('./background-music.mp3');
+bgMusic.loop   = true;
+bgMusic.volume = 0.5;
+
+const sfxError = new Audio('../weegee-town-xp/XP-Error.wav');
+sfxError.volume = 0.7;
+
+function playBgMusic() {
+  bgMusic.currentTime = 0;
+  bgMusic.play().catch(() => {}); // silently ignore autoplay blocks
+}
+
+function stopBgMusic() {
+  bgMusic.pause();
+  bgMusic.currentTime = 0;
+}
+
+function playErrorSfx() {
+  sfxError.currentTime = 0;
+  sfxError.play().catch(() => {});
+}
+
 // ─── MEME CONFIG ──────────────────────────────────────────────────────────────
 const MEMES = {
   suits: {
@@ -17,7 +40,7 @@ const MEMES = {
   queenImg: '../king-harkinians-personal-chef-simulator/assets/sprites/Zelda-CD-i.png',
   jackImg:  '../king-harkinians-personal-chef-simulator/assets/sprites/Gwonam-CD-i.png',
   aceImg:   '../rick-roll-2d/Trollface.png',
-  cpuNames: ['DOGE CPU', 'TROLLFACE BOT', 'OVER 9000 AI', 'SHREK-3000'],
+  cpuNames: ['DOGE CPU', 'TROLLFACE BOT', 'OVER 9000 AI', 'SHREK-3000', 'DINNER BOT', 'MAMA LUIGI CPU', 'MORSHU AI'],
   winPhrases: [
     'GG EZ LMAO',
     'U MAD BRO?',
@@ -36,16 +59,16 @@ const MEMES = {
   ],
   cpuStatusPhrases: [
     '💻 CRUNCHING MEMES...',
-    '🤔 BIG BRAIN TIME...',
+    '🧠 BIG BRAIN TIME...',
     '📊 OVER 9000 CALCULATIONS...',
     '🔄 BUFFERING...',
-    '💾 LOADING TROLLFACE.EXE...',
+    '💾 LOADING TROLLFACE.SH...',
   ],
   statusPhrases: {
-    gameStart:  '🎮 PRESS F TO PAY RESPECTS — GAME ON!',
+    gameStart:  '🍞 ALL TOASTERS TOAST TOAST!',
     playerTurn: '👤 YOUR TURN — DO A BARREL ROLL!',
-    cpuTurn:    '💻 CPU IS THINKING... THIS IS FINE 🔥',
-    cardMoved:  ['📦 NICE MOVE!', '👌 OK!', '💯 100%!', '🔥 HOT!'],
+    cpuTurn:    '💻 CPU IS THINKING... ',
+    cardMoved:  ['📦 NICE MOVE!', '👌 OK!', '💯 100%!', '🔥 SEXY AF!'],
     stockDraw:  ['🃏 DREW A CARD!', '🎴 YOINK!', '🔄 CYCLES!'],
     noMoves:    '😱 NO MOVES! DRAWING FROM STOCK...',
     stockEmpty: '💀 STOCK IS EMPTY! FLIPPING WASTE...',
@@ -405,7 +428,7 @@ function playerDrawStock() {
       return;
     }
     // Flip waste back to stock
-    G.playerStock = G.playerWaste.reverse().map(c => ({ ...c, faceUp: false }));
+    G.playerStock = [...G.playerWaste].reverse().map(c => ({ ...c, faceUp: false }));
     G.playerWaste = [];
     G.stockPasses++;
     setStatus(MEMES.statusPhrases.stockEmpty);
@@ -443,7 +466,7 @@ function playerClickTableau(pileIdx, cardIdx) {
     if (cardIdx === pile.length - 1) {
       card.faceUp = true;
       G.playerScore += SCORE.FLIP_CARD;
-      scorePopup(`+${SCORE.FLIP_CARD}`, 200, 200);
+      scorePopup(`+${SCORE.FLIP_CARD}`, window.innerWidth * 0.75, 200);
       renderAll();
       checkGameOverCondition();
     }
@@ -476,7 +499,7 @@ function playerClickFoundation(foundIdx) {
 
   if (!G.selected) return;
   const selCards = getSelectedCards();
-  if (selCards.length !== 1) { setStatus('😅 CAN ONLY MOVE ONE CARD TO FOUNDATION!'); return; }
+  if (selCards.length !== 1) { playErrorSfx(); setStatus('😅 CAN ONLY MOVE ONE CARD TO FOUNDATION!'); return; }
 
   const card = selCards[0];
   if (canStackFound(card, G.playerFound[foundIdx])) {
@@ -484,12 +507,13 @@ function playerClickFoundation(foundIdx) {
     removeSelected();
     G.playerFound[foundIdx].push(card);
     G.playerScore += SCORE.FOUNDATION;
-    scorePopup(`+${SCORE.FOUNDATION} 🔥`, window.innerWidth * 0.5, window.innerHeight * 0.4, '#4ff508');
+    scorePopup(`+${SCORE.FOUNDATION} 🔥`, window.innerWidth * 0.75, window.innerHeight * 0.4, '#4ff508');
     setStatus(`${MEMES.suits[card.suit].emoji} ${card.rank}${card.suit} → FOUNDATION! +${SCORE.FOUNDATION}`);
     G.selected = null;
     renderAll();
     checkWinCondition();
   } else {
+    playErrorSfx();
     setStatus(rnd(MEMES.statusPhrases.cantPlace));
   }
 }
@@ -503,12 +527,19 @@ function getSelectedCards() {
 
 function moveSelectedToTableau(targetPileIdx) {
   const selCards = getSelectedCards();
-  removeSelected();
-  G.playerTab[targetPileIdx].push(...selCards);
-
   const wasFromWaste = G.selected && G.selected.source === 'waste';
-  G.playerScore += wasFromWaste ? SCORE.WASTE_TO_TAB : SCORE.FLIP_CARD;
-  scorePopup(`+${SCORE.WASTE_TO_TAB}`, 300, 250);
+  const scoreBefore = G.playerScore;
+  removeSelected(); // may add SCORE.FLIP_CARD if a face-down card is revealed
+  G.playerTab[targetPileIdx].push(...selCards);
+  // Waste→tableau earns WASTE_TO_TAB; pure tableau→tableau earns nothing extra
+  // (the flip bonus inside removeSelected already covers the reveal case)
+  if (wasFromWaste) {
+    G.playerScore += SCORE.WASTE_TO_TAB;
+    scorePopup(`+${SCORE.WASTE_TO_TAB}`, window.innerWidth * 0.75, 250);
+  } else if (G.playerScore > scoreBefore) {
+    // A face-down card was flipped — show that popup
+    scorePopup(`+${SCORE.FLIP_CARD}`, window.innerWidth * 0.75, 250);
+  }
   setStatus(rnd(MEMES.statusPhrases.cardMoved));
   G.selected = null;
   renderAll();
@@ -545,6 +576,7 @@ function endGame(winner) {
   if (G.gameOver) return;
   G.gameOver = true;
   stopTimer();
+  stopBgMusic();
 
   const isPlayerWin = winner === 'player';
   const screen = document.getElementById('end-screen');
@@ -620,9 +652,9 @@ function cpuGetMoves() {
         if (canStackTab(card, toTop)) {
           // Prioritize moves that flip hidden cards
           const willFlip = ci > 0 && !fromPile[ci - 1].faceUp;
-          // Don't move kings to empty piles unless it reveals something
-          const emptyPileKing = (toTop === null && card.rank === 'K' && ci === 0);
-          if (emptyPileKing) continue; // useless king move
+          // Don't move kings to empty piles unless it reveals a face-down card
+          const emptyPileKing = (toTop === null && card.rank === 'K' && (ci === 0 || fromPile[ci - 1].faceUp));
+          if (emptyPileKing) continue; // useless king move — nothing to uncover
           moves.push({
             type: 'tab-tab',
             fromPi, ci, toPi,
@@ -721,7 +753,7 @@ function cpuApplyMove(move) {
     case 'draw': {
       if (G.cpuStock.length === 0) {
         if (G.cpuWaste.length === 0) return false;
-        G.cpuStock = G.cpuWaste.reverse().map(c => ({ ...c, faceUp: false }));
+        G.cpuStock = [...G.cpuWaste].reverse().map(c => ({ ...c, faceUp: false }));
         G.cpuWaste = [];
         G.cpuStockPasses++;
         setStatus(`💻 ${G.cpuName}: CYCLING STOCK...`);
@@ -737,9 +769,20 @@ function cpuApplyMove(move) {
   return false;
 }
 
-let cpuMoveCount = 0;
-let cpuDrawsThisTurn = 0;
-let cpuStuckCount = 0;
+function cpuWasteTopIsPlayable() {
+  if (G.cpuWaste.length === 0) return false;
+  const c = G.cpuWaste[G.cpuWaste.length - 1];
+  // Playable if it goes to a foundation...
+  for (let fi = 0; fi < 4; fi++) {
+    if (canStackFound(c, G.cpuFound[fi])) return true;
+  }
+  // ...or to any tableau column
+  for (let pi = 0; pi < 7; pi++) {
+    const toTop = G.cpuTab[pi][G.cpuTab[pi].length - 1] || null;
+    if (canStackTab(c, toTop)) return true;
+  }
+  return false;
+}
 
 function runCpuTurn() {
   if (G.gameOver) return;
@@ -747,12 +790,30 @@ function runCpuTurn() {
   G.turn = 'cpu';
 
   const numMoves = CPU.TURN_MIN_MOVES + Math.floor(Math.random() * (CPU.TURN_MAX_MOVES - CPU.TURN_MIN_MOVES + 1));
-  cpuMoveCount = 0;
-  cpuDrawsThisTurn = 0;
-  cpuStuckCount = 0;
+  // Keep counters as closure locals so re-entrant calls can't stomp them
+  let cpuMoveCount = 0;
+  let cpuDrawsThisTurn = 0;
+  let cpuStuckCount = 0;
 
   document.getElementById('cpu-thinking').classList.add('active');
-  setStatus(rnd(MEMES.statusPhrases.cpuStatusPhrases));
+  setStatus(rnd(MEMES.cpuStatusPhrases));
+
+  // Draw phase: draw exactly ONE card from stock at the start of the turn,
+  // just like a real player would. No peeking ahead — the CPU draws blind
+  // and then works with whatever lands on the waste pile.
+  function doDrawPhase(onDone) {
+    if (G.gameOver) { onDone(); return; }
+    // Only draw if stock (or waste to cycle) is available and we haven't drawn yet
+    if (cpuDrawsThisTurn === 0 && (G.cpuStock.length > 0 || G.cpuWaste.length > 0)) {
+      cpuApplyMove({ type: 'draw' });
+      cpuDrawsThisTurn++;
+      renderAll();
+      const delay = CPU.MOVE_DELAY_MIN * 0.5 + Math.random() * 400;
+      setTimeout(onDone, delay);
+    } else {
+      onDone();
+    }
+  }
 
   function doNextMove() {
     if (G.gameOver) {
@@ -768,11 +829,19 @@ function runCpuTurn() {
     const move  = cpuPickMove(moves);
 
     if (!move) {
+      // No move available at all — force a stock draw to break the deadlock
       cpuStuckCount++;
       if (cpuStuckCount > 3) {
         finishCpuTurn();
         return;
       }
+      // Try to draw; if even that fails (empty stock & waste) then give up
+      const drawn = cpuApplyMove({ type: 'draw' });
+      if (!drawn) {
+        finishCpuTurn();
+        return;
+      }
+      cpuDrawsThisTurn++;
     } else {
       const wasDraw = move.type === 'draw';
       if (wasDraw) cpuDrawsThisTurn++;
@@ -793,7 +862,7 @@ function runCpuTurn() {
   }
 
   const firstDelay = 600 + Math.random() * 600;
-  setTimeout(doNextMove, firstDelay);
+  setTimeout(() => doDrawPhase(doNextMove), firstDelay);
 }
 
 function finishCpuTurn() {
@@ -823,8 +892,8 @@ function buildGameDOM() {
   gc.innerHTML = `
     <div id="hud">
       <div class="hud-score-block">
-        <div class="hud-label">YOUR SCORE</div>
-        <div class="hud-value player-score" id="hud-player-score">0</div>
+        <div class="hud-label" id="hud-cpu-name">CPU</div>
+        <div class="hud-value cpu-score" id="hud-cpu-score">0</div>
       </div>
       <div>
         <div id="hud-title">🎮 MEME SOLITAIRE 🎮</div>
@@ -834,13 +903,13 @@ function buildGameDOM() {
           <button class="hud-btn" onclick="goToMenu()">MENU 🏠</button>
         </div>
       </div>
-      <div class="hud-score-block" style="text-align:right;">
-        <div class="hud-label" id="hud-cpu-name">CPU</div>
-        <div class="hud-value cpu-score" id="hud-cpu-score">0</div>
-      </div>
       <div class="hud-score-block" style="text-align:center;">
         <div class="hud-label">TIME</div>
         <div class="hud-value timer-val" id="hud-timer">00:00</div>
+      </div>
+      <div class="hud-score-block" style="text-align:right;">
+        <div class="hud-label">YOUR SCORE</div>
+        <div class="hud-value player-score" id="hud-player-score">0</div>
       </div>
     </div>
     <div id="status-bar">🎮 WELCOME TO MEME SOLITAIRE — GLHF!</div>
@@ -909,6 +978,7 @@ function setupTableauClicks() {
           if (selCards[0] && selCards[0].rank === 'K') {
             moveSelectedToTableau(pi);
           } else {
+            playErrorSfx();
             setStatus('👑 ONLY KINGS CAN GO IN EMPTY COLUMNS!');
           }
         }
@@ -966,12 +1036,14 @@ function startGame() {
   setupTableauClicks();
   renderAll();
   startTimer();
+  playBgMusic();
 
   setStatus(MEMES.statusPhrases.gameStart);
 }
 
 function goToMenu() {
   stopTimer();
+  stopBgMusic();
   G = null;
   document.getElementById('game-container').classList.remove('active');
   document.getElementById('end-screen').classList.remove('active');

@@ -102,15 +102,6 @@
 
 ---
 
-<p><strong><font size="4">🚨 NEW BETA GAME!</font></strong></p>
-
-<p><strong><font size="2">🃏 MEME SOLITAIRE!</font></strong></p>
-
-* Just boring old Solitaire, but with meme cards instead! ♠️
-* Isn't really functioning well currently unlike the other Betas, but I don't give a fuck! 🙃
-
----
-
 <p><strong><font size="4">🚨 NEW SHIT ASS TOYBOX FEATURES!</font></strong></p>
 
 <p><strong><font size="2">🖼️ THE MEME ART GALLERY!</font></strong></p>
@@ -155,15 +146,14 @@
 
 ---
 
-<p><strong><font size="4">🚨 NEW BETA GAME!</font></strong></p>
+<p><strong><font size="4">🚨 FULL RELEASE!</font></strong></p>
 
-<p><strong><font size="2">I.M. Meen's Book Shredding Simulator public Beta has arrived!</font></strong></p>
+<p><strong><font size="2">🃏 MEME SOLITAIRE!</font></strong></p>
 
-* Help Ignatius Mortimer Meen destroy a bunch of books, including the Bible, in his brand new hyper modern industrial shredder! 📔
-* Click the fucking button to shred those goodie-goodie books! 😈
-* Earn € for shredding books and buy upgrades! 💶
-* Buy upgrades to earn more money, upgrade the shredder, or increase the book capacity of it! 🔺
-* Click till you die of old age! OR ELSE! 🔫
+* Just boring old Solitaire, but with meme cards instead! ♠️
+* The old Beta was trash, but now it fucking works properly! ♦️
+* Fixed the CPU so that the lil bastard plays by the rules! ♣️
+* Added music and sound effects to the game! ♥️
 
 ---
 

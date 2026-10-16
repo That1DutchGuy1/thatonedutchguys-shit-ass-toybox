@@ -5,12 +5,20 @@
   font-style: normal;
 }
 
-/* ===================== ORIGINAL STYLES (preserved) ===================== */
-body {
+/* ===================== ORIGINAL STYLES ===================== */
+html, body {
   font-family: 'ComicSans', cursive, sans-serif;
   background-color: #4ff508;
   margin: 0;
   padding: 0;
+    /* Hiding the scrollbar */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* Chrome, Safari and Opera */
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none;
 }
 
 h1 {
@@ -43,6 +51,29 @@ p.description {
   --cpu-color: #ff4444;
   --player-color: #00ccff;
 }
+
+/* ===================== HUB BUTTON ===================== */
+#hub-btn {
+  background-color: rgb(255, 187, 0);
+  top: 20px;
+  left: 20px;
+  position: absolute;
+  bottom: auto;
+  right: auto;
+  transform: none;
+  padding: 16px 32px;
+  font-family: 'Comic Sans MS', sans-serif;
+  font-size: 24px;
+  border: 3px solid black;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 10;
+  display: inline-block;
+  color: #000;
+  text-decoration: none;
+  font-weight: bold;
+}
+#hub-btn:hover { filter: brightness(1.1); transform: scale(1.04); }
 
 /* ===================== START MENU ===================== */
 #start-menu {
@@ -114,13 +145,17 @@ p.description {
   display: flex;
   gap: 16px;
   margin-bottom: 40px;
-  font-size: 48px;
+  align-items: flex-end;
   filter: drop-shadow(0 0 8px rgba(255,255,255,0.5));
 }
 
 .menu-meme-icon {
   animation: iconBounce 1s ease-in-out infinite;
   display: inline-block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  image-rendering: pixelated;
 }
 .menu-meme-icon:nth-child(2) { animation-delay: 0.15s; }
 .menu-meme-icon:nth-child(3) { animation-delay: 0.3s; }
@@ -208,6 +243,14 @@ p.description {
   color: #fff;
   max-height: 80vh;
   overflow-y: auto;
+      /* Hiding the scrollbar */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* Chrome, Safari and Opera */
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none;
 }
 
 .how-to-box h2 {
