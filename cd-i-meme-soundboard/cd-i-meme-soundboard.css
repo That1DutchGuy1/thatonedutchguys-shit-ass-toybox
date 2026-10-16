@@ -5,7 +5,7 @@
   font-style: normal;
 }
 
-body {
+html, body {
     background: repeating-conic-gradient(#f1c40f 0% 25%, #8CC63F 0% 50%) 50% / 40px 40px;
     min-height: 100%;
     margin: 0;
@@ -15,6 +15,14 @@ body {
     padding: 80px 20px;
     font-family: 'Comic Sans MS', sans-serif;
     font-weight: bold;
+        /* Hiding the scrollbar */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* Chrome, Safari and Opera */
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+  display: none;
 }
 
 h1 {
