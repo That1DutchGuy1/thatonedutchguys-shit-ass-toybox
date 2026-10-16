@@ -8,9 +8,9 @@
 
 <p><strong><font size="6">WELCOME TO MY SHIT ASS TOYBOX!</font></strong></p>
 
-<p><strong><font size="4">☢️ FEATURES</font></strong></p>
+<p><strong><font size="5">☢️ FEATURES</font></strong></p>
 
-<p><strong><font size="4">GUI 🎨</font></strong></p>
+<p><strong><font size="5">GUI 🎨</font></strong></p>
 
 * Spinning rainbow conic gradients! 🌀
 * Constantly shifting rainbow gradient background! 🌈
@@ -29,7 +29,7 @@
 
 ---
 
-<p><strong><font size="4">LOGIC 🧠</font></strong></p>
+<p><strong><font size="5">LOGIC 🧠</font></strong></p>
 
 * A banning system for phones, tablets, and even smart kitchen appliances! HA! SUCKERS! 🤣
 * A device-guard.js file that kicks the touchscreen fuckers out of the games if they try to enter via entering the URL! 📵
@@ -42,7 +42,7 @@
 
 ---
 
-<p><strong><font size="4">🕹️ LIST OF CURRENTLY AVAILABLE MINI-TOYZ AND GAMES</font></strong></p>
+<p><strong><font size="5">🕹️ LIST OF CURRENTLY AVAILABLE MINI-TOYZ AND GAMES</font></strong></p>
 
 **GAMES:**
 
@@ -61,6 +61,7 @@
 * Grand Meme Prix 3D (Finished, unless I come up with some big brain additions)
 * I.M. Meen's Book Shredding Simulator (Beta / WIP)
 * Meme Solitaire (Finished, unless I come up with some big brain additions)
+* King Harkinian Desktop Pet - Browser Version (Finished, until I decide to update the real Python version on Linux)
 
 ---
 
@@ -102,15 +103,15 @@
 
 ---
 
-<p><strong><font size="4">🚨 NEW SHIT ASS TOYBOX FEATURES!</font></strong></p>
+<p><strong><font size="5">🚨 NEW SHIT ASS TOYBOX FEATURES!</font></strong></p>
 
-<p><strong><font size="2">🖼️ THE MEME ART GALLERY!</font></strong></p>
+<p><strong><font size="4">🖼️ THE MEME ART GALLERY!</font></strong></p>
 
 * View my fucking meme artwork hosted on my "My Fucking Art" GitHub repository directly on the Shit Ass Toybox! 🎨
 * Too bad if you have a shitty internet connection, cuz they're all BIG MOTHERFUCKING FILES! 🤣
 * Integrated download buttons on all artworks so that you can download my abominations FOR FREE! 🤯
 
-<p><strong><font size="2">📄 REVISED DOCUMENTATION RENDERER!</font></strong></p>
+<p><strong><font size="4">📄 REVISED DOCUMENTATION RENDERER!</font></strong></p>
 
 * The thing now fetches the files of my other Markdown documents from my other projects on GitHub! 🤯
 * It also fetches the embedded images from that repo via a clever trick! 😎
@@ -130,7 +131,7 @@
 * GTA 5 YTP T-shirts For Franklin README
 * Funny Error Messages for Linux Mint 22 README
 
-<p><strong><font size="2">📺️ YTP TV PANEL!</font></strong></p>
+<p><strong><font size="4">📺️ YTP TV PANEL!</font></strong></p>
 
 * You can now watch TWO of my old YTP videos from my inactive YTP channel, plus a brand new one made in Shotcut, directly on-site! 🤯
 * Custom unhinged rainbow controls for the video player! 🌈
@@ -146,9 +147,21 @@
 
 ---
 
-<p><strong><font size="4">🚨 FULL RELEASE!</font></strong></p>
+<p><strong><font size="5">🚨 NEW GAME ADDED TO THE SHIT ASS TOYBOX!</font></strong></p>
 
-<p><strong><font size="2">🃏 MEME SOLITAIRE!</font></strong></p>
+<p><strong><font size="4">👑 KING HARKINIAN DESKTOP PET!</font></strong></p>
+
+For the fuckers who don't know, I made a Python-based desktop pet of King Harkinian for Linux Mint 22 Cinnamon X11! 🐍 <br>
+Well, NOW EVERYONE can join in on the fun because I made a BROWSER VERSION! 🤯 <br>
+The Python code has been translated to vanilla HTML, CSS, and JavaScript, and it's pretty much nearly identical to the OG! 😎 <br>
+Comes with a mockup of a Windows XP desktop where you can let King Harkinian roam around, eat food from the Dinner Machine, and take dumps on the Bliss hills! 🪟 <br>
+Clean his shit up after him with Sponge Mode, or just outright hit the fucker in Hit Mode and watch him bounce around the viewport with actual physics! 💥
+
+---
+
+<p><strong><font size="5">🚨 FULL RELEASE!</font></strong></p>
+
+<p><strong><font size="4">🃏 MEME SOLITAIRE!</font></strong></p>
 
 * Just boring old Solitaire, but with meme cards instead! ♠️
 * The old Beta was trash, but now it fucking works properly! ♦️
@@ -157,13 +170,13 @@
 
 ---
 
-<p><strong><font size="4">🚨 THE GRAND MEME PRIX UPDATE!</font></strong></p>
+<p><strong><font size="5">🚨 THE GRAND MEME PRIX UPDATE!</font></strong></p>
 
-<p><strong><font size="2">Grand Meme Prix 3D got a small lil update!</font></strong></p>
+<p><strong><font size="4">Grand Meme Prix 3D got a small lil update!</font></strong></p>
 
 * CD-i Ganon has been added as a new driver! He will make your face the greatest in Koridai if you win as him! 🐷
 * Michael Rosen has been added as a new driver! He loves hot food just as much as winning! 🇬🇧
-* CD-i Link has been added as a new driver! He will let you know when it's boring around here! ⚔️
+* CD-i Link has been added as a new driver! He will let you know when it's boring around here! 🛡️
 * Unique voice lines for Ganon, Michael Rosen, and Link of course! 🎙️
 * Local multiplayer co-op mode can now fucking feature up to two CPU drivers to spice up the race with your friend... that is if you actually have any friends! 🙃
 * An actual fucking grass texture on the grass is now in the game! 🌱
@@ -173,9 +186,9 @@
 
 ---
 
-<p><strong><font size="4">🚨 WEEGEE'S MANSION 3D UPDATE!</font></strong></p>
+<p><strong><font size="5">🚨 WEEGEE'S MANSION 3D UPDATE!</font></strong></p>
 
-<p><strong><font size="2">Weegee's Mansion 3D got another fucking update!</font></strong></p>
+<p><strong><font size="4">Weegee's Mansion 3D got another fucking update!</font></strong></p>
 
 * Added a fucking settings menu! ⚙️
 * The settings menu had audio sliders for any of you pussies who are scared of the audio! 🔊
@@ -185,15 +198,15 @@
 
 ---
 
-<p><strong><font size="4">☢️ SMALL HUB UPDATE!</font></strong></p>
+<p><strong><font size="5">☢️ SMALL HUB UPDATE!</font></strong></p>
 
 * The big ass gamecards now get shuffled around randomly every time you enter the chaos lol! 🔀
 
 ---
 
-<p><strong><font size="4">📀 THE DVD-R ISO HANGAR!</font></strong></p>
+<p><strong><font size="5">📀 THE DVD-R ISO HANGAR!</font></strong></p>
 
-<p><strong><font size="2">AYO! I made a sideproject that's gonna host ISO files for burning onto DVD-R discs! 🤯</font></strong></p>
+<p><strong><font size="4">AYO! I made a sideproject that's gonna host ISO files for burning onto DVD-R discs! 🤯</font></strong></p>
 
 * It's still in development, but eventually you'll be able to SQUADALA some DVD ISO files from it! 😂
 * It's mainly a preservation project for old YTP! 😎

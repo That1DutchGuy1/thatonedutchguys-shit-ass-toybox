@@ -438,9 +438,10 @@ function setBeegToyboxOpen(open) {
         btn.textContent = open ? '🎮 SHIT ASS TOYBOX' : '🧸 BEEG TOYBOX';
     }
 
-    // Close About and Meme Art views if open
+    // Close other panels if open
     if (open && aboutIsOpen) setAboutOpen(false);
     if (open && memeArtIsOpen) setMemeArtOpen(false);
+    if (open && ytpTvIsOpen) setYtpTvOpen(false);
 
     // Build the toybox contents on first open (lazy)
     if (open && !beegToyboxBuilt) {
@@ -523,6 +524,8 @@ function setAboutOpen(open) {
     if (open) {
         // Close BEEG TOYBOX if it's open
         if (beegToyboxIsOpen) setBeegToyboxOpen(false);
+        if (memeArtIsOpen) setMemeArtOpen(false);
+        if (ytpTvIsOpen) setYtpTvOpen(false);
         // Always land on README when opening About
         navigateToDoc(0);
     }
@@ -832,6 +835,8 @@ function initGamepadNav() {
         if (document.body.classList.contains('splash-active'))       return 'splash';
         if (document.body.classList.contains('about-active'))        return 'about';
         if (document.body.classList.contains('beeg-toybox-active'))  return 'beeg';
+        if (document.body.classList.contains('meme-art-active'))     return 'meme-art';
+        if (document.body.classList.contains('ytp-tv-active'))       return 'ytp-tv';
         return 'hub';
     }
 
@@ -840,6 +845,8 @@ function initGamepadNav() {
         const about = document.getElementById('about-toggle');
         const music = document.getElementById('music-toggle');
         const beeg  = document.getElementById('beeg-toybox-toggle');
+        const memeArt = document.getElementById('meme-art-toggle');
+        const ytpTv = document.getElementById('ytp-tv-toggle');
 
         if (ctx === 'splash') {
             return [document.getElementById('splash-enter'), document.getElementById('splash-leave')]
@@ -853,9 +860,34 @@ function initGamepadNav() {
             document.querySelectorAll('#beeg-toys-container .toy-btn').forEach(el => els.push(el));
             return els;
         }
+        if (ctx === 'meme-art') {
+            return [
+                memeArt,
+                music,
+                document.getElementById('meme-art-arrow-left'),
+                document.getElementById('meme-art-download'),
+                document.getElementById('meme-art-arrow-right'),
+            ].filter(Boolean);
+        }
+        if (ctx === 'ytp-tv') {
+            return [
+                ytpTv,
+                music,
+                document.getElementById('ytp-tv-arrow-left'),
+                document.getElementById('ytp-tv-play-btn'),
+                document.getElementById('ytp-tv-restart-btn'),
+                document.getElementById('ytp-tv-scrubber'),
+                document.getElementById('ytp-tv-mute-btn'),
+                document.getElementById('ytp-tv-vol-slider'),
+                document.getElementById('ytp-tv-fullscreen-btn'),
+                document.getElementById('ytp-tv-arrow-right'),
+            ].filter(Boolean);
+        }
         const els = [];
         if (about) els.push(about);
         if (beeg)  els.push(beeg);
+        if (memeArt) els.push(memeArt);
+        if (ytpTv) els.push(ytpTv);
         if (music) els.push(music);
         document.querySelectorAll('.toy-btn').forEach(el => els.push(el));
         document.querySelectorAll('.game-card').forEach(el => els.push(el));
@@ -866,6 +898,8 @@ function initGamepadNav() {
         const ctx = getContext();
         if (ctx === 'about')  return document.getElementById('readme-view');
         if (ctx === 'splash') return document.getElementById('warning-splash');
+        if (ctx === 'meme-art') return document.getElementById('meme-art-view');
+        if (ctx === 'ytp-tv') return document.getElementById('ytp-tv-view');
         return null;
     }
 
@@ -928,6 +962,22 @@ function initGamepadNav() {
         if (best) select(best);
     }
 
+    function adjustSelectedRange(direction) {
+        if (!(selectedEl instanceof HTMLInputElement) || selectedEl.type !== 'range') return false;
+
+        const min = Number(selectedEl.min || 0);
+        const max = Number(selectedEl.max || 100);
+        const step = Number(selectedEl.step);
+        const increment = Number.isFinite(step) && step > 0
+            ? step * Math.max(1, Math.round((max - min) / 100 / step))
+            : Math.max(1, (max - min) / 100);
+        const value = Math.min(max, Math.max(min, Number(selectedEl.value) + direction * increment));
+        selectedEl.value = String(value);
+        selectedEl.dispatchEvent(new Event('input', { bubbles: true }));
+        selectedEl.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+    }
+
     function activateSelection() {
         enterGamepadMode();
         if (!selectedEl) return; // enterGamepadMode → refreshSelection already picked one; bail cleanly
@@ -946,13 +996,22 @@ function initGamepadNav() {
         } else if (getContext() === 'beeg') {
             const btn = document.getElementById('beeg-toybox-toggle');
             if (btn) btn.click();
+        } else if (getContext() === 'meme-art') {
+            const btn = document.getElementById('meme-art-toggle');
+            if (btn) btn.click();
+        } else if (getContext() === 'ytp-tv') {
+            const btn = document.getElementById('ytp-tv-toggle');
+            if (btn) btn.click();
         }
     }
 
     // L1 in About context = previous doc (left arrow)
     function docNavLeft() {
         enterGamepadMode();
-        if (getContext() !== 'about') return;
+        const ctx = getContext();
+        if (ctx === 'meme-art') { memeArtPrev(); return; }
+        if (ctx === 'ytp-tv') { ytpPrev(); return; }
+        if (ctx !== 'about') return;
         if (currentDocIndex > 0) {
             navigateToDoc(currentDocIndex - 1);
             showToast(DOC_LIST[currentDocIndex].label);
@@ -962,7 +1021,10 @@ function initGamepadNav() {
     // R1 in About context = next doc (right arrow)
     function docNavRight() {
         enterGamepadMode();
-        if (getContext() !== 'about') return;
+        const ctx = getContext();
+        if (ctx === 'meme-art') { memeArtNext(); return; }
+        if (ctx === 'ytp-tv') { ytpNext(); return; }
+        if (ctx !== 'about') return;
         if (currentDocIndex < DOC_LIST.length - 1) {
             navigateToDoc(currentDocIndex + 1);
             showToast(DOC_LIST[currentDocIndex].label);
@@ -1108,8 +1170,12 @@ function initGamepadNav() {
         // D-pad (auto-repeat enabled)
         handleVirtualButton('dUp',    map.dUp(),    () => moveSelection('up'),    true);
         handleVirtualButton('dDown',  map.dDown(),  () => moveSelection('down'),  true);
-        handleVirtualButton('dLeft',  map.dLeft(),  () => moveSelection('left'),  true);
-        handleVirtualButton('dRight', map.dRight(), () => moveSelection('right'), true);
+        handleVirtualButton('dLeft',  map.dLeft(),  () => {
+            if (!adjustSelectedRange(-1)) moveSelection('left');
+        }, true);
+        handleVirtualButton('dRight', map.dRight(), () => {
+            if (!adjustSelectedRange(1)) moveSelection('right');
+        }, true);
 
         // Right stick scroll (works for both standard and raw mapping)
         const stickX = map.rsX();
@@ -1248,6 +1314,7 @@ function setMemeArtOpen(open) {
     if (open) {
         if (aboutIsOpen) setAboutOpen(false);
         if (beegToyboxIsOpen) setBeegToyboxOpen(false);
+        if (ytpTvIsOpen) setYtpTvOpen(false);
         renderMemeArt(memeArtIndex);
     }
 }

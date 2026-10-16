@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="../device-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="googlebot" content="noindex, nofollow">
+<title>King Harkinian Desktop Pet</title>
+  <link rel="icon" type="image/x-icon" href="./king-harkinian-desktop-pet.ico">
+<link rel="stylesheet" href="./king-harkinian-desktop-pet.css">
+</head>
+<body>
+<div id="desktop">
+</div>
+<div id="gameLayer">
+  <canvas id="poopCanvas"></canvas>
+  <canvas id="particleCanvas"></canvas>
+  <canvas id="mainCanvas"></canvas>
+  <canvas id="foodCanvas"></canvas>
+  <div id="dinnerMachine">
+    <img src="./assets/sprites/components/dinner-machine.png" alt="Dinner Machine"
+         onerror="this.style.display='none';document.getElementById('dinnerMachine').style.background='#8B4513';document.getElementById('dinnerMachine').innerHTML='<div style=\'color:gold;font-size:12px;text-align:center;padding-top:80px\'>🍖 DINNER<br>MACHINE</div>'">
+  </div>
+  <button id="hitBtn" class="ctrl-btn">HIT MODE</button>
+  <button id="spongeBtn" class="ctrl-btn">SPONGE MODE</button>
+  <div id="comboScore">
+    <div class="label" id="comboLabel">COMBO HIT!</div>
+    <div class="score" id="comboScoreNum">0</div>
+  </div>
+</div>
+
+<div id="taskbar">
+  <div id="trayIcon" title="King Harkinian – right-click to control">
+    <img src="./assets/sprites/king-harkinian/King-Harkinian-CD-i.png" alt="King" onerror="this.style.display='none'">
+  </div>
+  <span id="taskbarTitle">King Harkinian Desktop Pet</span>
+  <span id="taskbarClock"></span>
+</div>
+
+<div id="ctxMenu">
+  <div id="ctxSpeak">🗣 Speak!</div>
+  <div id="ctxToggle">👑 Toggle King</div>
+  <div id="ctxShitting">💩 Desktop Shitting: ON</div>
+  <hr>
+  <div id="ctxQuit">✖ Quit</div>
+</div>
+
+<!-- Cursors -->
+<div id="fistCursor" style="display:none">
+  <img src="./assets/sprites/components/fist.png" alt="FIST" onerror="this.innerHTML='👊';this.style.fontSize='72px'">
+</div>
+<div id="spongeCursor" style="display:none">
+  <img src="./assets/sprites/components/Sponge.png" alt="🧽" onerror="this.innerHTML='🧽';this.style.fontSize='96px'">
+</div>
+
+<script src="./king-harkinian-desktop-pet.js" defer></script>
+</body>
+</html>
