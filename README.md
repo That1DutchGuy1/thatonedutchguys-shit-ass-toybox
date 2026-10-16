@@ -60,7 +60,7 @@
 * Meme Mafia (Finished, unless I come up with some big brain additions)
 * Grand Meme Prix 3D (Finished, unless I come up with some big brain additions)
 * I.M. Meen's Book Shredding Simulator (Beta / WIP)
-* Meme Solitaire (Beta / WIP)
+* Meme Solitaire (Finished, unless I come up with some big brain additions)
 
 ---
 
