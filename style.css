@@ -1921,3 +1921,40 @@ body.ytp-tv-active .site-title {
 #ytp-tv-thumbnail[src=""] {
   display: none;
 }
+
+/* =========================================
+   MEME PEEKER EASTER EGG
+   Meme images that peek up from the bottom
+   of the screen in the gap between the
+   Mini Toybox and the game cards.
+   All transforms driven by JS inline styles.
+   ========================================= */
+
+#meme-peeker-container {
+  position: fixed;
+  bottom: 0;
+  /* left/right are managed dynamically in JS via getGapBounds(),
+     but a safe CSS fallback keeps it off the toybox. */
+  left: 210px;
+  right: 0;
+  height: 0;         /* zero height — images overflow upward */
+  overflow: visible;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.meme-peeker {
+  position: absolute;
+  bottom: 0;         /* anchor bottom edge to viewport bottom */
+  /* Kept deliberately small — these are little peeking gremlins, not billboards.
+     clamp scales with viewport: 1080p→~100px, 1440p→~130px, 2160p→~180px max. */
+  max-height: clamp(80px, 10vh, 180px);
+  max-width:  clamp(70px, 9vw,  160px);
+  width:  auto;
+  height: auto;
+  /* Starting transform is set inline by JS (translateY(imgH px) = fully hidden).
+     Transition is also controlled inline by JS. */
+  image-rendering: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 -3px 6px rgba(0,0,0,0.6));
+}

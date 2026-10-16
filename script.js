@@ -1570,3 +1570,223 @@ document.addEventListener('keydown', e => {
     if (e.key === ' ')          { e.preventDefault(); ytpTogglePlay(); }
     if (e.key === 'Escape')     { setYtpTvOpen(false); }
 });
+
+// =========================================
+// MEME PEEKER EASTER EGG
+// Random meme images peek up from the
+// bottom of the screen like little gremlins,
+// appearing only in the empty gap between
+// the Mini Toybox and the game cards.
+// =========================================
+
+// ---- CONFIGURE YOUR MEME IMAGES HERE ----
+// Use relative paths from index.html.
+// peekAmount: fraction of the image height to show above the bottom edge
+//   (e.g. 0.55 = 55% visible). Leave out to use the default (~55%, capped small).
+const PEEKER_MEMES = [
+    // { src: './example/pingas.png', peekAmount: 0.50 },
+    { src: './hub-assets/splash-img.png' },
+    { src: './weegees-mansion/Weegee-Sprites/Weegee_Left.png', peekAmount: 0.60 },
+    { src: './cd-i-meme-soundboard/assets/images/HotelMarioMario.png', peekAmount: 0.60 },
+    { src: './bup-the-super-awesome-clicker-game/Toad.png', peekAmount: 0.80 },
+    { src: './king-harkinians-personal-chef-simulator/assets/sprites/king-meh.png', peekAmount: 0.60 },
+    { src: './meme-claw-machine/memes/Bad-Luck-Brian.png', peekAmount: 0.80 },
+    { src: './i-m-meens-book-shred-simulator/assets/images/i-m-meen.png', peekAmount: 0.65 },
+    { src: './king-harkinians-personal-chef-simulator/assets/sprites/Link-CD-i.png', peekAmount: 0.60 },
+];
+
+// ---- TIMING CONFIG ----
+const PEEKER_INTERVAL_MIN = 10 * 1000;
+const PEEKER_INTERVAL_MAX = 40 * 1000;
+const PEEKER_PEEK_MIN     =  3 * 1000;
+const PEEKER_PEEK_MAX     =  8 * 1000;
+const PEEKER_LOOK_PAUSES  = [400, 700, 1000, 1300];
+
+(function initMemePeeker() {
+    if (typeof isPhone !== 'undefined' && isPhone) return;
+    if (!PEEKER_MEMES || PEEKER_MEMES.length === 0) return;
+
+    // Container: fixed, anchored to the bottom, zero height so images
+    // overflow upward. Left/right bounds are set in JS dynamically.
+    const container = document.createElement('div');
+    container.id = 'meme-peeker-container';
+    document.body.appendChild(container);
+
+    let activePeeker = null;
+
+    function randBetween(min, max) { return min + Math.random() * (max - min); }
+    function randInt(min, max)     { return Math.floor(randBetween(min, max + 1)); }
+    function randItem(arr)         { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    // Weighted pick: memes not yet seen this cycle get 3× the weight of
+    // already-seen ones. When every meme has peeked at least once, the
+    // seen set resets and the cycle starts over.
+    const _peekerSeen = new Set();
+    function weightedPickMeme() {
+        if (_peekerSeen.size >= PEEKER_MEMES.length) _peekerSeen.clear();
+
+        const UNSEEN_WEIGHT = 3;
+        const SEEN_WEIGHT   = 1;
+        const totalWeight = PEEKER_MEMES.reduce((sum, m) =>
+            sum + (_peekerSeen.has(m.src) ? SEEN_WEIGHT : UNSEEN_WEIGHT), 0);
+
+        let roll = Math.random() * totalWeight;
+        for (const m of PEEKER_MEMES) {
+            roll -= _peekerSeen.has(m.src) ? SEEN_WEIGHT : UNSEEN_WEIGHT;
+            if (roll <= 0) {
+                _peekerSeen.add(m.src);
+                return m;
+            }
+        }
+        // Fallback (floating-point edge case)
+        const fallback = PEEKER_MEMES[PEEKER_MEMES.length - 1];
+        _peekerSeen.add(fallback.src);
+        return fallback;
+    }
+
+    // The gap zone: between the right edge of the Mini Toybox and the
+    // left edge of the game card grid.
+    // Mini Toybox (#toys-panel): position:fixed, left:20px, ~188px wide total.
+    // Game cards (.game-container): justify-content:end, 2 cols * 360px + 60px gap
+    //   + padding-right 80px + margin-right 30px = right-aligned block ~780px wide.
+    function getGapBounds() {
+        const vw = window.innerWidth;
+        const gapLeft  = 210;                          // clear of the Mini Toybox
+        // Cards left edge: total card block width = 2*360 + 60 gap = 780px,
+        // plus 80px padding-right + 30px margin-right = 110px from right edge.
+        const cardsLeft = vw - 110 - 780;
+        const gapRight  = Math.max(gapLeft + 50, cardsLeft - 20); // 20px breathing room
+        return { gapLeft, gapRight };
+    }
+
+    // Pick a random X so the image lands inside the gap.
+    function getRandomX(imgW) {
+        const { gapLeft, gapRight } = getGapBounds();
+        const maxLeft = Math.max(gapLeft, gapRight - imgW);
+        if (maxLeft <= gapLeft) return gapLeft;
+        return gapLeft + Math.random() * (maxLeft - gapLeft);
+    }
+
+    // How many pixels of the image to show above the bottom edge.
+    // Kept deliberately small so it really looks like peeking.
+    function getVisiblePx(imgH, peekAmountOverride) {
+        if (peekAmountOverride) return imgH * peekAmountOverride;
+        // Show ~55% of the image, but cap tightly so it stays tiny.
+        // clamp(55px, 8vh, 140px) — scales with viewport height.
+        const byVh = window.innerHeight * 0.08;
+        return Math.min(Math.max(55, byVh), 140);
+    }
+
+    // Apply the peek transform.
+    // With bottom:0, translateY(0) = fully visible, translateY(100%) = fully hidden.
+    // To show only N px: push image down by (imgH - N) px.
+    function applyTransform(img, visiblePx, flipped, transitionStr) {
+        const imgH   = img.offsetHeight || 120;
+        const pushDown = Math.max(0, imgH - visiblePx);
+        const ty     = pushDown + 'px';
+        img.style.transition = transitionStr;
+        img.style.transform  = flipped
+            ? `translateY(${ty}) scaleX(-1)`
+            : `translateY(${ty})`;
+    }
+
+    function hiddenTransform(img) {
+        // Fully below the screen: push down by full image height.
+        const imgH = img.offsetHeight || 120;
+        img.style.transition = 'transform 1.1s cubic-bezier(0.55, 0, 1, 0.45)';
+        img.style.transform  = `translateY(${imgH}px)`;
+    }
+
+    function doLookAround(img, visiblePx, flipCount, isFlipped, done) {
+        if (flipCount <= 0) {
+            if (isFlipped) {
+                applyTransform(img, visiblePx, false, 'transform 0.35s ease-in-out');
+                setTimeout(done, 380);
+            } else {
+                done();
+            }
+            return;
+        }
+        const pause = randItem(PEEKER_LOOK_PAUSES);
+        setTimeout(() => {
+            const nowFlipped = !isFlipped;
+            applyTransform(img, visiblePx, nowFlipped, 'transform 0.35s ease-in-out');
+            doLookAround(img, visiblePx, flipCount - 1, nowFlipped, done);
+        }, pause);
+    }
+
+    function runPeeker() {
+        const meme    = weightedPickMeme();
+        const img     = document.createElement('img');
+        img.className = 'meme-peeker';
+        img.alt       = '( ͡° ͜ʖ ͡°)';
+        img._peekAmt  = meme.peekAmount || null;
+        container.appendChild(img);
+        activePeeker  = img;
+
+        img.onload = function () {
+            const imgH      = img.offsetHeight || 120;
+            const imgW      = img.offsetWidth  || 120;
+            const visiblePx = getVisiblePx(imgH, img._peekAmt);
+
+            // Position horizontally inside the gap.
+            img.style.left = getRandomX(imgW) + 'px';
+
+            // Start hidden: push fully below the bottom of the screen.
+            img.style.transition = 'none';
+            img.style.transform  = `translateY(${imgH}px)`;
+
+            // Double rAF so the browser paints the hidden start before animating.
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                // Slide up into peek position.
+                applyTransform(img, visiblePx, false,
+                    'transform 0.9s cubic-bezier(0.22, 1, 0.36, 1)');
+
+                // After slide-in settles, do the look-around then auto-hide.
+                setTimeout(() => {
+                    const flipCount = randInt(1, 4);
+                    doLookAround(img, visiblePx, flipCount, false, () => {
+                        const peekDuration = randBetween(PEEKER_PEEK_MIN, PEEKER_PEEK_MAX);
+                        setTimeout(() => {
+                            hiddenTransform(img);
+                            setTimeout(() => {
+                                if (img.parentNode) img.remove();
+                                activePeeker = null;
+                                scheduleNext();
+                            }, 1200);
+                        }, peekDuration);
+                    });
+                }, 950);
+            }));
+        };
+
+        img.onerror = function () {
+            img.remove();
+            activePeeker = null;
+            scheduleNext();
+        };
+
+        img.src = meme.src;
+    }
+
+    function isPanelOpen() {
+        const c = document.body.classList;
+        return c.contains('about-active')
+            || c.contains('beeg-toybox-active')
+            || c.contains('meme-art-active')
+            || c.contains('ytp-tv-active');
+    }
+
+    function scheduleNext() {
+        const delay = randBetween(PEEKER_INTERVAL_MIN, PEEKER_INTERVAL_MAX);
+        setTimeout(() => {
+            if (!isPanelOpen() && !activePeeker) {
+                runPeeker();
+            } else {
+                setTimeout(() => { if (!activePeeker) scheduleNext(); }, 10000);
+            }
+        }, delay);
+    }
+
+    scheduleNext();
+})();
