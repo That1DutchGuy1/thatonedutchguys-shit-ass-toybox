@@ -323,7 +323,57 @@ body {
 .main-logo {
   width: 150px;
   height: auto;
+  margin-bottom: 0;
+  display: block;
+}
+
+/* ─── Logo Rainbow Ring Wrapper ─── */
+/* Sits around the <a> tag — gives us a real element we can
+   attach ::after to, since ::after doesn't work on <img>.
+   Sized to match the 150px circle logo exactly. */
+.logo-ring-wrap {
+  position: relative;
+  width: 150px;
+  height: 150px;
   margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The animated rainbow ring itself */
+.logo-ring-wrap::after {
+  content: "";
+  position: absolute;
+  inset: -5px;            /* 5px ring gap outside the circle */
+  border-radius: 50%;
+  padding: 5px;           /* ring thickness */
+  background: conic-gradient(
+    from 0deg,
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  /* Mask punches a hole in the center so only the ring edge shows */
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: rotate-rainbow 3s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes rotate-rainbow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Speed up the ring when hovering — matches the logo's spin energy 🌀 */
+.logo-ring-wrap:hover::after {
+  animation-duration: 0.6s;
 }
 
 .text-logo {
