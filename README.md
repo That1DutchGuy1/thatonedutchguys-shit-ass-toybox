@@ -147,54 +147,15 @@
 
 ---
 
-<p><strong><font size="5">🚨 NEW GAME ADDED TO THE SHIT ASS TOYBOX!</font></strong></p>
+<p><strong><font size="5">🚨 HUGE GRAND MEME PRIX UPDATE!</font></strong></p>
 
-<p><strong><font size="4">👑 KING HARKINIAN DESKTOP PET!</font></strong></p>
+<p><strong><font size="4">Grand Meme Prix 3D got a big fucking update man! 🏎️</font></strong></p>
 
-For the fuckers who don't know, I made a Python-based desktop pet of King Harkinian for Linux Mint 22 Cinnamon X11! 🐍 <br>
-Well, NOW EVERYONE can join in on the fun because I made a BROWSER VERSION! 🤯 <br>
-The Python code has been translated to vanilla HTML, CSS, and JavaScript, and it's pretty much nearly identical to the OG! 😎 <br>
-Comes with a mockup of a Windows XP desktop where you can let King Harkinian roam around, eat food from the Dinner Machine, and take dumps on the Bliss hills! 🪟 <br>
-Clean his shit up after him with Sponge Mode, or just outright hit the fucker in Hit Mode and watch him bounce around the viewport with actual physics! 💥
-
----
-
-<p><strong><font size="5">🚨 FULL RELEASE!</font></strong></p>
-
-<p><strong><font size="4">🃏 MEME SOLITAIRE!</font></strong></p>
-
-* Just boring old Solitaire, but with meme cards instead! ♠️
-* The old Beta was trash, but now it fucking works properly! ♦️
-* Fixed the CPU so that the lil bastard plays by the rules! ♣️
-* Added music and sound effects to the game! ♥️
-
----
-
-<p><strong><font size="5">🚨 THE GRAND MEME PRIX UPDATE!</font></strong></p>
-
-<p><strong><font size="4">Grand Meme Prix 3D got a small lil update!</font></strong></p>
-
-* CD-i Ganon has been added as a new driver! He will make your face the greatest in Koridai if you win as him! 🐷
-* Michael Rosen has been added as a new driver! He loves hot food just as much as winning! 🇬🇧
-* CD-i Link has been added as a new driver! He will let you know when it's boring around here! 🛡️
-* Unique voice lines for Ganon, Michael Rosen, and Link of course! 🎙️
-* Local multiplayer co-op mode can now fucking feature up to two CPU drivers to spice up the race with your friend... that is if you actually have any friends! 🙃
-* An actual fucking grass texture on the grass is now in the game! 🌱
-* A lot of fucking trees are now scattered outside the stadium! 🌲
-* Funny meme billboard ads are now outside to advertise meme stuff! No real ads! Just funny fake ones! 🤣
-* NOW GO FUCKING PLAY IT! 🔫
-
----
-
-<p><strong><font size="5">🚨 WEEGEE'S MANSION 3D UPDATE!</font></strong></p>
-
-<p><strong><font size="4">Weegee's Mansion 3D got another fucking update!</font></strong></p>
-
-* Added a fucking settings menu! ⚙️
-* The settings menu had audio sliders for any of you pussies who are scared of the audio! 🔊
-* DualShock 4 controller lightbars now change to glow red when you use the d-pad menu navigation to start the game! 🔴
-* Changed the fucking main font to good ol' Comic Sans! 😎
-* Updated the LORE and ABOUT tabs on the main menu with some new stuff! 📖
+* The game now has THREE tracks instead of one! We still got the old track, now named Forest Stadium, but the highlights are Beach Getaway and Twisty Tunnels! 😂
+* You can now race with max SEVEN CPU drivers in singleplayer! 🤖🏎️
+* I.M. Meen has been added to the character roster! 👴🏻
+* And so many other changes and improvements, I can't write them all here! 🤯
+* GO CHECK IT OUT NOW! 🔫
 
 ---
 

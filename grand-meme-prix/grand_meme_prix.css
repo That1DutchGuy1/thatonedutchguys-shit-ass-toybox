@@ -60,6 +60,93 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   transform: translateY(0); transition: transform 0.1s, box-shadow 0.1s;
 }
 #startBtn:hover, #startBtnCoop:hover { transform: translateY(3px); box-shadow: 0 3px 0 #8B4500; background: linear-gradient(180deg, #fff700, #FFD700); }
+.track-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 420px;
+}
+.track-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 20px;
+  border: 3px solid rgba(255,215,0,0.45);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(42,0,96,0.9), rgba(10,0,48,0.9));
+  color: #fff;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+#screenTrackSelect {
+  gap: 12px;
+}
+#screenTrackSelect h1 {
+  margin-bottom: -4px;
+}
+#screenTrackSelect .subtitle {
+  margin-bottom: 2px;
+}
+.track-option:hover {
+  transform: translateY(-3px);
+  border-color: #FFD700;
+}
+.track-option.selected {
+  border-color: #FFD700;
+  background: linear-gradient(180deg, rgba(76,0,144,0.95), rgba(26,0,96,0.95));
+  box-shadow: 0 0 22px rgba(255,215,0,0.35);
+}
+.track-option-icon {
+  font-size: 38px;
+}
+.track-option-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+.track-option-name {
+  color: #FFD700;
+  font-size: 22px;
+  font-weight: bold;
+}
+.track-option-meta {
+  color: #ccc;
+  font-size: 14px;
+}
+.track-option-check {
+  color: #00ff88;
+  font-size: 24px;
+  font-weight: bold;
+}
+.track-select-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+#continueTrackBtn {
+  padding: 14px 28px;
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #FFD700, #FF8C00);
+  box-shadow: 0 5px 0 #8B4500;
+  color: #000;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+}
+#continueTrackBtn:hover {
+  transform: translateY(2px);
+  background: linear-gradient(180deg, #fff700, #FFD700);
+}
 .stars {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   pointer-events: none; overflow: hidden;
@@ -206,7 +293,7 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
 }
 
 /* Screen sub-divs inside mainMenu */
-#screenModeSelect, #screenCharSolo, #screenCharCoop, #screenSettings {
+#screenModeSelect, #screenTrackSelect, #screenCharSolo, #screenCharCoop, #screenSettings {
   display: flex; flex-direction: column; align-items: center; gap: 20px;
   position: relative; z-index: 1;
 }
@@ -231,6 +318,31 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
   background: rgba(0,0,0,0.7); border: 2px solid #FFD700;
   color: #FFD700; font-size: 28px; padding: 6px 20px; border-radius: 8px;
+}
+#finishSplash {
+  position: fixed;
+  top: 175px;
+  right: 16px;
+  max-width: 320px;
+  padding: 10px 16px;
+  border: 2px solid #FFD700;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #FFD700;
+  font-family: 'ComicSans', 'Comic Sans MS', cursive;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 2px 2px 0 #FF0000, 1px 1px 0 #000;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(24px) scale(0.92);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 30;
+}
+#finishSplash.visible {
+  opacity: 1;
+  transform: translateX(0) scale(1);
 }
 #countdown {
   position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -383,15 +495,6 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   border-color: #FFD700;
   color: #FFD700;
 }
-
-/* ── EXTRA CPU HUD BOXES (for 2-3 CPUs in solo mode) ── */
-.cpu-extra-hud {
-  position: fixed;
-  pointer-events: none;
-  z-index: 10;
-}
-#hudCpu2 { bottom: 10px; right: 10px; text-align: right; }
-#hudCpu3 { bottom: 10px; left: 10px; }
 
 /* ── WIN SCREEN ── */
 #winScreen {

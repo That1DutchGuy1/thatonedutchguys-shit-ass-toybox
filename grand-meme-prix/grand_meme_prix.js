@@ -32,6 +32,7 @@ const CHARACTERS = [
   { name: "Michael Rosen",     img: "assets/Michael-Rosen.png",    color: 0x708090, lightbarColor: 0xC0C0C0, voicelines: ['assets/voicelines/michael-rosen-hit.mp3', 'assets/voicelines/michael-rosen-win.mp3', 'assets/voicelines/michael-rosen-lose.mp3'] }, // grey
   { name: "Link",         img: "assets/Link.png",          color: 0x00FF00, lightbarColor: 0x00FF00, voicelines: ['assets/voicelines/link-hit.mp3', 'assets/voicelines/link-win.mp3', 'assets/voicelines/link-lose.mp3'] }, // bright green
   { name: "Dr. Robotnik" , img: "assets/Dr-Robotnik.png", color: 0xfc5a03, lightbarColor: 0xff5900, voicelines: ['assets/voicelines/dr-robotnik-hit.mp3', 'assets/voicelines/dr-robotnik-win.mp3', 'assets/voicelines/dr-robotnik-lose.mp3'] }, // red
+  { name: "I.M. Meen", img: "assets/I-M-Meen.png", color: 0x9000ff, lightbarColor: 0x9716fa, voicelines: ['assets/voicelines/im-meen-hit.mp3', 'assets/voicelines/im-meen-win.mp3', 'assets/voicelines/im-meen-lose.mp3'] }, // purple
 ];
 
 // =============================================
@@ -206,7 +207,7 @@ let playerChars = [0, 1 % CHARACTERS.length, 2 % CHARACTERS.length, 3 % CHARACTE
 let gameMode = 'coop';
 let soloAI = null;         // legacy single-AI state (kept for compatibility)
 let soloAIs = [];          // array of AI personality objects, one per CPU
-let soloNumCPUs = 1;       // 1-3 CPUs in solo mode
+let soloNumCPUs = 1;       // 1-7 CPUs in solo mode
 let coopNumCPUs = 0;       // 0-2 CPUs in co-op mode
 
 function changeChar(player, dir) {
@@ -248,7 +249,7 @@ function changeCPUCount(dir) {
   if (gameMode === 'coop') {
     coopNumCPUs = Math.max(0, Math.min(2, coopNumCPUs + dir));
   } else {
-    soloNumCPUs = Math.max(1, Math.min(3, soloNumCPUs + dir));
+    soloNumCPUs = Math.max(1, Math.min(7, soloNumCPUs + dir));
   }
   updateCharUI();
 }
@@ -682,28 +683,34 @@ function selectMode(mode) {
   gameMode = mode === 'dev' ? 'solo' : mode; // dev uses solo plumbing
   gameMode_dev = (mode === 'dev');
   document.getElementById('screenModeSelect').style.display = 'none';
-  if (mode === 'dev') {
-    // Show the solo char screen but hide the CPU panel
-    document.getElementById('screenCharSolo').style.display = 'flex';
-    const cpuPanel = document.querySelector('.cpu-select');
-    if (cpuPanel) cpuPanel.style.display = 'none';
-  } else {
-    const cpuPanel = document.querySelector('.cpu-select');
-    if (cpuPanel) cpuPanel.style.display = '';
-    document.getElementById(mode === 'solo' ? 'screenCharSolo' : 'screenCharCoop').style.display = 'flex';
-  }
+  document.getElementById('screenTrackSelect').style.display = 'flex';
   updateCharUI();
+}
+
+function continueToCharacterSelect() {
+  document.getElementById('screenTrackSelect').style.display = 'none';
+  const cpuPanel = document.querySelector('.cpu-select');
+  if (cpuPanel) cpuPanel.style.display = gameMode_dev ? 'none' : '';
+  document.getElementById(gameMode === 'solo' ? 'screenCharSolo' : 'screenCharCoop').style.display = 'flex';
+  updateCharUI();
+}
+
+function backToModeSelect() {
+  document.getElementById('screenTrackSelect').style.display = 'none';
+  document.getElementById('screenCharSolo').style.display = 'none';
+  document.getElementById('screenCharCoop').style.display = 'none';
+  document.getElementById('screenModeSelect').style.display = 'flex';
+  const cpuPanel = document.querySelector('.cpu-select');
+  if (cpuPanel) cpuPanel.style.display = '';
+  gameMode_dev = false;
 }
 
 function goBack() {
   stopCoopGpClaim();
   _coopGpClaimedP1 = null;
-  gameMode_dev = false;
-  const cpuPanel = document.querySelector('.cpu-select');
-  if (cpuPanel) cpuPanel.style.display = '';
   document.getElementById('screenCharSolo').style.display = 'none';
   document.getElementById('screenCharCoop').style.display = 'none';
-  document.getElementById('screenModeSelect').style.display = 'flex';
+  document.getElementById('screenTrackSelect').style.display = 'flex';
 }
 
 // =============================================
@@ -1379,34 +1386,56 @@ updateCharUI();
 })();
 
 // =============================================
-// TRACK DEFINITION — smooth closed CatmullRom circuit
-// =============================================
-const TRACK_CONTROL_PTS = [
-  [0,0,0],
-  [50,0,-10],
-  [110,0,-8],
-  [145,0,20],
-  [148,0,60],
-  [130,0,95],
-  [100,0,115],
-  [60,0,128],
-  [15,0,130],
-  [-30,0,118],
-  [-60,0,90],
-  [-70,0,55],
-  [-60,0,25],
-  [-40,0,8],
-  [-15,0,-5],
-].map(p => new THREE.Vector3(...p));
+const AVAILABLE_TRACKS = [ForestStadium, BeachGetaway, TwistyTunnels];
+let ACTIVE_TRACK = ForestStadium;
 
-// Build smooth CatmullRom curve (closed loop)
-const TRACK_CURVE = new THREE.CatmullRomCurve3(TRACK_CONTROL_PTS, true, 'catmullrom', 0.5);
-const TRACK_SAMPLES = 200;
-const TRACK_WIDTH = 14;
+function updateTrackLapLabels() {
+  document.querySelectorAll('[data-track-laps]').forEach(element => {
+    element.textContent = `${ACTIVE_TRACK.totalLaps} laps`;
+  });
+}
 
-// Sample the curve into waypoints used for isOnTrack / checkpoints
-const TRACK_WAYPOINTS = TRACK_CURVE.getPoints(TRACK_SAMPLES);
-const TOTAL_LAPS = 3;
+function renderTrackOptions() {
+  const options = document.getElementById('trackOptions');
+  options.replaceChildren(...AVAILABLE_TRACKS.map(track => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `track-option${track === ACTIVE_TRACK ? ' selected' : ''}`;
+    button.setAttribute('aria-pressed', String(track === ACTIVE_TRACK));
+
+    const icon = document.createElement('span');
+    icon.className = 'track-option-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = '🏁';
+
+    const info = document.createElement('span');
+    info.className = 'track-option-info';
+    const name = document.createElement('span');
+    name.className = 'track-option-name';
+    name.textContent = track.name;
+    const meta = document.createElement('span');
+    meta.className = 'track-option-meta';
+    meta.textContent = `${track.totalLaps} laps`;
+    info.append(name, meta);
+
+    const check = document.createElement('span');
+    check.className = 'track-option-check';
+    check.setAttribute('aria-hidden', 'true');
+    check.textContent = track === ACTIVE_TRACK ? '✓' : '';
+
+    button.append(icon, info, check);
+    button.addEventListener('click', () => {
+      ACTIVE_TRACK = track;
+      refreshTrackAudioEcho();
+      updateTrackLapLabels();
+      renderTrackOptions();
+    });
+    return button;
+  }));
+}
+
+renderTrackOptions();
+updateTrackLapLabels();
 
 // =============================================
 // GAME STATE
@@ -1423,7 +1452,44 @@ let itemBoxes = [];
 let kartBumpWorld = null;
 let kartBumpBodies = [];
 const KART_BUMP_RADIUS = 1.35;
-const KART_BUMP_CONTACT_DISTANCE_SQ = (KART_BUMP_RADIUS * 2.05) ** 2;
+const TINY_KART_COLLISION_SCALE = 0.5;
+let finishSplashQueue = [];
+let finishSplashTimer = null;
+
+function queueFinishSplash(player) {
+  const place = player.finishPlace;
+  const suffix = place % 100 >= 11 && place % 100 <= 13
+    ? 'th'
+    : ({ 1: 'st', 2: 'nd', 3: 'rd' }[place % 10] || 'th');
+  finishSplashQueue.push(`${CHARACTERS[player.charIndex].name} finished ${place}${suffix}!`);
+  if (finishSplashTimer === null) showNextFinishSplash();
+}
+
+function showNextFinishSplash() {
+  const splash = document.getElementById('finishSplash');
+  if (!splash || finishSplashQueue.length === 0) {
+    finishSplashTimer = null;
+    return;
+  }
+
+  splash.textContent = finishSplashQueue.shift();
+  splash.classList.add('visible');
+  finishSplashTimer = setTimeout(() => {
+    splash.classList.remove('visible');
+    finishSplashTimer = setTimeout(showNextFinishSplash, 250);
+  }, 2600);
+}
+
+function clearFinishSplashes() {
+  finishSplashQueue = [];
+  if (finishSplashTimer !== null) clearTimeout(finishSplashTimer);
+  finishSplashTimer = null;
+  const splash = document.getElementById('finishSplash');
+  if (splash) {
+    splash.classList.remove('visible');
+    splash.textContent = '';
+  }
+}
 
 function initKartBumpPhysics() {
   kartBumpWorld = new CannonWorld({ gravity: new CannonVec3(0, 0, 0) });
@@ -1447,11 +1513,28 @@ function initKartBumpPhysics() {
   });
 }
 
+function getKartCollisionScale(player) {
+  return player.lightningTimer > 0 ? TINY_KART_COLLISION_SCALE : 1;
+}
+
+function getKartBumpRadius(player) {
+  return KART_BUMP_RADIUS * getKartCollisionScale(player);
+}
+
 function updateKartBumpPhysics(delta) {
   if (!kartBumpWorld || kartBumpBodies.length !== players.length) return;
 
   players.forEach((player, index) => {
     const body = kartBumpBodies[index];
+    const radius = getKartBumpRadius(player);
+    if (body._kartBumpRadius !== radius) {
+      const shape = body.shapes[0];
+      shape.radius = radius;
+      shape.updateBoundingSphereRadius();
+      body.updateBoundingRadius();
+      body.aabbNeedsUpdate = true;
+      body._kartBumpRadius = radius;
+    }
     if (player.bombAirborneTimer > 0) {
       body.position.set(player.kart.position.x, 0, player.kart.position.z);
       body.velocity.set(0, 0, 0);
@@ -1477,7 +1560,8 @@ function updateKartBumpPhysics(delta) {
     for (let j = i + 1; j < players.length; j++) {
       const dx = players[i].kart.position.x - players[j].kart.position.x;
       const dz = players[i].kart.position.z - players[j].kart.position.z;
-      if (dx * dx + dz * dz < KART_BUMP_CONTACT_DISTANCE_SQ) {
+      const contactDistance = (getKartBumpRadius(players[i]) + getKartBumpRadius(players[j])) * 1.025;
+      if (dx * dx + dz * dz < contactDistance * contactDistance) {
         contactPossible = true;
         break;
       }
@@ -1508,7 +1592,8 @@ function updateKartBumpPhysics(delta) {
     for (let j = i + 1; j < players.length; j++) {
       const first = players[i];
       const second = players[j];
-      if (first.kart.position.distanceTo(second.kart.position) >= 2.8) continue;
+      const contactDistance = getKartBumpRadius(first) + getKartBumpRadius(second);
+      if (first.kart.position.distanceTo(second.kart.position) >= contactDistance) continue;
 
       const starPlayer = first.starTimer > 0 && second.starTimer <= 0 ? first
         : second.starTimer > 0 && first.starTimer <= 0 ? second
@@ -1598,7 +1683,23 @@ function showDevUnlockFlash() {
 // =============================================
 // PAUSE SYSTEM — ESC key + DS4 Options button
 // =============================================
-let _gpOptionsWasPressed = [false, false]; // edge-detect Options button per pad
+const _gpOptionsWasPressed = new Map();
+
+function requestGameplayPointerLock() {
+  if (document.pointerLockElement === document.body) return;
+  try {
+    const request = document.body.requestPointerLock();
+    if (request && typeof request.catch === 'function') {
+      request.catch(error => console.warn('Could not lock the gameplay cursor:', error));
+    }
+  } catch (error) {
+    console.warn('Could not lock the gameplay cursor:', error);
+  }
+}
+
+function releaseGameplayPointerLock() {
+  if (document.pointerLockElement) document.exitPointerLock();
+}
 
 function togglePause() {
   if (!raceRunning && !racePaused) return; // not in a race
@@ -1617,8 +1718,10 @@ function pauseGame() {
   raceRunning = false;
   pauseStart = Date.now();
   document.getElementById('pauseScreen').style.display = 'flex';
+  releaseGameplayPointerLock();
   // Stop engine audio so it doesn't drone on while paused
   if (typeof stopEngineAudio === 'function') stopEngineAudio();
+  stopBlueShellWarning();
   if (typeof bgmEl !== 'undefined' && bgmEl) bgmEl.pause();
 }
 
@@ -1629,6 +1732,7 @@ function resumeGame() {
   // Adjust raceStart by the amount of time we were paused so the timer is accurate
   raceStart += (Date.now() - pauseStart);
   document.getElementById('pauseScreen').style.display = 'none';
+  requestGameplayPointerLock();
   // Restart engine audio and BGM
   if (typeof startEngineAudio === 'function') startEngineAudio();
   if (typeof bgmEl !== 'undefined' && bgmEl) bgmEl.play().catch(() => {});
@@ -1725,6 +1829,12 @@ function updateDevDebugOverlay() {
       const pos = s.mesh1.position;
       return `<span style="color:#aaa">shell-${i+1}:</span> <b>${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}</b>`;
     });
+  const greenShellLines = greenShells
+    .filter(s => s.active)
+    .map((s, i) => {
+      const pos = s.mesh1.position;
+      return `<span style="color:#aaa">green-shell-${i+1}:</span> <b>${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}</b>`;
+    });
 
   el.innerHTML = [
     '<b style="color:#00ff88;font-size:16px">🔧 DEV DEBUG</b>',
@@ -1740,6 +1850,8 @@ function updateDevDebugOverlay() {
     ...peelLines,
     shellLines.length ? '<b style="color:#ff4444;margin-top:4px">🔴 Red Shells (' + shellLines.length + ')</b>' : '',
     ...shellLines,
+    greenShellLines.length ? '<b style="color:#44dd66;margin-top:4px">🟢 Green Shells (' + greenShellLines.length + ')</b>' : '',
+    ...greenShellLines,
   ].filter(Boolean).join('<br>');
 }
 
@@ -1752,7 +1864,60 @@ const stadiumWalls = [];
 // =============================================
 let audioCtx = null;
 let sfxMasterGain = null; // master gain for all one-shot Web Audio SFX
-const engineVoices = [null, null, null, null]; // up to 4 players
+const engineVoices = [];
+const trackAudioOutputs = new WeakMap();
+const trackAudioWetSends = new Set();
+const mediaAudioSources = new WeakMap();
+
+function refreshTrackAudioEcho() {
+  const wetLevel = ACTIVE_TRACK?.audioEcho ? 0.16 : 0;
+  for (const send of trackAudioWetSends) send.gain.value = wetLevel;
+}
+
+function routeTrackAudio(source, destination) {
+  const existing = trackAudioOutputs.get(source);
+  if (existing) {
+    existing.send.gain.value = ACTIVE_TRACK?.audioEcho ? 0.16 : 0;
+    return existing;
+  }
+
+  const delay = audioCtx.createDelay(0.5);
+  delay.delayTime.value = 0.19;
+  const send = audioCtx.createGain();
+  send.gain.value = ACTIVE_TRACK?.audioEcho ? 0.16 : 0;
+  source.connect(destination);
+  source.connect(delay);
+  delay.connect(send);
+  send.connect(destination);
+
+  const output = { delay, send };
+  trackAudioOutputs.set(source, output);
+  trackAudioWetSends.add(send);
+  return output;
+}
+
+function releaseTrackAudio(source) {
+  const output = trackAudioOutputs.get(source);
+  if (!output) return;
+  source.disconnect();
+  output.delay.disconnect();
+  output.send.disconnect();
+  trackAudioWetSends.delete(output.send);
+  trackAudioOutputs.delete(source);
+}
+
+function routeMediaAudio(element) {
+  initAudioContext();
+  let source = mediaAudioSources.get(element);
+  if (!source) {
+    source = audioCtx.createMediaElementSource(element);
+    mediaAudioSources.set(element, source);
+    routeTrackAudio(source, audioCtx.destination);
+  } else {
+    refreshTrackAudioEcho();
+  }
+  return source;
+}
 
 function initAudioContext() {
   if (audioCtx) return;
@@ -1761,7 +1926,7 @@ function initAudioContext() {
   // control countdown beeps, slip, shell launch/hit, and launch boost/stall sounds.
   sfxMasterGain = audioCtx.createGain();
   sfxMasterGain.gain.value = settings.sfxVol / 100;
-  sfxMasterGain.connect(audioCtx.destination);
+  routeTrackAudio(sfxMasterGain, audioCtx.destination);
 }
 
 // Build one engine voice. Returns an object with an update(speed) method and a stop() method.
@@ -1882,9 +2047,9 @@ function startEngineAudio() {
     if (panner) {
       panner.pan.value = panVal;
       masterGain.connect(panner);
-      panner.connect(audioCtx.destination);
+      routeTrackAudio(panner, audioCtx.destination);
     } else {
-      masterGain.connect(audioCtx.destination);
+      routeTrackAudio(masterGain, audioCtx.destination);
     }
 
     const detune = i === 0 ? 0 : 5 + Math.random() * 8 + i * 3; // each CPU has a different pitch
@@ -1896,7 +2061,11 @@ function startEngineAudio() {
 
 function stopEngineAudio() {
   engineVoices.forEach((v, i) => {
-    if (v) { v.stop(); engineVoices[i] = null; }
+    if (v) {
+      v.stop();
+      if (v.masterGain) releaseTrackAudio(v.masterGain);
+      engineVoices[i] = null;
+    }
   });
 }
 
@@ -1938,10 +2107,13 @@ let bgmEl = null;
 const activeSfxAudio = new Set();
 
 function playSfxAudio(src) {
+  initAudioContext();
   const el = document.createElement('audio');
   el.src = src;
   el.volume = settings.sfxVol / 100;
+  const source = routeMediaAudio(el);
   const cleanup = () => {
+    releaseTrackAudio(source);
     activeSfxAudio.delete(el);
     el.remove();
   };
@@ -1953,13 +2125,16 @@ function playSfxAudio(src) {
 }
 
 function startBGM() {
+  initAudioContext();
   if (!bgmEl) {
     bgmEl = document.createElement('audio');
     bgmEl.src = 'assets/grand-meme-prix-3d-theme.mp3';
     bgmEl.loop = true;
     bgmEl.volume = settings.musicVol / 100;
+    routeMediaAudio(bgmEl);
     document.body.appendChild(bgmEl);
   }
+  refreshTrackAudioEcho();
   bgmEl.currentTime = 0;
   bgmEl.play().catch(() => {}); // silently ignore autoplay block (already unlocked by button click)
 }
@@ -1972,12 +2147,15 @@ function stopBGM() {
 }
 let winSoundEl = null;
 function playWinSound() {
+  initAudioContext();
   if (!winSoundEl) {
     winSoundEl = document.createElement('audio');
     winSoundEl.src = 'assets/win.mp3';
     winSoundEl.volume = settings.sfxVol / 100;
+    routeMediaAudio(winSoundEl);
     document.body.appendChild(winSoundEl);
   }
+  refreshTrackAudioEcho();
   winSoundEl.currentTime = 0;
   winSoundEl.play().catch(() => {});
 }
@@ -2013,7 +2191,8 @@ function playCharacterVoiceline(charIndex, type, pitch = 0) {
         gainNode.gain.value = vol;
 
         src.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
+        routeTrackAudio(gainNode, audioCtx.destination);
+        src.onended = () => releaseTrackAudio(gainNode);
         src.start(0);
       })
       .catch(() => {
@@ -2021,21 +2200,31 @@ function playCharacterVoiceline(charIndex, type, pitch = 0) {
         const el = document.createElement('audio');
         el.src = line;
         el.volume = vol;
-        el.onended = () => el.remove();
-        el.onerror  = () => el.remove();
+        const source = routeMediaAudio(el);
+        const cleanup = () => {
+          releaseTrackAudio(source);
+          el.remove();
+        };
+        el.onended = cleanup;
+        el.onerror = cleanup;
         document.body.appendChild(el);
-        el.play().catch(() => {});
+        el.play().catch(cleanup);
       });
   } else {
     // No pitch shift — plain <audio> element, no speed change
     const el = document.createElement('audio');
     el.src = line;
     el.volume = vol;
+    const source = routeMediaAudio(el);
     // Clean up the element once it finishes (or errors) so we don't leak DOM nodes
-    el.onended = () => el.remove();
-    el.onerror  = () => el.remove();
+    const cleanup = () => {
+      releaseTrackAudio(source);
+      el.remove();
+    };
+    el.onended = cleanup;
+    el.onerror = cleanup;
     document.body.appendChild(el);
-    el.play().catch(() => {});
+    el.play().catch(cleanup);
   }
 }
 
@@ -2057,971 +2246,6 @@ function updateEngineAudio() {
       engineVoices[i].update(virtualSpeed);
     }
   });
-}
-
-// =============================================
-// BUILD SCENE
-// =============================================
-function buildScene(sceneObj) {
-  sceneObj.background = new THREE.Color(0x1a0033);
-  sceneObj.fog = new THREE.Fog(0x1a0033, 150, 500);
-
-  sceneObj.add(new THREE.AmbientLight(0xffffff, 0.7));
-  const sun = new THREE.DirectionalLight(0xfff0cc, 1.2);
-  sun.position.set(20, 50, 20);
-  sun.castShadow = settings.shadows;
-  // Shadow map resolution — 2048 gives crisp shadows; drop to 1024 if perf is an issue
-  sun.shadow.mapSize.width  = 2048;
-  sun.shadow.mapSize.height = 2048;
-  // Frustum large enough to cover the whole track (~220 units across)
-  sun.shadow.camera.near   =  1;
-  sun.shadow.camera.far    = 400;
-  sun.shadow.camera.left   = -200;
-  sun.shadow.camera.right  =  200;
-  sun.shadow.camera.top    =  200;
-  sun.shadow.camera.bottom = -200;
-  sun.shadow.bias          = -0.001; // prevents shadow acne on flat surfaces
-  sceneObj.add(sun);
-
-  // Ground plane — tiled grass texture (1024×1024 seamless, repeats every 8 world units)
-  const grassTex = new THREE.TextureLoader().load('./assets/grass.png');
-  grassTex.wrapS = THREE.RepeatWrapping;
-  grassTex.wrapT = THREE.RepeatWrapping;
-  grassTex.repeat.set(1200 / 8, 1200 / 8); // 150 tiles across each axis
-  grassTex.anisotropy = 16; // keep it crispy at glancing angles
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(1200, 1200, 40, 40),
-    new THREE.MeshLambertMaterial({ map: grassTex })
-  );
-  ground.rotation.x = -Math.PI/2;
-  ground.position.set(35, -0.05, 55);
-  ground.receiveShadow = settings.shadows;
-  sceneObj.add(ground);
-
-  // Stars in sky
-  for (let i = 0; i < 60; i++) {
-    const star = new THREE.Mesh(
-      new THREE.SphereGeometry(0.15, 4, 4),
-      new THREE.MeshBasicMaterial({ color: 0xffffff })
-    );
-    star.position.set((Math.random()-0.5)*300, 20+Math.random()*80, (Math.random()-0.5)*300);
-    sceneObj.add(star);
-  }
-
-  buildTrack(sceneObj);
-  addDecorations(sceneObj);
-  return sceneObj;
-}
-
-function buildTrack(sceneObj) {
-  const N = TRACK_SAMPLES;
-  const hw = TRACK_WIDTH / 2;
-  const verts = [], inds = [], colors = [], uvs = [];
-
-  for (let i = 0; i <= N; i++) {
-    const t0 = i / N;
-    const p = TRACK_CURVE.getPoint(t0);
-    const tan = TRACK_CURVE.getTangent(t0).normalize();
-    const perp = new THREE.Vector3(-tan.z, 0, tan.x);
-
-    const L = p.clone().addScaledVector(perp, -hw);
-    const R = p.clone().addScaledVector(perp,  hw);
-
-    verts.push(L.x, 0.01, L.z,  R.x, 0.01, R.z);
-    uvs.push(0, t0 * 40,  1, t0 * 40);
-
-    const asphalt = (i % 20 < 2) ? [0.23,0.23,0.25] : [0.17,0.17,0.19];
-    colors.push(...asphalt, ...asphalt);
-
-    if (i < N) {
-      const b = i * 2;
-      inds.push(b, b+1, b+2,  b+1, b+3, b+2);
-    }
-  }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-  geo.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
-  geo.setIndex(inds);
-  geo.computeVertexNormals();
-  const trackMesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true }));
-  trackMesh.receiveShadow = settings.shadows;
-  sceneObj.add(trackMesh);
-
-  // Kerbs — build N+1 rings where ring N is a copy of ring 0's *positions*.
-  // This guarantees the closing quad's far edge lands exactly on ring 0,
-  // sealing the loop with no gap, no spike, and no twisted geometry.
-  for (let side = -1; side <= 1; side += 2) {
-    const kVerts = [], kInds = [], kCols = [];
-
-    // Collect the N ring positions first so we can copy ring 0 at the end.
-    const rings = [];
-    for (let i = 0; i < N; i++) {
-      const t    = i / N;
-      const p    = TRACK_CURVE.getPoint(t);
-      const tan  = TRACK_CURVE.getTangent(t).normalize();
-      const perp = new THREE.Vector3(-tan.z, 0, tan.x);
-      const inner = p.clone().addScaledVector(perp, side * hw);
-      const outer = p.clone().addScaledVector(perp, side * (hw + 2.8));
-      rings.push({ inner, outer });
-    }
-
-    // Push N rings then close with an exact copy of ring 0's positions.
-    for (let i = 0; i <= N; i++) {
-      const { inner, outer } = rings[i % N]; // ring N reuses ring 0 positions exactly
-      kVerts.push(inner.x, 0.02, inner.z,  outer.x, 0.02, outer.z);
-      const kColor = Math.floor(i / 3) % 2 === 0 ? [1,0.1,0.1] : [1,1,1];
-      kCols.push(...kColor, ...kColor);
-    }
-
-    // N quads, each connecting ring i to ring i+1 — no wrap-around needed.
-    for (let i = 0; i < N; i++) {
-      const b  = i * 2;
-      const nb = (i + 1) * 2;
-      if (side === 1) {
-        kInds.push(b, b+1, nb,  b+1, nb+1, nb);
-      } else {
-        kInds.push(nb, b+1, b,  nb, nb+1, b+1);
-      }
-    }
-
-    const kg = new THREE.BufferGeometry();
-    kg.setAttribute('position', new THREE.Float32BufferAttribute(kVerts, 3));
-    kg.setAttribute('color',    new THREE.Float32BufferAttribute(kCols, 3));
-    kg.setIndex(kInds);
-    kg.computeVertexNormals();
-    const kerbMesh = new THREE.Mesh(kg, new THREE.MeshLambertMaterial({
-      vertexColors: true,
-      side: THREE.DoubleSide,
-      polygonOffset: true,
-      polygonOffsetFactor: -1,
-      polygonOffsetUnits: -1,
-    }));
-    kerbMesh.renderOrder = 1;
-    kerbMesh.receiveShadow = settings.shadows;
-    sceneObj.add(kerbMesh);
-  }
-
-  // Centre dashed line
-  for (let i = 0; i < N; i += 4) {
-    const t = i / N;
-    const p = TRACK_CURVE.getPoint(t);
-    const p2 = TRACK_CURVE.getPoint((i+2)/N);
-    const dg = new THREE.BufferGeometry();
-    dg.setAttribute('position', new THREE.Float32BufferAttribute([p.x,0.03,p.z, p2.x,0.03,p2.z], 3));
-    sceneObj.add(new THREE.Line(dg, new THREE.LineBasicMaterial({ color: 0xFFDD00 })));
-  }
-
-  // Start/Finish — flat 2D chequered texture decal on the asphalt
-  const sfTan = TRACK_CURVE.getTangent(0).normalize();
-  const sfPerp = new THREE.Vector3(-sfTan.z, 0, sfTan.x);
-  const sfOrigin = TRACK_CURVE.getPoint(0);
-
-  const flCols = 12, flRows = 4;
-  const flCanvas = document.createElement('canvas');
-  flCanvas.width  = flCols * 32;
-  flCanvas.height = flRows * 32;
-  const flCtx = flCanvas.getContext('2d');
-  for (let ci = 0; ci < flCols; ci++) {
-    for (let ri = 0; ri < flRows; ri++) {
-      flCtx.fillStyle = (ci + ri) % 2 === 0 ? '#ffffff' : '#000000';
-      flCtx.fillRect(ci * 32, ri * 32, 32, 32);
-    }
-  }
-  const flTex = new THREE.CanvasTexture(flCanvas);
-  flTex.anisotropy = 4;
-
-  const flW = TRACK_WIDTH;
-  const flD = 4.5;
-  const flGeo = new THREE.PlaneGeometry(flW, flD);
-  const flMat = new THREE.MeshBasicMaterial({ map: flTex, transparent: false, depthWrite: true,
-    polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 });
-  const flMesh = new THREE.Mesh(flGeo, flMat);
-
-  const flAngle = Math.atan2(sfTan.x, sfTan.z);
-  flMesh.rotation.x = -Math.PI / 2;
-  flMesh.rotation.z = -flAngle;
-  flMesh.position.set(sfOrigin.x, 0.04, sfOrigin.z);
-  flMesh.renderOrder = 2;
-  sceneObj.add(flMesh);
-}
-
-// =============================================
-// ON-TRACK CHECK
-// =============================================
-function isOnTrack(pos) {
-  let minDist = Infinity;
-  for (let i = 0; i < TRACK_WAYPOINTS.length; i += 2) {
-    const p = TRACK_WAYPOINTS[i];
-    const dx = pos.x - p.x, dz = pos.z - p.z;
-    const d = Math.sqrt(dx*dx + dz*dz);
-    if (d < minDist) minDist = d;
-    if (minDist < 4) break;
-  }
-  return minDist < TRACK_WIDTH / 2 + 3;
-}
-
-// =============================================
-// TREE PLACEMENT — 3D trees scattered outside the stadium
-// =============================================
-
-// Helper: create a single 3D tree (trunk + layered cones)
-function makeTree(trunkH, trunkR, foliageH, foliageR) {
-  const group = new THREE.Group();
-
-  // Trunk
-  const trunkGeo = new THREE.CylinderGeometry(trunkR * 0.6, trunkR, trunkH, 7);
-  const trunkMat = new THREE.MeshLambertMaterial({ color: 0x5C3A1E });
-  const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-  trunk.position.y = trunkH / 2;
-  trunk.castShadow = true;
-  group.add(trunk);
-
-  // Three stacked foliage cones for that classic videogame tree look
-  const foliageMat = new THREE.MeshLambertMaterial({ color: 0x2D6A2D });
-  const foliageMat2 = new THREE.MeshLambertMaterial({ color: 0x3A8A3A });
-  for (let layer = 0; layer < 3; layer++) {
-    const layerScale = 1 - layer * 0.22;
-    const coneH = foliageH * (0.7 - layer * 0.1);
-    const coneR = foliageR * layerScale;
-    const coneGeo = new THREE.ConeGeometry(coneR, coneH, 7);
-    const coneMesh = new THREE.Mesh(coneGeo, layer % 2 === 0 ? foliageMat : foliageMat2);
-    coneMesh.position.y = trunkH + foliageH * 0.3 + layer * (foliageH * 0.28);
-    coneMesh.castShadow = settings.shadows;
-    group.add(coneMesh);
-  }
-  return group;
-}
-
-// Collect all stand OBB data so trees can check against them.
-// We gather them inline here, mirroring the same loop used below.
-function buildStandOBBs() {
-  const obbs = [];
-  const STADIUM_OFFSET = 26;
-  const STAND_SEGMENT  = 18;
-  const STAND_H        = 7;
-  const STAND_D        = 8;
-  const STAND_SAMPLES  = 80;
-  for (let si = 0; si < STAND_SAMPLES; si++) {
-    const t = si / STAND_SAMPLES;
-    const pt  = TRACK_CURVE.getPoint(t);
-    const tan = TRACK_CURVE.getTangent(t).normalize();
-    const perp = new THREE.Vector3(-tan.z, 0, tan.x);
-    const standAngle = Math.atan2(tan.x, tan.z);
-    for (const side of [-1, 1]) {
-      const ox = pt.x + perp.x * side * (TRACK_WIDTH / 2 + STADIUM_OFFSET);
-      const oz = pt.z + perp.z * side * (TRACK_WIDTH / 2 + STADIUM_OFFSET);
-      obbs.push({
-        cx: ox, cz: oz,
-        halfW: STAND_SEGMENT / 2 + 3, // +3 m buffer so trees don't clip the roof overhang
-        halfD: STAND_D        / 2 + 3,
-        cosA: Math.cos(standAngle),
-        sinA: Math.sin(standAngle),
-      });
-    }
-  }
-  return obbs;
-}
-
-// Returns true if (x, z) is inside any stand OBB (with buffer already baked in)
-function isInsideAnyStand(x, z, standOBBs) {
-  for (const obb of standOBBs) {
-    const dx = x - obb.cx;
-    const dz = z - obb.cz;
-    const localX = dx * obb.cosA + dz * obb.sinA;
-    const localZ = -dx * obb.sinA + dz * obb.cosA;
-    if (Math.abs(localX) < obb.halfW && Math.abs(localZ) < obb.halfD) return true;
-  }
-  return false;
-}
-
-// Returns true if (x, z) is too close to any already-placed tree
-function isTooCloseToTree(x, z, placed, minDist) {
-  for (const [px, pz] of placed) {
-    const dx = x - px, dz = z - pz;
-    if (dx * dx + dz * dz < minDist * minDist) return true;
-  }
-  return false;
-}
-
-function scatterTrees(sceneObj) {
-  const standOBBs = buildStandOBBs();
-
-  // The grass plane is 1200×1200 centred at (35, 0, 55)
-  const GRASS_CX = 35, GRASS_CZ = 55, GRASS_HALF = 580;
-
-  // Trees only spawn outside the outermost stadium ring.
-  // Stands sit at TRACK_WIDTH/2 + STADIUM_OFFSET = 7 + 26 = 33 from the track centre.
-  // Their depth (STAND_D) is 8, so their outer edge is at +4 from centre → ~37 from track.
-  // We push the tree inner boundary a bit further out so they feel outside the stadium.
-  const TREE_INNER_TRACK_BUFFER = 47; // distance from nearest track waypoint — trees must be farther
-  const MIN_TREE_SPACING = 6;          // trees can't overlap each other
-  const TRACK_INNER_EXCLUSION = TRACK_WIDTH / 2 + 5; // don't plant inside the actual track
-
-  const NUM_TREES = 260;
-  const MAX_ATTEMPTS = 120; // per tree
-
-  const placed = []; // [[x, z], …]
-
-  // Pseudo-random but deterministic seeding via a simple LCG so layout is stable
-  let seed = 0xDEADBEEF;
-  function rand() {
-    seed = (seed * 1664525 + 1013904223) >>> 0;
-    return seed / 0xFFFFFFFF;
-  }
-
-  for (let i = 0; i < NUM_TREES; i++) {
-    let placed_ok = false;
-    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-      const x = GRASS_CX + (rand() - 0.5) * 2 * GRASS_HALF;
-      const z = GRASS_CZ + (rand() - 0.5) * 2 * GRASS_HALF;
-
-      // 1. Must be on the grass plane
-      if (Math.abs(x - GRASS_CX) > GRASS_HALF || Math.abs(z - GRASS_CZ) > GRASS_HALF) continue;
-
-      // 2. Must not be on (or too close to) the track itself
-      let minTrackDist = Infinity;
-      for (let wi = 0; wi < TRACK_WAYPOINTS.length; wi += 2) {
-        const wp = TRACK_WAYPOINTS[wi];
-        const dx = x - wp.x, dz = z - wp.z;
-        const d = Math.sqrt(dx * dx + dz * dz);
-        if (d < minTrackDist) minTrackDist = d;
-        if (minTrackDist < TRACK_INNER_EXCLUSION) break;
-      }
-      if (minTrackDist < TREE_INNER_TRACK_BUFFER) continue;
-
-      // 3. Must not be inside / clipping a stadium stand
-      if (isInsideAnyStand(x, z, standOBBs)) continue;
-
-      // 4. Must not be too close to another tree
-      if (isTooCloseToTree(x, z, placed, MIN_TREE_SPACING)) continue;
-
-      // All clear — plant it! 🌲
-      const scale   = 0.75 + rand() * 0.9;  // variety: small saplings to big bois
-      const tree    = makeTree(
-        1.8 * scale,  // trunk height
-        0.4 * scale,  // trunk radius
-        4.2 * scale,  // foliage height
-        2.0 * scale   // foliage radius
-      );
-      tree.position.set(x, 0, z);
-      tree.rotation.y = rand() * Math.PI * 2;  // random orientation 🌀
-      sceneObj.add(tree);
-      placed.push([x, z]);
-      placed_ok = true;
-      break;
-    }
-    // If we couldn't place after MAX_ATTEMPTS, just skip — no infinite loops here!
-    void placed_ok;
-  }
-}
-
-// =============================================
-// ADVERTISEMENT BILLBOARDS — outside the stadium, visible over the stands
-// =============================================
-
-/**
- * Creates a single 3D billboard.
- *
- * @param {object} opts
- *   x, z          – world position (y is always 0 / ground level)
- *   rotY          – rotation around Y axis (radians) — face this toward the track
- *   displayColor  – 0xRRGGBB hex for the flat billboard panel (easy to change!)
- *   drawFn        – function(ctx, w, h) called to paint the canvas texture
- *                   Leave null for a blank coloured panel.
- */
-function makeBillboard(sceneObj, { x, z, rotY = 0, displayColor = 0xFFFFFF, drawFn = null }) {
-  const group = new THREE.Group();
-
-  // ── Dimensions ───────────────────────────────────────────────────────────
-  const BOARD_W      = 18;   // billboard width
-  const BOARD_H      = 10;   // billboard height
-  const BOARD_THICK  = 0.28; // billboard depth / thickness
-  // Posts only go up to the bottom edge of the board — they do NOT pass through it.
-  const BOARD_BOTTOM = 15;   // y-centre of the board
-  const BOARD_BASE   = BOARD_BOTTOM - BOARD_H / 2; // y where the board's bottom edge sits
-  const POST_H       = BOARD_BASE;  // posts reach exactly to the board's bottom edge
-
-  // ── Steel support posts (two) ─────────────────────────────────────────────
-  const steelMat = new THREE.MeshLambertMaterial({ color: 0x7B8FA1, metalness: 0.0 });
-  const postGeo  = new THREE.CylinderGeometry(0.22, 0.28, POST_H, 8);
-
-  for (const side of [-1, 1]) {
-    const post = new THREE.Mesh(postGeo, steelMat);
-    // Position so the top of the post meets BOARD_BASE exactly
-    post.position.set(side * (BOARD_W * 0.34), POST_H / 2, 0);
-    post.castShadow = settings.shadows;
-    group.add(post);
-  }
-
-  // ── Horizontal crossbeam — sits just below the board bottom edge ─────────
-  const beamGeo  = new THREE.CylinderGeometry(0.12, 0.12, BOARD_W * 0.78, 8);
-  const beam     = new THREE.Mesh(beamGeo, steelMat);
-  beam.rotation.z = Math.PI / 2;
-  beam.position.set(0, BOARD_BASE - 0.3, 0); // just below the board
-  beam.castShadow = settings.shadows;
-  group.add(beam);
-
-  // ── Small diagonal braces — between upper post and crossbeam ─────────────
-  const braceLen = 3.4;
-  const braceGeo = new THREE.CylinderGeometry(0.08, 0.08, braceLen, 6);
-  for (const side of [-1, 1]) {
-    const brace = new THREE.Mesh(braceGeo, steelMat);
-    const bx = side * (BOARD_W * 0.28);
-    brace.position.set(bx, BOARD_BASE - braceLen * 0.45, 0.0);
-    brace.rotation.z = side * 0.42;
-    group.add(brace);
-  }
-
-  // ── Billboard panel — BACK (plain dark grey) ─────────────────────────────
-  const backMat  = new THREE.MeshLambertMaterial({ color: 0x2a2a2a });
-  const backGeo  = new THREE.BoxGeometry(BOARD_W, BOARD_H, BOARD_THICK * 0.5);
-  const back     = new THREE.Mesh(backGeo, backMat);
-  back.position.set(0, BOARD_BOTTOM, -BOARD_THICK * 0.35);
-  back.castShadow = settings.shadows;
-  back.receiveShadow = settings.shadows;
-  group.add(back);
-
-  // ── Billboard panel — FRONT (coloured / textured display face) ───────────
-  let frontMat;
-
-  if (drawFn) {
-    // Canvas texture
-    const CW = 512, CH = 256;
-    const canvas = document.createElement('canvas');
-    canvas.width = CW; canvas.height = CH;
-    const ctx = canvas.getContext('2d');
-    drawFn(ctx, CW, CH);
-    const tex = new THREE.CanvasTexture(canvas);
-    frontMat = new THREE.MeshLambertMaterial({ map: tex });
-  } else {
-    // Solid colour — easy to change via displayColor parameter
-    frontMat = new THREE.MeshLambertMaterial({ color: displayColor });
-  }
-
-  const frontGeo = new THREE.BoxGeometry(BOARD_W, BOARD_H, BOARD_THICK);
-  const front    = new THREE.Mesh(frontGeo, [
-    backMat,   // +X side
-    backMat,   // -X side
-    backMat,   // +Y top
-    backMat,   // -Y bottom
-    frontMat,  // +Z front face (facing track)
-    backMat,   // -Z back face
-  ]);
-  front.position.set(0, BOARD_BOTTOM, BOARD_THICK * 0.1);
-  front.castShadow = settings.shadows;
-  front.receiveShadow = settings.shadows;
-  group.add(front);
-
-  // ── Lip / border frame around the front face ──────────────────────────────
-  const frameColor = 0x1a1a1a;
-  const frameMat   = new THREE.MeshLambertMaterial({ color: frameColor });
-  for (const [fw, fh, fx, fy] of [
-    [BOARD_W + 0.3, 0.3, 0, BOARD_BOTTOM + BOARD_H / 2 + 0.15], // top
-    [BOARD_W + 0.3, 0.3, 0, BOARD_BOTTOM - BOARD_H / 2 - 0.15], // bottom
-    [0.3, BOARD_H + 0.3, -BOARD_W / 2 - 0.15, BOARD_BOTTOM],    // left
-    [0.3, BOARD_H + 0.3,  BOARD_W / 2 + 0.15, BOARD_BOTTOM],    // right
-  ]) {
-    const rim = new THREE.Mesh(new THREE.BoxGeometry(fw, fh, BOARD_THICK + 0.1), frameMat);
-    rim.position.set(fx, fy, BOARD_THICK * 0.1);
-    group.add(rim);
-  }
-
-  // ── Place in the world ────────────────────────────────────────────────────
-  group.position.set(x, 0, z);
-  group.rotation.y = rotY;
-  sceneObj.add(group);
-}
-
-/**
- * Draw the Pingas Motors advertisement canvas.
- * Uses Comic Sans, bright colours, and loads the Pingas image from the shared meme-claw-machine folder.
- */
-function _drawPingasMotorsAd(ctx, w, h) {
-  // Background — vivid red with a dark vignette
-  const bg = ctx.createLinearGradient(0, 0, w, h);
-  bg.addColorStop(0,   '#CC0000');
-  bg.addColorStop(0.5, '#FF1111');
-  bg.addColorStop(1,   '#990000');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, w, h);
-
-  // Checkerboard racing stripe along the bottom
-  const stripeH = h * 0.14;
-  const sqSz = stripeH;
-  for (let col = 0; col < Math.ceil(w / sqSz); col++) {
-    ctx.fillStyle = col % 2 === 0 ? '#FFFFFF' : '#000000';
-    ctx.fillRect(col * sqSz, h - stripeH, sqSz, stripeH);
-  }
-
-  // ── Helper that draws all the text — called after the image is in place ────
-  function drawText() {
-    // Big headline — Comic Sans, gold, drop shadow
-    ctx.font = `bold ${Math.round(h * 0.22)}px "Comic Sans MS", "Comic Sans", cursive`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#000000';
-    ctx.fillText('PINGAS MOTORS', w * 0.5 + 3, h * 0.17 + 3);
-    ctx.fillStyle = '#FFD700';
-    ctx.fillText('PINGAS MOTORS', w * 0.5, h * 0.17);
-
-    // Sub-tagline
-    ctx.font = `bold ${Math.round(h * 0.13)}px "Comic Sans MS", "Comic Sans", cursive`;
-    ctx.fillStyle = '#000000';
-    ctx.fillText('SNOO-PINGAS!', w * 0.5 + 2, h * 0.36 + 2);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillText('SNOO-PINGAS!', w * 0.5, h * 0.36);
-
-    // Small tagline
-    ctx.font = `${Math.round(h * 0.09)}px "Comic Sans MS", "Comic Sans", cursive`;
-    ctx.fillStyle = '#FFD700';
-    ctx.fillText('★ FASTEST KARTS IN THE EGGMAN EMPIRE ★', w * 0.5, h * 0.52);
-  }
-
-  // ── Pingas image — bottom-centre, above the racing stripe, drawn FIRST ───
-  // Original image is 522×478 — aspect ~1.09:1 (nearly square).
-  // We render it at ~28% of canvas height so it sits neatly in the lower zone.
-  const imgH   = Math.round(h * 0.28);
-  const imgW   = Math.round(imgH * (522 / 478)); // preserve aspect ratio
-  const imgX   = Math.round(w / 2 - imgW / 2);  // horizontally centred
-  const stripeTop = h * (1 - 0.14);             // where the checkerboard starts
-  const imgY   = Math.round(stripeTop - imgH);   // sit just above the stripe
-
-  // Draw text immediately (image loads async, but text goes on top anyway)
-  drawText();
-
-  const pingas = new Image();
-  pingas.src = '../meme-claw-machine/memes/Pingas.png';
-  pingas.onload = () => {
-    // Re-draw background over the image zone to get a clean slate,
-    // then stamp the image, then redraw text so it stays on top.
-    const bg2 = ctx.createLinearGradient(0, 0, w, h);
-    bg2.addColorStop(0,   '#CC0000');
-    bg2.addColorStop(0.5, '#FF1111');
-    bg2.addColorStop(1,   '#990000');
-    ctx.fillStyle = bg2;
-    ctx.fillRect(0, imgY, w, imgH); // clear just the image row
-    ctx.drawImage(pingas, imgX, imgY, imgW, imgH);
-    // Redraw text on top of the image
-    drawText();
-    // Notify Three.js the canvas changed
-    const parentCanvas = ctx.canvas;
-    scenes.forEach(sc => {
-      sc.traverse(obj => {
-        if (!obj.isMesh) return;
-        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-        mats.forEach(m => {
-          if (m && m.map && m.map.isCanvasTexture && m.map.image === parentCanvas) {
-            m.map.needsUpdate = true;
-          }
-        });
-      });
-    });
-  };
-}
-
-/**
- * Draw the Weegee's Racing Goggles advertisement canvas.
- * Weegee stands tall on the left; Comic Sans copy fills the right.
- * Original sprite: 998 × 2517 px (aspect 0.397 — very narrow and tall).
- */
-function _drawWeegeeGooglesAd(ctx, w, h) {
-  // ── Background: deep green gradient ──────────────────────────────────────
-  const bg = ctx.createLinearGradient(0, 0, 0, h);
-  bg.addColorStop(0,   '#004400');
-  bg.addColorStop(0.5, '#006600');
-  bg.addColorStop(1,   '#002200');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, w, h);
-
-  // Subtle horizontal scan-lines for that unsettling Weegee vibe
-  ctx.fillStyle = 'rgba(0,0,0,0.08)';
-  for (let y = 0; y < h; y += 4) ctx.fillRect(0, y, w, 2);
-
-  // ── Weegee sprite — left third, full height, preserving aspect ratio ─────
-  // Sprite is 998 × 2517 → aspect W/H = 0.3966
-  // We fill the full canvas height and derive width from the aspect ratio.
-  const WEEGEE_ASPECT = 998 / 2517;
-  const weegeeH = h;                           // fill full height
-  const weegeeW = Math.round(weegeeH * WEEGEE_ASPECT); // ~narrow column
-  const weegeeX = Math.round(w * 0.02);        // small left margin
-  const weegeeY = 0;
-
-  // ── Text layout — right of Weegee ────────────────────────────────────────
-  const textX   = weegeeX + weegeeW + Math.round(w * 0.03);
-  const textW   = w - textX - Math.round(w * 0.02);
-  const textCX  = textX + textW / 2; // centre of text column
-
-  // Helper: draw a text line with a black drop-shadow
-  function drawLine(text, y, size, color) {
-    ctx.font = `bold ${size}px "Comic Sans MS","Comic Sans",cursive`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#000000';
-    ctx.fillText(text, textCX + 2, y + 2);
-    ctx.fillStyle = color;
-    ctx.fillText(text, textCX, y);
-  }
-
-  // Brand name
-  drawLine("WEEGEE'S", Math.round(h * 0.12), Math.round(h * 0.115), '#00FF44');
-  drawLine('RACING', Math.round(h * 0.27), Math.round(h * 0.105), '#FFFFFF');
-  drawLine('GOGGLES™', Math.round(h * 0.40), Math.round(h * 0.105), '#00FF44');
-
-  // Divider line
-  ctx.strokeStyle = '#00AA33';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(textX, Math.round(h * 0.48));
-  ctx.lineTo(textX + textW, Math.round(h * 0.48));
-  ctx.stroke();
-
-  // Taglines
-  ctx.font = `${Math.round(h * 0.075)}px "Comic Sans MS","Comic Sans",cursive`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#CCFFCC';
-  const lines = [
-    'YOU WILL STARE.',
-    'THEY WILL STARE BACK.',
-    '★ U GONNA GET WEEGEE\'D ★',
-  ];
-  lines.forEach((line, i) => {
-    ctx.fillStyle = '#000000';
-    ctx.fillText(line, textCX + 1, Math.round(h * (0.57 + i * 0.135)) + 1);
-    ctx.fillStyle = i === 2 ? '#FFD700' : '#CCFFCC';
-    ctx.fillText(line, textCX, Math.round(h * (0.57 + i * 0.135)));
-  });
-
-  // ── Load Weegee sprite async, then repaint ────────────────────────────────
-  const weegee = new Image();
-  weegee.src = '../weegees-mansion/Weegee-Sprites/Weegee_Left.png';
-  weegee.onload = () => {
-    ctx.drawImage(weegee, weegeeX, weegeeY, weegeeW, weegeeH);
-    const parentCanvas = ctx.canvas;
-    scenes.forEach(sc => {
-      sc.traverse(obj => {
-        if (!obj.isMesh) return;
-        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-        mats.forEach(m => {
-          if (m && m.map && m.map.isCanvasTexture && m.map.image === parentCanvas) {
-            m.map.needsUpdate = true;
-          }
-        });
-      });
-    });
-  };
-}
-
-/**
- * Draw King Harkinian's Dinner Catering Services advertisement.
- * King image (268×230, ~1.165:1) sits centre-left; Comic Sans copy to the right.
- * Orange/gold colour scheme to match his in-game kart colour.
- */
-function _drawKingHarkinianAd(ctx, w, h) {
-  // ── Background: rich warm orange gradient ─────────────────────────────────
-  const bg = ctx.createLinearGradient(0, 0, w, h);
-  bg.addColorStop(0,   '#7A3000');
-  bg.addColorStop(0.4, '#CC5500');
-  bg.addColorStop(1,   '#4A1800');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, w, h);
-
-  // Gold decorative border strip along the top and bottom
-  ctx.fillStyle = '#DAA520';
-  ctx.fillRect(0, 0, w, Math.round(h * 0.06));
-  ctx.fillRect(0, h - Math.round(h * 0.06), w, Math.round(h * 0.06));
-
-  // Fancy crown emoji centred on the top border
-  ctx.font = `${Math.round(h * 0.055)}px serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('👑', w / 2, Math.round(h * 0.03));
-
-  // ── King Harkinian image — left half, vertically centred ─────────────────
-  // Original: 268×230 → aspect W/H ≈ 1.165. We scale up to ~42% of canvas height.
-  const kingH = Math.round(h * 0.62);
-  const kingW = Math.round(kingH * (268 / 230));
-  const kingX = Math.round(w * 0.04);
-  const kingY = Math.round((h - kingH) / 2);
-
-  // ── Text column — right of the king image ─────────────────────────────────
-  const textX  = kingX + kingW + Math.round(w * 0.04);
-  const textW  = w - textX - Math.round(w * 0.03);
-  const textCX = textX + textW / 2;
-
-  function drawLine(text, y, size, color) {
-    ctx.font = `bold ${size}px "Comic Sans MS","Comic Sans",cursive`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#000000';
-    ctx.fillText(text, textCX + 2, y + 2);
-    ctx.fillStyle = color;
-    ctx.fillText(text, textCX, y);
-  }
-
-  // Brand name — two lines so it fits
-  drawLine('KING HARKINIAN\'S', Math.round(h * 0.20), Math.round(h * 0.095), '#FFD700');
-  drawLine('DINNER CATERING', Math.round(h * 0.32), Math.round(h * 0.095), '#FFD700');
-  drawLine('SERVICES', Math.round(h * 0.44), Math.round(h * 0.095), '#FFD700');
-
-  // Divider
-  ctx.strokeStyle = '#DAA520';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(textX, Math.round(h * 0.52));
-  ctx.lineTo(textX + textW, Math.round(h * 0.52));
-  ctx.stroke();
-
-  // Slogan — two lines to keep it readable
-  drawLine('Makes YOU wonder', Math.round(h * 0.62), Math.round(h * 0.082), '#FFFFFF');
-  drawLine("what's for dinner!", Math.round(h * 0.73), Math.round(h * 0.082), '#FFFFFF');
-
-  // Fine print
-  ctx.font = `${Math.round(h * 0.058)}px "Comic Sans MS","Comic Sans",cursive`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#FFCC66';
-  ctx.fillText('★ BY ROYAL DECREE ★', textCX, Math.round(h * 0.855));
-
-  // ── Load King image async ─────────────────────────────────────────────────
-  const king = new Image();
-  king.src = 'assets/King-Harkinian.png';
-  king.onload = () => {
-    ctx.drawImage(king, kingX, kingY, kingW, kingH);
-    const parentCanvas = ctx.canvas;
-    scenes.forEach(sc => {
-      sc.traverse(obj => {
-        if (!obj.isMesh) return;
-        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-        mats.forEach(m => {
-          if (m && m.map && m.map.isCanvasTexture && m.map.image === parentCanvas) {
-            m.map.needsUpdate = true;
-          }
-        });
-      });
-    });
-  };
-}
-
-/**
- * Draw Longcat's Cat Food Empire advertisement.
- * Dark/black background, Longcat image (500×500, square) on the right,
- * Comic Sans copy on the left. Longcat is scaled down just a touch.
- */
-function _drawLongcatAd(ctx, w, h) {
-  // ── Background: deep charcoal/black with subtle purple tint ──────────────
-  const bg = ctx.createLinearGradient(0, 0, w, h);
-  bg.addColorStop(0,   '#0A0A12');
-  bg.addColorStop(0.5, '#12121E');
-  bg.addColorStop(1,   '#060608');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, w, h);
-
-  // Subtle starfield — tiny white dots for a dramatic night-sky feel
-  const starRng = (() => { let s = 0xCAFEF00D; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 0xFFFFFFFF; }; })();
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  for (let i = 0; i < 55; i++) {
-    const sx = starRng() * w * 0.55; // only left portion — Longcat occupies the right
-    const sy = starRng() * h;
-    const sr = starRng() * 1.2 + 0.3;
-    ctx.beginPath();
-    ctx.arc(sx, sy, sr, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // Thin purple accent line top & bottom
-  ctx.fillStyle = '#8833CC';
-  ctx.fillRect(0, 0, w, Math.round(h * 0.025));
-  ctx.fillRect(0, h - Math.round(h * 0.025), w, Math.round(h * 0.025));
-
-  // ── Longcat image — right side, slightly smaller than 500×500 source ─────
-  // 500×500 → square. We render at ~85% of canvas height, centred vertically.
-  const catSize = Math.round(h * 0.85); // square — slightly smaller than full height
-  const catX    = Math.round(w - catSize - w * 0.03); // right-aligned with small margin
-  const catY    = Math.round((h - catSize) / 2);
-
-  // ── Text column — left of Longcat ────────────────────────────────────────
-  const textW  = catX - Math.round(w * 0.03);
-  const textCX = textW / 2;
-
-  function drawLine(text, y, size, color) {
-    ctx.font = `bold ${size}px "Comic Sans MS","Comic Sans",cursive`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#000000';
-    ctx.fillText(text, textCX + 2, y + 2);
-    ctx.fillStyle = color;
-    ctx.fillText(text, textCX, y);
-  }
-
-  // Brand name
-  drawLine('LONGCAT\'S', Math.round(h * 0.14), Math.round(h * 0.105), '#DDDDDD');
-  drawLine('CAT FOOD', Math.round(h * 0.26), Math.round(h * 0.105), '#DDDDDD');
-  drawLine('EMPIRE', Math.round(h * 0.38), Math.round(h * 0.105), '#DDDDDD');
-
-  // Purple divider
-  ctx.strokeStyle = '#8833CC';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(Math.round(w * 0.04), Math.round(h * 0.46));
-  ctx.lineTo(textW - Math.round(w * 0.04), Math.round(h * 0.46));
-  ctx.stroke();
-
-  // Slogan
-  drawLine('Longcat is long.', Math.round(h * 0.56), Math.round(h * 0.082), '#CC99FF');
-  drawLine('So is our menu.', Math.round(h * 0.67), Math.round(h * 0.082), '#CC99FF');
-
-  // Fine print
-  ctx.font = `${Math.round(h * 0.058)}px "Comic Sans MS","Comic Sans",cursive`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#888899';
-  ctx.fillText('★ ENDLESS VARIETY ★', textCX, Math.round(h * 0.855));
-
-  // ── Load Longcat image async ──────────────────────────────────────────────
-  const longcat = new Image();
-  longcat.src = '../meme-claw-machine/memes/Longcat.png';
-  longcat.onload = () => {
-    ctx.drawImage(longcat, catX, catY, catSize, catSize);
-    const parentCanvas = ctx.canvas;
-    scenes.forEach(sc => {
-      sc.traverse(obj => {
-        if (!obj.isMesh) return;
-        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-        mats.forEach(m => {
-          if (m && m.map && m.map.isCanvasTexture && m.map.image === parentCanvas) {
-            m.map.needsUpdate = true;
-          }
-        });
-      });
-    });
-  };
-}
-
-/**
- * Place all 4 advertisement billboards.
- * Positions chosen to be well outside the stadium (> 50 units from track)
- * and high enough (POST_H = 12) to be visible over the stands (STAND_H = 7).
- *
- * BILLBOARD DISPLAY COLOURS — change these 0x hex codes to repaint any panel:
- *   billboard 1 (Pingas Motors):  textured canvas — see _drawPingasMotorsAd()
- *   billboard 2 (blue):           displayColor: 0x003399
- *   billboard 3 (green):          displayColor: 0x005522
- *   billboard 4 (orange):         displayColor: 0xFF6600
- */
-function addBillboards(sceneObj) {
-  // ── 1. Pingas Motors (NE straight, faces south-west toward the track) ─────
-  makeBillboard(sceneObj, {
-    x: 190, z: -20,
-    rotY: Math.PI * 1.25,   // faces toward the long straight
-    displayColor: 0xFF1111, // fallback if canvas fails (same red as the ad)
-    drawFn: _drawPingasMotorsAd,
-  });
-
-  // ── 2. Weegee's Racing Goggles (east turn, faces west) ────────────
-  makeBillboard(sceneObj, {
-    x: 210, z: 75,
-    rotY: Math.PI,           // faces west toward the sweeping right-hander
-    displayColor: 0x006600,  // green fallback if canvas hasn't loaded yet
-    drawFn: _drawWeegeeGooglesAd,
-  });
-
-  // ── 3. Longcat's Cat Food Empire (south straight, faces south toward the track) ──
-  makeBillboard(sceneObj, {
-    x: 40, z: 185,
-    rotY: Math.PI,
-    displayColor: 0x0A0A12,  // near-black fallback matching the ad background
-    drawFn: _drawLongcatAd,
-  });
-
-  // ── 4. King Harkinian's Dinner Catering (west hairpin, faces east) ─────────
-  makeBillboard(sceneObj, {
-    x: -130, z: 60,
-    rotY: Math.PI * 0.5,    // faces east
-    displayColor: 0xFF6600,  // warm orange fallback
-    drawFn: _drawKingHarkinianAd,
-  });
-}
-
-function addDecorations(sceneObj) {
-  scatterTrees(sceneObj);
-  addBillboards(sceneObj);
-
-  // ── FULL STADIUM: stands placed outside every track segment ──
-  const STADIUM_OFFSET = 26;
-  const STAND_SEGMENT = 18;
-  const STAND_H = 7;
-  const STAND_D = 8;
-  const standMat = new THREE.MeshLambertMaterial({ color: 0x778899 });
-  const roofMat  = new THREE.MeshLambertMaterial({ color: 0xCC3300 });
-  const seatColors = [0x1144CC, 0xCC1111, 0xFFDD00, 0x119922, 0xAA22CC];
-
-  const STAND_SAMPLES = 80;
-  for (let si = 0; si < STAND_SAMPLES; si++) {
-    const t = si / STAND_SAMPLES;
-    const pt = TRACK_CURVE.getPoint(t);
-    const tan = TRACK_CURVE.getTangent(t).normalize();
-    const perp = new THREE.Vector3(-tan.z, 0, tan.x);
-    const standAngle = Math.atan2(tan.x, tan.z);
-
-    for (const side of [-1, 1]) {
-      const ox = pt.x + perp.x * side * (TRACK_WIDTH / 2 + STADIUM_OFFSET);
-      const oz = pt.z + perp.z * side * (TRACK_WIDTH / 2 + STADIUM_OFFSET);
-
-      const stand = new THREE.Mesh(new THREE.BoxGeometry(STAND_SEGMENT, STAND_H, STAND_D), standMat);
-      stand.position.set(ox, STAND_H / 2, oz);
-      stand.rotation.y = standAngle;
-      stand.traverse(obj => { if (obj.isMesh) { obj.receiveShadow = settings.shadows; obj.castShadow = settings.shadows; } });
-      sceneObj.add(stand);
-
-      // Register this stand's OBB for collision (only once, not duplicated per scene)
-      if (sceneObj === scenes[0] || scenes.length === 0) {
-        stadiumWalls.push({
-          cx: ox, cz: oz,
-          halfW: STAND_SEGMENT / 2,
-          halfD: STAND_D / 2,
-          cosA: Math.cos(standAngle),
-          sinA: Math.sin(standAngle),
-        });
-      }
-
-      const roof = new THREE.Mesh(new THREE.BoxGeometry(STAND_SEGMENT + 1, 0.4, STAND_D + 3), roofMat);
-      roof.position.set(ox, STAND_H + 0.2, oz);
-      roof.rotation.y = standAngle;
-      sceneObj.add(roof);
-
-      for (let row = 0; row < 3; row++) {
-        const seatCol = seatColors[(si * 3 + row + (side > 0 ? 2 : 0)) % seatColors.length];
-        const rowMesh = new THREE.Mesh(
-          new THREE.BoxGeometry(STAND_SEGMENT - 0.5, 0.6, 0.8),
-          new THREE.MeshLambertMaterial({ color: seatCol })
-        );
-        rowMesh.position.set(
-          ox + perp.x * side * -1.5,
-          1.0 + row * 1.8,
-          oz + perp.z * side * -1.5
-        );
-        rowMesh.rotation.y = standAngle;
-        sceneObj.add(rowMesh);
-      }
-
-      for (let pi = -1; pi <= 1; pi += 2) {
-        const pillar = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.3, 0.4, STAND_H, 6),
-          new THREE.MeshLambertMaterial({ color: 0x555566 })
-        );
-        pillar.position.set(
-          ox + Math.cos(standAngle) * pi * (STAND_SEGMENT / 2 - 1),
-          STAND_H / 2,
-          oz - Math.sin(standAngle) * pi * (STAND_SEGMENT / 2 - 1)
-        );
-        sceneObj.add(pillar);
-      }
-    }
-  }
-
-  // Item boxes are added by startGame(), not here.
 }
 
 // Shared item-box texture (created once)
@@ -3480,6 +2704,7 @@ function createPlayer(charIndex, startPos, startAngle, scene) {
     finishTime: null,
     item: null,
     itemCooldown: 0,
+    blueShellUseDelay: null,
     stunTimer: 0,
     spinoutTimer: 0,   // > 0 while spinning from a banana
     spinoutAngle: 0,   // accumulated extra rotation during spinout
@@ -3507,35 +2732,43 @@ function createPlayer(charIndex, startPos, startAngle, scene) {
     bombAirborneStartY: 0,
     bombAirborneDistance: 0,
     bombAirborneAngle: 0,
+    verticalVelocity: 0,
   };
 }
 
 // =============================================
 // CHECKPOINT SYSTEM
 // =============================================
-const NUM_CHECKPOINTS = 24;
-const CHECKPOINTS = [];
-for (let i = 0; i < NUM_CHECKPOINTS; i++) {
-  CHECKPOINTS.push(TRACK_CURVE.getPoint(i / NUM_CHECKPOINTS));
+let CHECKPOINTS = [];
+let FINISH_LINE_POSITION;
+
+function rebuildTrackCheckpoints() {
+  CHECKPOINTS = Array.from(
+    { length: ACTIVE_TRACK.checkpointCount },
+    (_, index) => ACTIVE_TRACK.curve.getPoint(index / ACTIVE_TRACK.checkpointCount)
+  );
+  FINISH_LINE_POSITION = ACTIVE_TRACK.curve.getPoint(0);
+  CHECKPOINTS[0].copy(FINISH_LINE_POSITION);
 }
-const FINISH_LINE_POSITION = TRACK_CURVE.getPoint(0);
-CHECKPOINTS[0].copy(FINISH_LINE_POSITION);
+
+rebuildTrackCheckpoints();
 
 function updateLaps(player) {
   const pos = player.kart.position;
-  const nextIdx = (player.checkpoint + 1) % NUM_CHECKPOINTS;
+  const nextIdx = (player.checkpoint + 1) % ACTIVE_TRACK.checkpointCount;
   const next = CHECKPOINTS[nextIdx];
   const dist = new THREE.Vector2(pos.x - next.x, pos.z - next.z).length();
 
   if (dist < 12) {
     player.checkpoint = nextIdx;
-    if (player.checkpoint === 0 && player.lastCheckpoint === NUM_CHECKPOINTS - 1) {
+    if (player.checkpoint === 0 && player.lastCheckpoint === ACTIVE_TRACK.checkpointCount - 1) {
       player.lap++;
-      if (player.lap > TOTAL_LAPS && !player.finishTime) {
+      if (player.lap > ACTIVE_TRACK.totalLaps && !player.finishTime) {
         player.finishTime = (Date.now() - raceStart) / 1000;
         // The crossing order is the final finishing place, even while other
         // racers are still driving toward the line.
         player.finishPlace = players.filter(p => p.finishTime !== null).length;
+        queueFinishSplash(player);
         const charIdx = player.charIndex;
         setTimeout(() => {
           playCharacterVoiceline(charIdx, player.finishPlace === 1 ? 'win' : 'lose');
@@ -3639,14 +2872,16 @@ function checkAllFinished() {
 // =============================================
 // ITEMS
 // =============================================
-// Weighted item pool — Lightning is rare (1 entry vs 4 for common items)
+// Repeated entries define each item's relative chance when an item box is collected.
 const ITEMS_WEIGHTED = [
-  '🍌 Banana', '🍌 Banana', '🍌 Banana', '🍌 Banana',
-  '🔴 Shell',  '🔴 Shell',  '🔴 Shell',  '🔴 Shell',
-  '⭐ Star',   '⭐ Star',   '⭐ Star',   '⭐ Star',
-  '💨 Boost',  '💨 Boost',  '💨 Boost',  '💨 Boost',
-  '⚡ Lightning',  // rare — only 1 entry out of 17
-  '💣 Bomb',
+  '🍌 Banana', '🍌 Banana', '🍌 Banana', '🍌 Banana', '🍌 Banana',
+  '💨 Boost',  '💨 Boost',  '💨 Boost',  '💨 Boost',  '💨 Boost',
+  '🟢 Green Shell', '🟢 Green Shell', '🟢 Green Shell', '🟢 Green Shell',
+  '🔴 Shell',  '🔴 Shell',  '🔴 Shell',
+  '⭐ Star',   '⭐ Star',   '⭐ Star',
+  '💣 Bomb',   '💣 Bomb',
+  '⚡ Lightning', '⚡ Lightning',
+  '🔵 Blue Shell',
 ];
 const ITEMS = ITEMS_WEIGHTED; // kept for any external references
 
@@ -3721,7 +2956,7 @@ function spawnBananaPeel(thrower) {
     -Math.cos(thrower.angle) * 3
   );
   const spawnPos = thrower.kart.position.clone().add(behind);
-  spawnPos.y = 0;
+  spawnPos.y = trackSurfaceHeightAt(spawnPos);
 
   const mesh1 = makeBananaPeelMesh();
   const mesh2 = scenes[1] ? makeBananaPeelMesh() : null;
@@ -3754,7 +2989,7 @@ function updateBananaPeels(delta, playersArr) {
       if (player.stunTimer > 0) continue;
 
       const dist = player.kart.position.distanceTo(peel.position);
-      if (dist < 2.2) {
+      if (dist < 2.2 * getKartCollisionScale(player)) {
         // Consume the peel atomically FIRST so nothing else can claim it
         peel.active = false;
         scenes[0].remove(peel.mesh1);
@@ -3771,6 +3006,7 @@ function updateBananaPeels(delta, playersArr) {
         showSlipEffect(player);
         playSlipSound();
         playHitVoicelineForPlayer(player);
+        return true;
       }
     }
   });
@@ -4121,24 +3357,20 @@ function resolveTinyKartSquishes() {
   for (let i = 0; i < players.length; i++) {
     const runner = players[i];
     if (!runner || !runner.kart || runner.finishTime !== null) continue;
-    const runnerScale = runner.kart.scale.x || 1;
-    if (runnerScale < 0.95) continue;
+    if (runner.lightningTimer > 0) continue;
 
     for (let j = 0; j < players.length; j++) {
       if (i === j) continue;
       const target = players[j];
       if (!target || !target.kart || target.finishTime !== null) continue;
 
-      // The lightning timer is the real source of truth for "tiny racer" status.
-      // A flattened kart can temporarily grow wider in X/Z while still being
-      // lightning-shrunk underneath, so checking the current visible scale here
-      // creates false immunity after repeated squishes.
       if (target.lightningTimer <= 0) continue;
       if (target.squishTimer > 0 || target.flatTimer > 0) continue;
 
       const dx = runner.kart.position.x - target.kart.position.x;
       const dz = runner.kart.position.z - target.kart.position.z;
-      if (dx * dx + dz * dz > 5.5 * 5.5) continue;
+      const contactDistance = getKartBumpRadius(runner) + getKartBumpRadius(target);
+      if (dx * dx + dz * dz > contactDistance * contactDistance) continue;
       triggerKartSquish(target);
       break;
     }
@@ -4148,10 +3380,20 @@ function resolveTinyKartSquishes() {
 
 // Restore a player that was shrunk by lightning — animate the grow-back
 function restoreFromLightning(player) {
-  const currentScale = player.kart.scale.x; // whatever scale we're at right now
+  player.kart.userData.squashState && delete player.kart.userData.squashState;
+  const sprite = player.kart.userData.charSprite;
+  if (sprite && sprite.userData.squashState) {
+    sprite.scale.copy(sprite.userData.squashState.startScale);
+    delete sprite.userData.squashState;
+  }
+  player.squishTimer = 0;
+  player.flatTimer = 0;
+  player.recoverTimer = 0;
+  player._squashSpeedMultiplier = 1;
+  player.kart.scale.setScalar(TINY_KART_COLLISION_SCALE);
   player._scaleAnim = {
     type:     'restore',
-    from:     currentScale,
+    from:     TINY_KART_COLLISION_SCALE,
     to:       1.0,
     duration: 0.45,  // 450ms grow-back
     elapsed:  0,
@@ -4164,6 +3406,7 @@ function applyLightningToPlayer(target) {
   if (target.finishTime !== null) return;
   if (target.starTimer > 0) return; // star power blocks lightning
 
+  const wasAlreadyTiny = target.lightningTimer > 0;
   target.lightningTimer = 13;
 
   // Spinout
@@ -4173,14 +3416,16 @@ function applyLightningToPlayer(target) {
   target.speed       *= 0.25;
 
   // Animated shrink — from current scale down to 0.5
-  const currentScale = target.kart.scale.x;
-  target._scaleAnim = {
-    type:     'shrink',
-    from:     currentScale,
-    to:       0.5,
-    duration: 0.35,  // 350ms shrink
-    elapsed:  0,
-  };
+  if (!wasAlreadyTiny) {
+    const currentScale = target.kart.scale.x;
+    target._scaleAnim = {
+      type:     'shrink',
+      from:     currentScale,
+      to:       TINY_KART_COLLISION_SCALE,
+      duration: 0.35,  // 350ms shrink
+      elapsed:  0,
+    };
+  }
 
   target._lightningPitchShift = true;
   // Flag is already true above, so the helper will auto-apply 1.6× chipmunk pitch 🐿️
@@ -4224,6 +3469,9 @@ function triggerLightningStrike(thrower) {
 //              homingVel,      ← {x,z} velocity used during direct homing phase
 //              phase }         ← 'track' | 'homing'
 let redShells = [];
+let greenShells = [];
+let blueShells = [];
+let blueShellWarning = null;
 
 // =============================================
 // BOMB ITEM
@@ -4232,6 +3480,7 @@ let bombs = [];
 const BOMB_FUSE_DURATION = 3;
 const BOMB_BLAST_RADIUS = 6;
 const BOMB_AIRBORNE_DURATION = 5;
+const BLUE_SHELL_BLAST_RADIUS = 7.5;
 
 function makeBombMesh() {
   const group = new THREE.Group();
@@ -4279,7 +3528,7 @@ function spawnBomb(thrower) {
     -Math.cos(thrower.angle) * 3.2
   );
   const position = thrower.kart.position.clone().add(behind);
-  position.y = 0.75;
+  position.y = ACTIVE_TRACK.curve.getPoint(closestTrackT(position)).y + 0.75;
   const mesh1 = makeBombMesh();
   const mesh2 = scenes[1] ? makeBombMesh() : null;
   mesh1.position.copy(position);
@@ -4318,12 +3567,12 @@ function playBombExplosionSound() {
   playSfxAudio('assets/bomb-explosion.mp3');
 }
 
-function launchPlayerFromBomb(player, origin) {
-  if (player.finishTime !== null || player.bombAirborneTimer > 0) return;
+function launchPlayerFromBlast(player, origin, blastRadius, playHitVoice = true) {
+  if (player.finishTime !== null || player.bombAirborneTimer > 0) return false;
   const dx = player.kart.position.x - origin.x;
   const dz = player.kart.position.z - origin.z;
   const distance = Math.hypot(dx, dz) || 1;
-  const strength = Math.max(0.35, 1 - distance / BOMB_BLAST_RADIUS);
+  const strength = Math.max(0.35, 1 - distance / blastRadius);
   player.bombAirborneTimer = BOMB_AIRBORNE_DURATION;
   player.bombAirborneElapsed = 0;
   player.bombAirborneStartY = player.kart.position.y;
@@ -4335,7 +3584,8 @@ function launchPlayerFromBomb(player, origin) {
   player.stunTimer = BOMB_AIRBORNE_DURATION;
   player.spinoutTimer = 0;
   player.kart.rotation.z = 0;
-  playHitVoicelineForPlayer(player);
+  if (playHitVoice) playHitVoicelineForPlayer(player);
+  return true;
 }
 
 function explodeBomb(bomb) {
@@ -4357,7 +3607,7 @@ function explodeBomb(bomb) {
     const dx = player.kart.position.x - bomb.position.x;
     const dz = player.kart.position.z - bomb.position.z;
     if (dx * dx + dz * dz <= BOMB_BLAST_RADIUS * BOMB_BLAST_RADIUS) {
-      launchPlayerFromBomb(player, bomb.position);
+      launchPlayerFromBlast(player, bomb.position, BOMB_BLAST_RADIUS);
     }
   }
 }
@@ -4436,21 +3686,23 @@ function updateBombAirborne(player, delta) {
   return true;
 }
 
-// ── Build a 3D red shell mesh ──
-function makeRedShellMesh() {
+// ── Build a 3D shell mesh ──
+function makeRedShellMesh(green = false) {
   const group = new THREE.Group();
+  const colors = green
+    ? { bottom: 0x16852b, top: 0x35d04f, ridge: 0x075b1b, segment: 0x0b7624 }
+    : { bottom: 0xCC1100, top: 0xEE2200, ridge: 0x880000, segment: 0xAA0000 };
 
-  // Bottom dome (flattened hemisphere) — red
+  // Bottom dome (flattened hemisphere)
   const bottomGeo = new THREE.SphereGeometry(0.55, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2);
-  const redMat = new THREE.MeshLambertMaterial({ color: 0xCC1100 });
-  const bottom = new THREE.Mesh(bottomGeo, redMat);
+  const bottom = new THREE.Mesh(bottomGeo, new THREE.MeshLambertMaterial({ color: colors.bottom }));
   bottom.rotation.x = Math.PI; // flip so dome faces down
   bottom.position.y = 0.05;
   group.add(bottom);
 
-  // Top dome — lighter red, slightly smaller
+  // Top dome — lighter shell color, slightly smaller
   const topGeo = new THREE.SphereGeometry(0.52, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2);
-  const topMat = new THREE.MeshLambertMaterial({ color: 0xEE2200 });
+  const topMat = new THREE.MeshLambertMaterial({ color: colors.top });
   const top = new THREE.Mesh(topGeo, topMat);
   top.position.y = 0.05;
   group.add(top);
@@ -4465,14 +3717,14 @@ function makeRedShellMesh() {
 
   // Ridge ring around equator — dark outline
   const ridgeGeo = new THREE.TorusGeometry(0.52, 0.045, 8, 32);
-  const ridgeMat = new THREE.MeshLambertMaterial({ color: 0x880000 });
+  const ridgeMat = new THREE.MeshLambertMaterial({ color: colors.ridge });
   const ridge = new THREE.Mesh(ridgeGeo, ridgeMat);
   ridge.rotation.x = Math.PI / 2;
   ridge.position.y = 0.05;
   group.add(ridge);
 
   // Shell segments — 6 raised ridges radiating from top
-  const segMat = new THREE.MeshLambertMaterial({ color: 0xAA0000 });
+  const segMat = new THREE.MeshLambertMaterial({ color: colors.segment });
   for (let i = 0; i < 6; i++) {
     const angle = (i / 6) * Math.PI * 2;
     const segGeo = new THREE.BoxGeometry(0.07, 0.06, 0.44);
@@ -4501,14 +3753,167 @@ function makeRedShellMesh() {
 function closestTrackT(pos) {
   let bestT = 0;
   let bestDist = Infinity;
-  for (let i = 0; i < TRACK_SAMPLES; i++) {
-    const t = i / TRACK_SAMPLES;
-    const pt = TRACK_CURVE.getPoint(t);
+  for (let i = 0; i < ACTIVE_TRACK.samples; i++) {
+    const t = i / ACTIVE_TRACK.samples;
+    const pt = ACTIVE_TRACK.curve.getPoint(t);
     const dx = pos.x - pt.x, dz = pos.z - pt.z;
     const d = dx * dx + dz * dz;
     if (d < bestDist) { bestDist = d; bestT = t; }
   }
   return bestT;
+}
+
+function closestTrackTRefined(pos) {
+  const samples = ACTIVE_TRACK.samples;
+  const coarseT = closestTrackT(pos);
+  const searchRadius = 1 / samples;
+  const searchStep = searchRadius / 32;
+  let bestT = coarseT;
+  let bestDist = Infinity;
+  for (let i = -32; i <= 32; i++) {
+    const t = (coarseT + i * searchStep + 1) % 1;
+    const point = ACTIVE_TRACK.curve.getPoint(t);
+    const dx = pos.x - point.x;
+    const dz = pos.z - point.z;
+    const distanceSq = dx * dx + dz * dz;
+    if (distanceSq < bestDist) {
+      bestDist = distanceSq;
+      bestT = t;
+    }
+  }
+  const previousT = (bestT - searchStep + 1) % 1;
+  const nextT = (bestT + searchStep) % 1;
+  const previousPoint = ACTIVE_TRACK.curve.getPoint(previousT);
+  const nextPoint = ACTIVE_TRACK.curve.getPoint(nextT);
+  const previousDx = pos.x - previousPoint.x;
+  const previousDz = pos.z - previousPoint.z;
+  const nextDx = pos.x - nextPoint.x;
+  const nextDz = pos.z - nextPoint.z;
+  const previousDist = previousDx * previousDx + previousDz * previousDz;
+  const nextDist = nextDx * nextDx + nextDz * nextDz;
+  const curvature = previousDist - 2 * bestDist + nextDist;
+  if (curvature <= 0) return bestT;
+  const offset = Math.max(-1, Math.min(
+    1,
+    0.5 * (previousDist - nextDist) / curvature
+  ));
+  return (bestT + offset * searchStep + 1) % 1;
+}
+
+function advanceTrackTByDistance(curve, trackT, distance) {
+  const lengths = curve.getLengths();
+  const lastIndex = lengths.length - 1;
+  const trackIndex = trackT * lastIndex;
+  const lowerIndex = Math.floor(trackIndex);
+  const fraction = trackIndex - lowerIndex;
+  const currentDistance = lengths[lowerIndex]
+    + (lengths[lowerIndex + 1] - lengths[lowerIndex]) * fraction;
+  const totalLength = lengths[lastIndex];
+  const targetDistance = ((currentDistance + distance) % totalLength + totalLength) % totalLength;
+
+  let low = 0;
+  let high = lastIndex;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (lengths[middle] < targetDistance) low = middle + 1;
+    else high = middle;
+  }
+
+  const segmentStart = Math.max(0, low - 1);
+  const segmentLength = lengths[segmentStart + 1] - lengths[segmentStart];
+  const segmentFraction = segmentLength > 0
+    ? (targetDistance - lengths[segmentStart]) / segmentLength
+    : 0;
+  return (segmentStart + segmentFraction) / lastIndex;
+}
+
+function updateKartTrackElevation(player, delta) {
+  const trackT = closestTrackT(player.kart.position);
+  const onTrack = ACTIVE_TRACK.isOnTrack(player.kart.position);
+  let targetSurfaceHeight;
+  let targetPitch = 0;
+
+  if (onTrack) {
+    const halfWheelbase = 1.2;
+    const trackLength = ACTIVE_TRACK.curve.getLength();
+    const arcLengths = ACTIVE_TRACK.curve.getLengths();
+    const arcIndex = trackT * (arcLengths.length - 1);
+    const lowerIndex = Math.floor(arcIndex);
+    const arcFraction = arcIndex - lowerIndex;
+    const trackU = (
+      arcLengths[lowerIndex]
+      + (arcLengths[lowerIndex + 1] - arcLengths[lowerIndex]) * arcFraction
+    ) / trackLength;
+    const axleOffset = halfWheelbase / trackLength;
+    const frontPoint = ACTIVE_TRACK.curve.getPointAt((trackU + axleOffset) % 1);
+    const rearPoint = ACTIVE_TRACK.curve.getPointAt((trackU - axleOffset + 1) % 1);
+    const risePerWheelbase = (frontPoint.y - rearPoint.y) / (halfWheelbase * 2);
+    const pitchLimit = Math.sin(0.3);
+
+    targetSurfaceHeight = (frontPoint.y + rearPoint.y) / 2;
+    targetPitch = -Math.asin(Math.max(-pitchLimit, Math.min(pitchLimit, risePerWheelbase)));
+  } else {
+    targetSurfaceHeight = trackSurfaceHeightAt(player.kart.position);
+  }
+
+  const targetHeight = targetSurfaceHeight + 0.85;
+  const step = Math.min(delta, 0.05);
+  const springStrength = 48;
+  const damping = 14;
+
+  player.verticalVelocity += (
+    (targetHeight - player.kart.position.y) * springStrength
+    - player.verticalVelocity * damping
+  ) * step;
+  player.verticalVelocity = Math.max(-12, Math.min(12, player.verticalVelocity));
+  player.kart.position.y += player.verticalVelocity * step;
+
+  player.kart.rotation.x += (targetPitch - player.kart.rotation.x) * Math.min(delta * 8, 1);
+}
+
+function trackSurfaceHeightAt(position) {
+  if (ACTIVE_TRACK.isOnTrack(position)) {
+    return ACTIVE_TRACK.curve.getPoint(closestTrackT(position)).y;
+  }
+  if (typeof ACTIVE_TRACK.getSurfaceHeightAt === 'function') {
+    return ACTIVE_TRACK.getSurfaceHeightAt(position);
+  }
+  return ACTIVE_TRACK.surfaceHeight ?? 0;
+}
+
+function resolveStadiumWallCollision(player) {
+  const kartRadius = 1.4;
+  for (const wall of stadiumWalls) {
+    const dx = player.kart.position.x - wall.cx;
+    const dz = player.kart.position.z - wall.cz;
+    const cosA = wall.cosA, sinA = wall.sinA;
+    const localX = dx * cosA + dz * sinA;
+    const localZ = -dx * sinA + dz * cosA;
+    const overlapX = wall.halfW + kartRadius - Math.abs(localX);
+    const overlapZ = wall.halfD + kartRadius - Math.abs(localZ);
+
+    if (overlapX <= 0 || overlapZ <= 0) continue;
+
+    let pushLocalX = 0, pushLocalZ = 0;
+    if (overlapX < overlapZ) {
+      pushLocalX = overlapX * (localX < 0 ? -1 : 1);
+    } else {
+      pushLocalZ = overlapZ * (localZ < 0 ? -1 : 1);
+    }
+    player.kart.position.x += pushLocalX * cosA - pushLocalZ * sinA;
+    player.kart.position.z += pushLocalX * sinA + pushLocalZ * cosA;
+
+    const wallNx = -sinA, wallNz = cosA;
+    const velX = Math.sin(player.angle) * player.speed;
+    const velZ = Math.cos(player.angle) * player.speed;
+    const velDotN = velX * wallNx + velZ * wallNz;
+    if (
+      velDotN * (pushLocalZ !== 0 ? (localZ < 0 ? -1 : 1) : 0) < 0
+      || pushLocalX !== 0
+    ) {
+      player.speed *= -0.15;
+    }
+  }
 }
 
 function spawnRedShell(thrower, target) {
@@ -4520,17 +3925,18 @@ function spawnRedShell(thrower, target) {
   // Snap shell and target to nearest track t (full search — no blind spot)
   const shellT  = closestTrackT(spawnPos);
   const targetT = closestTrackT(target.kart.position);
+  const shellHeight = ACTIVE_TRACK.curve.getPoint(shellT).y + 0.6;
 
   // Choose the direction (forward or backward around the loop) that reaches
   // the target in fewer steps — this is what makes it actually chase the right way
-  const fwdSteps = ((targetT - shellT + 1) % 1) * TRACK_SAMPLES;
-  const bwdSteps = ((shellT - targetT + 1) % 1) * TRACK_SAMPLES;
+  const fwdSteps = ((targetT - shellT + 1) % 1) * ACTIVE_TRACK.samples;
+  const bwdSteps = ((shellT - targetT + 1) % 1) * ACTIVE_TRACK.samples;
   const trackDir = fwdSteps <= bwdSteps ? 1 : -1; // +1 = forward, -1 = backward
 
   const mesh1 = makeRedShellMesh();
   const mesh2 = scenes[1] ? makeRedShellMesh() : null;
-  mesh1.position.copy(spawnPos).setY(0.6);
-  if (mesh2) mesh2.position.copy(spawnPos).setY(0.6);
+  mesh1.position.copy(spawnPos).setY(shellHeight);
+  if (mesh2) mesh2.position.copy(spawnPos).setY(shellHeight);
   scenes[0].add(mesh1);
   if (mesh2) scenes[1].add(mesh2);
 
@@ -4572,17 +3978,17 @@ function updateRedShells(delta) {
 
     if (shell.phase === 'track') {
       // ── TRACK-FOLLOWING PHASE ──
-      const arcLength = TRACK_CURVE.getLength();
+      const arcLength = ACTIVE_TRACK.curve.getLength();
       const dt = (shell.speed * delta) / arcLength;
 
       // Advance in the pre-computed direction (toward target around the loop)
       shell.trackT = ((shell.trackT + dt * shell.trackDir) % 1 + 1) % 1;
 
-      const pt  = TRACK_CURVE.getPoint(shell.trackT);
-      const tan = TRACK_CURVE.getTangent(shell.trackT).normalize();
+      const pt  = ACTIVE_TRACK.curve.getPoint(shell.trackT);
+      const tan = ACTIVE_TRACK.curve.getTangent(shell.trackT).normalize();
 
-      shell.mesh1.position.set(pt.x, 0.6, pt.z);
-      if (shell.mesh2) shell.mesh2.position.set(pt.x, 0.6, pt.z);
+      shell.mesh1.position.set(pt.x, pt.y + 0.6, pt.z);
+      if (shell.mesh2) shell.mesh2.position.set(pt.x, pt.y + 0.6, pt.z);
 
       // Face direction of travel (account for trackDir so reversed shell still faces forward)
       const facingTan = shell.trackDir === 1 ? tan : tan.clone().negate();
@@ -4622,13 +4028,13 @@ function updateRedShells(delta) {
 
       shell.mesh1.position.x += shell.homingVel.x * delta;
       shell.mesh1.position.z += shell.homingVel.z * delta;
-      shell.mesh1.position.y = 0.6;
+      shell.mesh1.position.y = ACTIVE_TRACK.curve.getPoint(closestTrackT(shell.mesh1.position)).y + 0.6;
       if (shell.mesh2) shell.mesh2.position.copy(shell.mesh1.position);
     }
 
     // ── HIT CHECK ──
     const hitDist = shell.mesh1.position.distanceTo(targetPos);
-    if (hitDist < 2.4 && shell.target.stunTimer <= 0) {
+    if (hitDist < 2.4 * getKartCollisionScale(shell.target) && shell.target.stunTimer <= 0) {
       // Star-powered target smashes through the shell — destroyed, no damage!
       if (shell.target.starTimer > 0) {
         destroyRedShell(shell);
@@ -4653,6 +4059,414 @@ function destroyRedShell(shell) {
   shell.active = false;
   scenes[0].remove(shell.mesh1);
   if (shell.mesh2) scenes[1].remove(shell.mesh2);
+}
+
+function spawnGreenShell(thrower) {
+  const direction = new THREE.Vector3(Math.sin(thrower.angle), 0, Math.cos(thrower.angle));
+  const position = thrower.kart.position.clone().addScaledVector(direction, 3);
+  position.y = trackSurfaceHeightAt(position) + 0.6;
+  const mesh1 = makeRedShellMesh(true);
+  const mesh2 = scenes[1] ? makeRedShellMesh(true) : null;
+  mesh1.position.copy(position);
+  if (mesh2) mesh2.position.copy(position);
+  scenes[0].add(mesh1);
+  if (mesh2) scenes[1].add(mesh2);
+  greenShells.push({
+    mesh1,
+    mesh2,
+    owner: thrower,
+    direction,
+    speed: 42,
+    elapsed: 0,
+    distance: 0,
+    bounces: 0,
+    active: true,
+  });
+  playShellLaunchSound();
+}
+
+function bounceGreenShellOffCollidables(shell) {
+  const radius = 0.65;
+  const position = shell.mesh1.position;
+
+  for (const wall of stadiumWalls) {
+    const dx = position.x - wall.cx;
+    const dz = position.z - wall.cz;
+    const cosA = wall.cosA ?? 1;
+    const sinA = wall.sinA ?? 0;
+    const localX = dx * cosA + dz * sinA;
+    const localZ = -dx * sinA + dz * cosA;
+    const overlapX = wall.halfW + radius - Math.abs(localX);
+    const overlapZ = wall.halfD + radius - Math.abs(localZ);
+    if (overlapX <= 0 || overlapZ <= 0) continue;
+
+    let normalX;
+    let normalZ;
+    let penetration;
+    if (overlapX < overlapZ) {
+      const sign = localX === 0 ? (shell.direction.x * cosA + shell.direction.z * sinA <= 0 ? 1 : -1) : Math.sign(localX);
+      normalX = cosA * sign;
+      normalZ = sinA * sign;
+      penetration = overlapX;
+    } else {
+      const sign = localZ === 0 ? (-shell.direction.x * sinA + shell.direction.z * cosA <= 0 ? 1 : -1) : Math.sign(localZ);
+      normalX = -sinA * sign;
+      normalZ = cosA * sign;
+      penetration = overlapZ;
+    }
+
+    position.x += normalX * (penetration + 0.02);
+    position.z += normalZ * (penetration + 0.02);
+
+    const velocityIntoWall = shell.direction.x * normalX + shell.direction.z * normalZ;
+    if (velocityIntoWall < 0) {
+      shell.direction.x -= 2 * velocityIntoWall * normalX;
+      shell.direction.z -= 2 * velocityIntoWall * normalZ;
+      shell.direction.normalize();
+      shell.speed *= 0.82;
+      shell.bounces++;
+    }
+    return true;
+  }
+  return false;
+}
+
+function updateGreenShells(delta) {
+  const lifetime = 10;
+  const shellRadius = 2.4;
+  for (const shell of greenShells) {
+    if (!shell.active) continue;
+
+    shell.elapsed += delta;
+    if (shell.elapsed >= lifetime) {
+      shell.active = false;
+      scenes[0].remove(shell.mesh1);
+      if (shell.mesh2) scenes[1].remove(shell.mesh2);
+      continue;
+    }
+
+    const substeps = Math.max(1, Math.ceil(shell.speed * delta / 0.3));
+    const subDelta = delta / substeps;
+    for (let step = 0; step < substeps && shell.active; step++) {
+      const travel = shell.speed * subDelta;
+      shell.distance += travel;
+      shell.mesh1.position.addScaledVector(shell.direction, travel);
+      bounceGreenShellOffCollidables(shell);
+      shell.mesh1.position.y = trackSurfaceHeightAt(shell.mesh1.position) + 0.6;
+
+      for (const target of players) {
+        if (target.finishTime !== null) continue;
+        const dx = target.kart.position.x - shell.mesh1.position.x;
+        const dz = target.kart.position.z - shell.mesh1.position.z;
+        const hitRadius = shellRadius * getKartCollisionScale(target);
+        if (dx * dx + dz * dz >= hitRadius * hitRadius) continue;
+        if (target.starTimer <= 0) {
+          target.spinoutTimer = 3;
+          target.spinoutAngle = 0;
+          target.stunTimer = 3;
+          target.speed *= 0.3;
+          playShellHitSound();
+          playHitVoicelineForPlayer(target);
+        }
+        shell.active = false;
+        scenes[0].remove(shell.mesh1);
+        if (shell.mesh2) scenes[1].remove(shell.mesh2);
+        break;
+      }
+    }
+
+    shell.mesh1.rotation.y = Math.atan2(shell.direction.x, shell.direction.z);
+    if (shell.mesh2) {
+      shell.mesh2.position.copy(shell.mesh1.position);
+      shell.mesh2.rotation.y = shell.mesh1.rotation.y;
+    }
+  }
+  greenShells = greenShells.filter(shell => shell.active);
+}
+
+function makeBlueShellMesh() {
+  const group = new THREE.Group();
+  const bottom = new THREE.Mesh(
+    new THREE.SphereGeometry(0.55, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2),
+    new THREE.MeshLambertMaterial({ color: 0x123a91 })
+  );
+  bottom.rotation.x = Math.PI;
+  bottom.position.y = 0.05;
+  group.add(bottom);
+
+  const top = new THREE.Mesh(
+    new THREE.SphereGeometry(0.52, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2),
+    new THREE.MeshLambertMaterial({ color: 0x168bff })
+  );
+  top.position.y = 0.05;
+  group.add(top);
+
+  const belly = new THREE.Mesh(
+    new THREE.CircleGeometry(0.48, 16),
+    new THREE.MeshLambertMaterial({ color: 0xf2f4f8 })
+  );
+  belly.rotation.x = -Math.PI / 2;
+  belly.position.y = 0.04;
+  group.add(belly);
+
+  const ridge = new THREE.Mesh(
+    new THREE.TorusGeometry(0.52, 0.045, 8, 32),
+    new THREE.MeshLambertMaterial({ color: 0x0b2865 })
+  );
+  ridge.rotation.x = Math.PI / 2;
+  ridge.position.y = 0.05;
+  group.add(ridge);
+
+  const spikeMat = new THREE.MeshLambertMaterial({ color: 0xc9d1dc });
+  for (let i = 0; i < 6; i++) {
+    const angle = (i / 6) * Math.PI * 2;
+    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.52, 6), spikeMat);
+    spike.position.set(Math.sin(angle) * 0.28, 0.48, Math.cos(angle) * 0.28);
+    spike.rotation.z = -0.25;
+    spike.rotation.x = Math.cos(angle) * 0.25;
+    spike.rotation.z += Math.sin(angle) * 0.25;
+    group.add(spike);
+  }
+
+  const wingShape = new THREE.Shape();
+  wingShape.moveTo(0, 0);
+  wingShape.quadraticCurveTo(0.28, 0.34, 0.95, 0.38);
+  wingShape.quadraticCurveTo(0.76, 0.06, 0.98, -0.28);
+  wingShape.quadraticCurveTo(0.36, -0.2, 0, 0);
+  const wingGeo = new THREE.ShapeGeometry(wingShape);
+  const wingMat = new THREE.MeshLambertMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+  const wings = [];
+  for (const side of [-1, 1]) {
+    const wing = new THREE.Group();
+    wing.position.set(side * 0.42, 0.32, -0.08);
+    const surface = new THREE.Mesh(wingGeo, wingMat);
+    surface.scale.x = side;
+    wing.add(surface);
+    group.add(wing);
+    wings.push(wing);
+  }
+  group.userData.wings = wings;
+
+  const shine = new THREE.Mesh(
+    new THREE.SphereGeometry(0.13, 8, 6),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 })
+  );
+  shine.scale.set(1, 0.45, 0.7);
+  shine.position.set(-0.15, 0.42, -0.2);
+  group.add(shine);
+  group.traverse(obj => {
+    if (obj.isMesh) {
+      obj.castShadow = settings.shadows;
+      obj.receiveShadow = settings.shadows;
+    }
+  });
+  return group;
+}
+
+function spawnBlueShell(thrower, target) {
+  if (!target || target === thrower) return;
+  const spawnPos = new THREE.Vector3(
+    thrower.kart.position.x + Math.sin(thrower.angle) * 3,
+    7.5,
+    thrower.kart.position.z + Math.cos(thrower.angle) * 3
+  );
+  const shellT = closestTrackT(spawnPos);
+  spawnPos.y = ACTIVE_TRACK.curve.getPoint(shellT).y + 7.5;
+  const targetT = closestTrackT(target.kart.position);
+  const forwardSteps = ((targetT - shellT + 1) % 1) * ACTIVE_TRACK.samples;
+  const backwardSteps = ((shellT - targetT + 1) % 1) * ACTIVE_TRACK.samples;
+  const trackDir = forwardSteps <= backwardSteps ? 1 : -1;
+  const mesh1 = makeBlueShellMesh();
+  const mesh2 = scenes[1] ? makeBlueShellMesh() : null;
+  mesh1.position.copy(spawnPos);
+  if (mesh2) mesh2.position.copy(spawnPos);
+  scenes[0].add(mesh1);
+  if (mesh2) scenes[1].add(mesh2);
+  blueShells.push({
+    mesh1,
+    mesh2,
+    target,
+    active: true,
+    trackT: shellT,
+    trackDir,
+    speed: 42,
+    phase: 'track',
+    elapsed: 0,
+    swoopStart: null,
+  });
+  playShellLaunchSound();
+}
+
+function makeBlueShellExplosionMesh() {
+  const group = new THREE.Group();
+  group.add(new THREE.Mesh(
+    new THREE.SphereGeometry(1, 16, 12),
+    new THREE.MeshBasicMaterial({ color: 0x168bff, transparent: true, opacity: 0.95 })
+  ));
+  group.add(new THREE.Mesh(
+    new THREE.SphereGeometry(0.58, 12, 8),
+    new THREE.MeshBasicMaterial({ color: 0xdaf5ff, transparent: true, opacity: 1 })
+  ));
+  for (let i = 0; i < 12; i++) {
+    const spike = new THREE.Mesh(
+      new THREE.ConeGeometry(0.24, 1.7, 6),
+      new THREE.MeshBasicMaterial({
+        color: i % 2 ? 0x65c8ff : 0xffffff,
+        transparent: true,
+        opacity: 0.9,
+      })
+    );
+    const angle = (i / 12) * Math.PI * 2;
+    spike.position.set(Math.cos(angle) * 0.8, 0.4, Math.sin(angle) * 0.8);
+    spike.rotation.z = Math.PI / 2;
+    spike.rotation.y = angle;
+    group.add(spike);
+  }
+  return group;
+}
+
+function explodeBlueShell(shell, targetPosition) {
+  shell.active = false;
+  scenes[0].remove(shell.mesh1);
+  if (shell.mesh2) scenes[1].remove(shell.mesh2);
+  playBombExplosionSound();
+
+  const origin = targetPosition.clone();
+  origin.y -= 0.1;
+  const mesh1 = makeBlueShellExplosionMesh();
+  const mesh2 = scenes[1] ? makeBlueShellExplosionMesh() : null;
+  mesh1.position.copy(origin);
+  if (mesh2) mesh2.position.copy(origin);
+  scenes[0].add(mesh1);
+  if (mesh2) scenes[1].add(mesh2);
+  shell.effect = { mesh1, mesh2, elapsed: 0 };
+
+  for (const player of players) {
+    if (player.starTimer > 0) continue;
+    const dx = player.kart.position.x - origin.x;
+    const dz = player.kart.position.z - origin.z;
+    if (dx * dx + dz * dz <= BLUE_SHELL_BLAST_RADIUS * BLUE_SHELL_BLAST_RADIUS) {
+      const hit = launchPlayerFromBlast(player, origin, BLUE_SHELL_BLAST_RADIUS, false);
+      if (hit) playHitVoicelineForPlayer(player);
+    }
+  }
+}
+
+function isHumanPlayer(player) {
+  if (gameMode === 'solo') return player === players[0];
+  return gameMode === 'coop' && (player === players[0] || player === players[1]);
+}
+
+function stopBlueShellWarning() {
+  if (!blueShellWarning) return;
+  const now = audioCtx.currentTime;
+  blueShellWarning.gain.gain.cancelScheduledValues(now);
+  blueShellWarning.gain.gain.setTargetAtTime(0.0001, now, 0.015);
+  blueShellWarning.oscillator.stop(now + 0.08);
+  blueShellWarning = null;
+}
+
+function updateBlueShellWarning() {
+  const humanTargeted = blueShells.some(shell => shell.active && isHumanPlayer(shell.target));
+  if (!raceRunning || !humanTargeted) {
+    stopBlueShellWarning();
+    return;
+  }
+  if (!audioCtx || !sfxMasterGain) return;
+
+  if (!blueShellWarning) {
+    const oscillator = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    oscillator.type = 'square';
+    gain.gain.value = 0;
+    oscillator.connect(gain);
+    gain.connect(sfxMasterGain);
+    oscillator.start();
+    blueShellWarning = { oscillator, gain, nextBeepTime: audioCtx.currentTime, beepIndex: 0 };
+  }
+
+  const now = audioCtx.currentTime;
+  blueShellWarning.nextBeepTime = Math.max(blueShellWarning.nextBeepTime, now);
+  while (blueShellWarning.nextBeepTime < now + 0.2) {
+    const beepTime = blueShellWarning.nextBeepTime;
+    blueShellWarning.oscillator.frequency.setValueAtTime(
+      blueShellWarning.beepIndex % 2 === 0 ? 1450 : 1050,
+      beepTime
+    );
+    blueShellWarning.gain.gain.setValueAtTime(0.0001, beepTime);
+    blueShellWarning.gain.gain.linearRampToValueAtTime(0.14, beepTime + 0.008);
+    blueShellWarning.gain.gain.setValueAtTime(0.14, beepTime + 0.045);
+    blueShellWarning.gain.gain.exponentialRampToValueAtTime(0.0001, beepTime + 0.065);
+    blueShellWarning.beepIndex++;
+    blueShellWarning.nextBeepTime += 0.16;
+  }
+}
+
+function updateBlueShells(delta) {
+  for (const shell of blueShells) {
+    if (shell.active) {
+      shell.elapsed += delta;
+      for (const mesh of [shell.mesh1, shell.mesh2]) {
+        if (!mesh) continue;
+        mesh.userData.wings.forEach((wing, index) => {
+          wing.rotation.z = Math.sin(shell.elapsed * 25) * 0.62 * (index === 0 ? 1 : -1);
+        });
+      }
+
+      const targetPos = shell.target.kart.position;
+      if (shell.phase === 'track') {
+        const arcLength = ACTIVE_TRACK.curve.getLength();
+        shell.trackT = ((shell.trackT + (shell.speed * delta / arcLength) * shell.trackDir) % 1 + 1) % 1;
+        const point = ACTIVE_TRACK.curve.getPoint(shell.trackT);
+        const tangent = ACTIVE_TRACK.curve.getTangent(shell.trackT).normalize();
+        shell.mesh1.position.set(point.x, point.y + 7.5, point.z);
+        if (shell.mesh2) shell.mesh2.position.copy(shell.mesh1.position);
+        const facing = shell.trackDir === 1 ? tangent : tangent.negate();
+        const angle = Math.atan2(facing.x, facing.z);
+        shell.mesh1.rotation.y = angle;
+        if (shell.mesh2) shell.mesh2.rotation.y = angle;
+
+        const dx = targetPos.x - shell.mesh1.position.x;
+        const dz = targetPos.z - shell.mesh1.position.z;
+        if (Math.hypot(dx, dz) < 24) {
+          shell.phase = 'swoop';
+          shell.swoopStart = shell.mesh1.position.clone();
+          shell.swoopElapsed = 0;
+        }
+      } else {
+        shell.swoopElapsed += delta;
+        const progress = Math.min(shell.swoopElapsed / 0.95, 1);
+        const eased = progress * progress * (3 - 2 * progress);
+        for (const mesh of [shell.mesh1, shell.mesh2]) {
+          if (!mesh) continue;
+          mesh.position.x = shell.swoopStart.x + (targetPos.x - shell.swoopStart.x) * eased;
+          mesh.position.z = shell.swoopStart.z + (targetPos.z - shell.swoopStart.z) * eased;
+          mesh.position.y = shell.swoopStart.y * (1 - eased)
+            + (targetPos.y + 0.9) * eased + Math.sin(progress * Math.PI) * 5;
+          mesh.rotation.y = Math.atan2(targetPos.x - mesh.position.x, targetPos.z - mesh.position.z);
+        }
+        if (progress >= 1) explodeBlueShell(shell, targetPos);
+      }
+    }
+
+    if (!shell.effect) continue;
+    shell.effect.elapsed += delta;
+    const progress = Math.min(shell.effect.elapsed / 0.85, 1);
+    const scale = 1 + progress * BLUE_SHELL_BLAST_RADIUS;
+    shell.effect.mesh1.scale.setScalar(scale);
+    shell.effect.mesh1.children.forEach(child => { child.material.opacity = 1 - progress; });
+    if (shell.effect.mesh2) {
+      shell.effect.mesh2.scale.setScalar(scale);
+      shell.effect.mesh2.children.forEach(child => { child.material.opacity = 1 - progress; });
+    }
+    if (progress >= 1) {
+      scenes[0].remove(shell.effect.mesh1);
+      if (shell.effect.mesh2) scenes[1].remove(shell.effect.mesh2);
+      shell.effect = null;
+    }
+  }
+  blueShells = blueShells.filter(shell => shell.active || shell.effect);
+  updateBlueShellWarning();
 }
 
 function playShellLaunchSound() {
@@ -4735,9 +4549,32 @@ function playLaunchStallSound() {
   groan.stop(audioCtx.currentTime + 1.25);
 }
 
+function getPlayerPlacements() {
+  const ranked = players.map((_, index) => index).sort((a, b) => {
+    const pa = players[a], pb = players[b];
+    if (pa.finishTime !== null && pb.finishTime !== null) return pa.finishTime - pb.finishTime;
+    if (pa.finishTime !== null) return -1;
+    if (pb.finishTime !== null) return 1;
+    if (pa.lap !== pb.lap) return pb.lap - pa.lap;
+    return pb.checkpoint - pa.checkpoint;
+  });
+  const placeOf = new Array(players.length).fill(0);
+  ranked.forEach((playerIdx, rank) => { placeOf[playerIdx] = rank + 1; });
+  return { ranked, placeOf };
+}
+
 function collectItem(player, idx) {
   if (!player.item && itemBoxes[idx].active) {
-    player.item = ITEMS[Math.floor(Math.random()*ITEMS.length)];
+    const playerPlace = getPlayerPlacements().placeOf[players.indexOf(player)];
+    const itemPool = playerPlace >= 2 && playerPlace <= 4
+      ? ITEMS
+      : ITEMS.filter(item => !item.includes('Blue Shell'));
+    player.item = itemPool[Math.floor(Math.random() * itemPool.length)];
+    const playerIndex = players.indexOf(player);
+    const isCpu = gameMode === 'solo' ? playerIndex > 0 : playerIndex >= 2;
+    if (isCpu && player.item.includes('Blue Shell')) {
+      player.blueShellUseDelay = 1 + Math.random() * 4;
+    }
     itemBoxes[idx].active = false;
     itemBoxes[idx].mesh.visible = false;
     itemBoxes[idx].respawnTimer = 8;
@@ -4754,8 +4591,8 @@ function findShellTarget(thrower) {
     if (p === thrower || p.finishTime !== null) continue;
     const pT = closestTrackT(p.kart.position);
     // "Ahead" means larger t (wrapping). Steps forward from thrower to p.
-    const stepsAhead = ((pT - throwerT + 1) % 1) * TRACK_SAMPLES;
-    const stepsBack  = ((throwerT - pT + 1) % 1) * TRACK_SAMPLES;
+    const stepsAhead = ((pT - throwerT + 1) % 1) * ACTIVE_TRACK.samples;
+    const stepsBack  = ((throwerT - pT + 1) % 1) * ACTIVE_TRACK.samples;
     // World-space distance for tie-breaking
     const worldDist = thrower.kart.position.distanceTo(p.kart.position);
 
@@ -4783,6 +4620,13 @@ function useItem(player, otherPlayer) {
     spawnBananaPeel(player);
     // Thrower gets 2.5s immunity so they don't immediately roll over their own peel
     player.bananaImmune = 2.5;
+
+  } else if (player.item.includes('Green Shell')) {
+    spawnGreenShell(player);
+
+  } else if (player.item.includes('Blue Shell')) {
+    const leaderIdx = getPlayerPlacements().ranked[0];
+    if (leaderIdx !== undefined) spawnBlueShell(player, players[leaderIdx]);
 
   } else if (player.item.includes('Shell')) {
     // Target the nearest player ahead; fallback to any opponent
@@ -4826,10 +4670,8 @@ document.addEventListener('keydown', e => {
         devFreecamYaw   = Math.atan2(dir.x, dir.z);
         devFreecamPitch = Math.asin(Math.max(-1, Math.min(1, dir.y)));
         cameras[0].rotation.order = 'YXZ';
-        // Request pointer lock for mouse-look
-        document.body.requestPointerLock();
-      } else {
-        document.exitPointerLock();
+        // Gameplay keeps the pointer locked; this enables mouse-look while freecam is active.
+        requestGameplayPointerLock();
       }
       e.preventDefault();
     }
@@ -4948,7 +4790,7 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   const stunned = player.stunTimer > 0 || spinning;
   if (player.stunTimer > 0 && !spinning) player.stunTimer -= delta;
 
-  const onTrack = isOnTrack(player.kart.position);
+  const onTrack = ACTIVE_TRACK.isOnTrack(player.kart.position);
   const speedMult = onTrack ? 1 : OFFTRACK_MULT;
 
   const squashPenalty = player._squashSpeedMultiplier || 1;
@@ -5050,48 +4892,9 @@ function updatePlayer(player, binds, delta, otherPlayer) {
 
   if (player.itemCooldown > 0) player.itemCooldown -= delta;
 
-  // Stadium wall collision — OBB test per stand, hard bounce with velocity reflection
-  const KART_R = 1.4; // half-width of kart for collision
-  for (const wall of stadiumWalls) {
-    const dx = player.kart.position.x - wall.cx;
-    const dz = player.kart.position.z - wall.cz;
-    // Rotate delta into stand-local space (stand's local X = along stand length, Z = into/out of stand depth)
-    const cosA = wall.cosA, sinA = wall.sinA;
-    const localX =  dx * cosA + dz * sinA;
-    const localZ = -dx * sinA + dz * cosA;
+  resolveStadiumWallCollision(player);
 
-    const extX = wall.halfW + KART_R;
-    const extZ = wall.halfD + KART_R;
-    const overlapX = extX - Math.abs(localX);
-    const overlapZ = extZ - Math.abs(localZ);
-
-    if (overlapX > 0 && overlapZ > 0) {
-      // Determine which axis has the least penetration = separation axis
-      let pushLocalX = 0, pushLocalZ = 0;
-      if (overlapX < overlapZ) {
-        // Separate along local X (along stand length)
-        pushLocalX = overlapX * (localX < 0 ? -1 : 1);
-      } else {
-        // Separate along local Z (perpendicular to stand face — this is the wall face)
-        pushLocalZ = overlapZ * (localZ < 0 ? -1 : 1);
-      }
-      // Rotate push back to world space
-      player.kart.position.x += pushLocalX * cosA - pushLocalZ * sinA;
-      player.kart.position.z += pushLocalX * sinA + pushLocalZ * cosA;
-
-      // Velocity: project current movement onto the wall normal (local Z axis in world space)
-      // Wall normal in world space = (-sinA, cosA) for local Z axis
-      const wallNx = -sinA, wallNz = cosA;
-      const velX = Math.sin(player.angle) * player.speed;
-      const velZ = Math.cos(player.angle) * player.speed;
-      const velDotN = velX * wallNx + velZ * wallNz;
-      // Only reflect if moving into the wall
-      if (velDotN * (pushLocalZ !== 0 ? (localZ < 0 ? -1 : 1) : 0) < 0 || pushLocalX !== 0) {
-        // Hard stop: kill 85% of speed, reflect angle away from wall
-        player.speed *= -0.15;
-      }
-    }
-  }
+  updateKartTrackElevation(player, delta);
 
   // Item box collision
   itemBoxes.forEach((box, i) => {
@@ -5114,6 +4917,19 @@ function updateSoloAI(delta, cpuIdx) {
   const aiState = soloAIs[aiStateIdx]; // personality object for this CPU
   const human = players[0];
   if (!ai) return;
+
+  if (ai.item && ai.item.includes('Blue Shell')) {
+    if (ai.blueShellUseDelay === null) ai.blueShellUseDelay = 1 + Math.random() * 4;
+    ai.blueShellUseDelay = Math.max(0, ai.blueShellUseDelay - delta);
+    if (ai.blueShellUseDelay === 0) {
+      ai.itemCooldown = 0;
+      useItem(ai, human);
+      ai.blueShellUseDelay = null;
+      aiState.itemHesitation = null;
+    }
+  } else {
+    ai.blueShellUseDelay = null;
+  }
 
   resolveTinyKartSquishes();
 
@@ -5191,7 +5007,10 @@ function updateSoloAI(delta, cpuIdx) {
   for (const other of players) {
     if (other === ai) continue;
     const distToOther = ai.kart.position.distanceTo(other.kart.position);
-    if (distToOther < 2.5 && other.starTimer > 0 && ai.starTimer <= 0 && ai.spinoutTimer <= 0) {
+    if (
+      distToOther < 2.5 * getKartCollisionScale(ai)
+      && other.starTimer > 0 && ai.starTimer <= 0 && ai.spinoutTimer <= 0
+    ) {
       ai.spinoutTimer = 3.0;
       ai.spinoutAngle = 0;
       ai.stunTimer    = 3.0;
@@ -5204,6 +5023,18 @@ function updateSoloAI(delta, cpuIdx) {
   const aiT = closestTrackT(ai.kart.position);
   const humanT = closestTrackT(human.kart.position);
   const distanceBehind = (aiT - humanT + 1) % 1;
+  let targetItemBox = null;
+  if (!ai.item) {
+    let nearestBoxT = Infinity;
+    for (const box of itemBoxes) {
+      if (!box.active) continue;
+      const forwardT = (box.t - aiT + 1) % 1;
+      if (forwardT > 0 && forwardT < 0.07 && forwardT < nearestBoxT) {
+        nearestBoxT = forwardT;
+        targetItemBox = box;
+      }
+    }
+  }
 
   // ── Banana peel avoidance with 50/50 dodge chance ──
   // Tick down any active dodge decision
@@ -5304,23 +5135,32 @@ function updateSoloAI(delta, cpuIdx) {
     }
   }
 
-  // ── Steering: lookahead point + lateral nudge ──
-  const lookaheadT = (aiT + 0.025) % 1;
-  const target     = TRACK_CURVE.getPoint(lookaheadT);
-  const tan        = TRACK_CURVE.getTangent(lookaheadT).normalize();
+  // ── Steering: distance-based lookahead + restrained lateral nudge ──
+  const lookaheadT = (aiT + Math.max(0.008, Math.min(0.014, Math.abs(ai.speed) / MAX_SPEED * 0.014))) % 1;
+  const target = ACTIVE_TRACK.curve.getPoint(lookaheadT);
+  const tan = ACTIVE_TRACK.curve.getTangent(lookaheadT).normalize();
   const perp       = new THREE.Vector3(-tan.z, 0, tan.x); // perpendicular to track
 
-  // Priority: peel dodge > kart avoidance > random swerve
-  // Peel dodge dir=0 means AI froze (will hit the peel); avoidDir always has a real side
+  // Priority: peel dodge > kart avoidance > item box > random swerve
+  // Peel dodge dir=0 means the AI failed to react; avoidDir always has a real side
   let lateralBias = aiState.swerveOffset;
+  if (targetItemBox && aiState.avoidDir === 0 && !aiState.peelDodge?.dir) {
+    const currentTrackPoint = ACTIVE_TRACK.curve.getPoint(aiT);
+    const lateralOffset =
+      (ai.kart.position.x - currentTrackPoint.x) * perp.x
+      + (ai.kart.position.z - currentTrackPoint.z) * perp.z;
+    const centerlineBias = Math.max(-2.75, Math.min(2.75, -lateralOffset));
+    lateralBias = lateralBias * 0.15 + centerlineBias * 0.85;
+  }
   if (aiState.avoidDir !== 0 && ai.starTimer <= 0) {
     // Avoidance: nudge 2.5–3.5 units to the chosen side, strength scales with speed
     const avoidStrength = 2.5 + (Math.abs(ai.speed) / MAX_SPEED) * 1.0;
     lateralBias = aiState.avoidDir * avoidStrength;
   }
   if (aiState.peelDodge && aiState.peelDodge.dir !== 0) {
-    lateralBias = aiState.peelDodge.dir * 3.5;
+    lateralBias = aiState.peelDodge.dir * 2.5;
   }
+  lateralBias = Math.max(-2.75, Math.min(2.75, lateralBias));
 
   const nudgedTarget = target.clone().addScaledVector(perp, lateralBias);
   const desiredAngle = Math.atan2(
@@ -5343,7 +5183,7 @@ function updateSoloAI(delta, cpuIdx) {
     }
   }
 
-  const onTrack = isOnTrack(ai.kart.position);
+  const onTrack = ACTIVE_TRACK.isOnTrack(ai.kart.position);
   // Match human driving: lightning halves active Star and item Boost speed.
   const squashPenalty = ai._squashSpeedMultiplier || 1;
   const lightningBoostMultiplier = ai.lightningTimer > 0 ? 0.5 : 1;
@@ -5358,8 +5198,10 @@ function updateSoloAI(delta, cpuIdx) {
   ai.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
   ai.kart.position.x += Math.sin(ai.angle) * ai.speed * delta;
   ai.kart.position.z += Math.cos(ai.angle) * ai.speed * delta;
+  resolveStadiumWallCollision(ai);
   ai.kart.rotation.y = ai.angle;
   ai.kart.rotation.z = 0;
+  updateKartTrackElevation(ai, delta);
 
   itemBoxes.forEach((box, index) => {
     if (box.active && !ai.item && ai.kart.position.distanceTo(box.mesh.position) < 2.5) collectItem(ai, index);
@@ -5367,16 +5209,14 @@ function updateSoloAI(delta, cpuIdx) {
 
   // ── Strategic item usage ──
   // The AI holds items and only uses them when the situation calls for it.
-  // A random "hesitation delay" (0.5–2.5 s) is rolled each time a new item is
-  // picked up, so the CPU never reacts instantly — it feels like a real player
-  // thinking about what to do.
+  // Other items get a short hesitation; Blue Shells use their own 1–5 s launch delay.
 
-  if (ai.item && ai.itemCooldown <= 0) {
+  if (ai.item && ai.itemCooldown <= 0 && !ai.item.includes('Blue Shell')) {
     const item = ai.item;
 
     // Initialise a hesitation delay when the item was just collected
     if (aiState.itemHesitation === undefined || aiState.itemHesitation === null) {
-      aiState.itemHesitation = 0.5 + Math.random() * 2.0; // 0.5 – 2.5 s before even considering using it
+      aiState.itemHesitation = 0.5 + Math.random() * 2.0;
     }
     aiState.itemHesitation -= delta;
     if (aiState.itemHesitation > 0) {
@@ -5385,7 +5225,13 @@ function updateSoloAI(delta, cpuIdx) {
       // Check if a red shell is currently targeting the AI and closing in
       const shellIncoming = redShells.some(s =>
         s.active && s.target === ai && s.mesh1.position.distanceTo(ai.kart.position) < 18
-      );
+      ) || greenShells.some(s => {
+        if (!s.active) return false;
+        const dx = ai.kart.position.x - s.mesh1.position.x;
+        const dz = ai.kart.position.z - s.mesh1.position.z;
+        return dx * s.direction.x + dz * s.direction.z > 0
+          && s.mesh1.position.distanceTo(ai.kart.position) < 18;
+      });
 
       let shouldUse = false;
 
@@ -5395,8 +5241,19 @@ function updateSoloAI(delta, cpuIdx) {
       } else if (item.includes('Boost')) {
         // Use boost when behind or just ready to go
         shouldUse = distanceBehind > 0.05 || Math.random() < 0.5;
+      } else if (item.includes('Green Shell')) {
+        const shellTarget = findShellTarget(ai);
+        if (shellTarget) {
+          const dx = shellTarget.kart.position.x - ai.kart.position.x;
+          const dz = shellTarget.kart.position.z - ai.kart.position.z;
+          const distance = Math.hypot(dx, dz);
+          const aimDot = distance > 0
+            ? (Math.sin(ai.angle) * dx + Math.cos(ai.angle) * dz) / distance
+            : -1;
+          shouldUse = distance < 45 && aimDot > 0.96 && Math.random() < 0.7;
+        }
       } else if (item.includes('Shell')) {
-        // Fire at the nearest opponent ahead — works for any number of racers
+        // Red shells home toward the nearest opponent ahead.
         const shellTarget = findShellTarget(ai);
         shouldUse = shellTarget !== null && (Math.random() < 0.7 || distanceBehind > 0.5);
       } else if (item.includes('Banana')) {
@@ -5439,13 +5296,15 @@ function updateSoloAI(delta, cpuIdx) {
 // =============================================
 // CAMERA
 // =============================================
-function updateCamera(camera, player) {
+function updateCamera(camera, player, snap = false) {
   const behind = new THREE.Vector3(
     Math.sin(player.angle) * -player.camDist,
     player.camHeight,
     Math.cos(player.angle) * -player.camDist
   );
-  camera.position.lerp(player.kart.position.clone().add(behind), 0.12);
+  const targetPosition = player.kart.position.clone().add(behind);
+  if (snap) camera.position.copy(targetPosition);
+  else camera.position.lerp(targetPosition, 0.12);
   camera.lookAt(player.kart.position.clone().add(new THREE.Vector3(0, 1, 0)));
 }
 
@@ -5456,43 +5315,88 @@ function updateCamera(camera, player) {
 let winnerAI = null;
 
 const AI_SPEED_TARGET = MAX_SPEED * 0.82; // a little slower than max so it feels natural
-const AI_STEER_RATE   = 2.6;              // rad/s steering correction
 
 // Shared post-finish driver for CPUs and the cinematic-controlled racer.
 function drivePostFinishAI(player, state, delta) {
-  const LOOKAHEAD = 0.025;
-  const arcLen = TRACK_CURVE.getLength();
-  const dtPerSec = AI_SPEED_TARGET / arcLen;
+  if (state.postFinishEntry === undefined) {
+    state.trackT = closestTrackTRefined(player.kart.position);
+    state.postFinishTrackT = state.trackT;
+    state.postFinishEntry = { elapsed: 0 };
+  }
 
-  // Use a single continuous track-progress value for the cinematic drive. Re-snapping
-  // to closestTrackT() every frame causes tiny position/angle oscillations near the
-  // curve and makes the winner's camera and kart visibly jitter.
+  const entry = state.postFinishEntry;
+  if (entry) {
+    const curve = ACTIVE_TRACK.curve;
+    const nearestT = closestTrackTRefined(player.kart.position);
+    const lookaheadT = advanceTrackTByDistance(curve, nearestT, 9);
+    const targetPoint = curve.getPoint(lookaheadT);
+    const toTargetAngle = Math.atan2(
+      targetPoint.x - player.kart.position.x,
+      targetPoint.z - player.kart.position.z
+    );
+    const angleError = Math.atan2(
+      Math.sin(toTargetAngle - player.angle),
+      Math.cos(toTargetAngle - player.angle)
+    );
+    const maxTurn = Math.min(
+      2.8,
+      STEER * (Math.abs(player.speed) / MAX_SPEED + 0.15)
+    ) * delta;
+    player.angle += Math.max(-maxTurn, Math.min(maxTurn, angleError));
+
+    const approachSpeed = AI_SPEED_TARGET * Math.max(
+      0.2,
+      Math.min(0.65, 1 - Math.abs(angleError) / 2.4)
+    );
+    if (player.speed < approachSpeed) {
+      player.speed = Math.min(approachSpeed, player.speed + ACCEL * 0.7 * delta);
+    } else {
+      player.speed = Math.max(approachSpeed, player.speed - BRAKE * 0.7 * delta);
+    }
+    player.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
+    player.kart.position.x += Math.sin(player.angle) * player.speed * delta;
+    player.kart.position.z += Math.cos(player.angle) * player.speed * delta;
+    player.kart.rotation.y = player.angle;
+    player.kart.rotation.z += (0 - player.kart.rotation.z) * Math.min(delta * 5, 1);
+    if (ACTIVE_TRACK.getCinematicCamera) {
+      const surfaceT = closestTrackTRefined(player.kart.position);
+      const surfacePoint = curve.getPoint(surfaceT);
+      const surfaceTangent = curve.getTangent(surfaceT).normalize();
+      player.kart.position.y = surfacePoint.y + 0.85;
+      player.kart.rotation.x = -Math.asin(Math.max(-1, Math.min(1, surfaceTangent.y)));
+      player.verticalVelocity = 0;
+    } else {
+      updateKartTrackElevation(player, delta);
+    }
+
+    entry.elapsed += delta;
+    const alignmentT = closestTrackTRefined(player.kart.position    );
+    state.trackT = alignmentT;
+    state.postFinishTrackT = alignmentT;
+    if (entry.elapsed >= 0.5) {
+      state.postFinishEntry = null;
+    }
+    return;
+  }
+
+  if (ACTIVE_TRACK.driveCinematic) {
+    ACTIVE_TRACK.driveCinematic(player, state, delta, AI_SPEED_TARGET, ACCEL, FRICTION_PER_SEC);
+    return;
+  }
+
   if (typeof state.trackT !== 'number') state.trackT = closestTrackT(player.kart.position);
-  if (typeof state.postFinishTrackT !== 'number') state.postFinishTrackT = state.trackT;
-
-  state.trackT = (state.trackT + dtPerSec * delta + 1) % 1;
+  state.trackT = advanceTrackTByDistance(ACTIVE_TRACK.curve, state.trackT, AI_SPEED_TARGET * delta);
   state.postFinishTrackT = state.trackT;
 
-  const targetPt = TRACK_CURVE.getPoint((state.trackT + LOOKAHEAD) % 1);
-  const targetTan = TRACK_CURVE.getTangent((state.trackT + LOOKAHEAD) % 1).normalize();
-  const dx = targetPt.x - player.kart.position.x;
-  const dz = targetPt.z - player.kart.position.z;
-  const desiredAngle = Math.hypot(dx, dz) > 1
-    ? Math.atan2(dx, dz)
-    : Math.atan2(targetTan.x, targetTan.z);
-  let angleDiff = desiredAngle - player.angle;
-  while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-  while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-
-  const maxSteer = AI_STEER_RATE * delta;
-  player.angle += Math.max(-maxSteer, Math.min(maxSteer, angleDiff));
   if (player.speed < AI_SPEED_TARGET) player.speed += ACCEL * 0.7 * delta;
   player.speed = Math.min(player.speed, AI_SPEED_TARGET);
   player.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
-  player.kart.position.x += Math.sin(player.angle) * player.speed * delta;
-  player.kart.position.z += Math.cos(player.angle) * player.speed * delta;
-  player.kart.rotation.y = player.angle;
-  player.kart.rotation.z = 0;
+  const point = ACTIVE_TRACK.curve.getPoint(state.trackT);
+  const tangent = ACTIVE_TRACK.curve.getTangent(state.trackT).normalize();
+  player.angle = Math.atan2(tangent.x, tangent.z);
+  player.kart.position.set(point.x, point.y + 0.85, point.z);
+  player.kart.rotation.set(-Math.asin(Math.max(-1, Math.min(1, tangent.y))), player.angle, 0);
+  player.verticalVelocity = 0;
 }
 
 function activateWinnerAI(playerIdx) {
@@ -5550,6 +5454,23 @@ function updateCinematicCamera(delta, playerIdx) {
   cc.t += delta;
   cc.modeTimer += delta;
 
+  if (ACTIVE_TRACK.getCinematicCamera) {
+    const shot = ACTIVE_TRACK.getCinematicCamera(winnerAI.trackT);
+    const cameraOffset = shot.position.clone().sub(cam.position);
+    const cameraDistance = cameraOffset.length();
+    if (cameraDistance > 0) {
+      cam.position.addScaledVector(
+        cameraOffset,
+        Math.min(1, 28 * delta / cameraDistance)
+      );
+    }
+    const blend = 1 - Math.exp(-12 * delta);
+    if (!cc.lookAt) cc.lookAt = shot.lookAt.clone();
+    else cc.lookAt.lerp(shot.lookAt, blend);
+    cam.lookAt(cc.lookAt);
+    return;
+  }
+
   // Cycle to next mode after modeTimer expires
   if (cc.modeTimer >= cc.modeDuration) {
     cc.modeTimer = 0;
@@ -5595,15 +5516,15 @@ function updateCinematicCamera(delta, playerIdx) {
   } else if (cc.mode === 'high') {
     // Overhead / blimp shot — hovers above a fixed track point, kart drives under it
     const highT   = (winnerAI.trackT + 0.12) % 1;
-    const highPt  = TRACK_CURVE.getPoint(highT);
+    const highPt  = ACTIVE_TRACK.curve.getPoint(highT);
     targetPos = new THREE.Vector3(highPt.x, 45 + Math.sin(cc.t * 0.2) * 5, highPt.z);
     lookAt = kpos.clone().add(new THREE.Vector3(0, 0, 0));
 
   } else { // 'ahead'
     // Camera placed ahead on the track, kart drives toward it
     const aheadT  = (winnerAI.trackT + 0.06) % 1;
-    const aheadPt = TRACK_CURVE.getPoint(aheadT);
-    const aheadTan = TRACK_CURVE.getTangent(aheadT).normalize();
+    const aheadPt = ACTIVE_TRACK.curve.getPoint(aheadT);
+    const aheadTan = ACTIVE_TRACK.curve.getTangent(aheadT).normalize();
     targetPos = new THREE.Vector3(
       aheadPt.x - aheadTan.x * 3 + rightX * (Math.sin(cc.t * 0.3) * 4),
       kpos.y + 4 + Math.sin(cc.t * 0.4) * 1.5,
@@ -5612,6 +5533,9 @@ function updateCinematicCamera(delta, playerIdx) {
     lookAt = kpos.clone().add(new THREE.Vector3(0, 1, 0));
   }
 
+  if (ACTIVE_TRACK.constrainCameraPosition) {
+    targetPos = ACTIVE_TRACK.constrainCameraPosition(targetPos);
+  }
   cam.position.lerp(targetPos, blend);
   cam.lookAt(lookAt);
 }
@@ -5631,7 +5555,12 @@ function updateItemBoxes(delta) {
     }
     if (box.active) {
       box.mesh.rotation.y += delta * 2;
-      box.mesh.position.y = 0.8 + Math.sin(Date.now() * 0.003) * 0.15;
+      const bob = Math.sin(Date.now() * 0.003) * 0.15;
+      box.mesh.position.y = box.baseHeight + bob;
+      if (box.mesh2) {
+        box.mesh2.rotation.y = box.mesh.rotation.y;
+        box.mesh2.position.y = box.baseHeight + bob;
+      }
     }
   });
 }
@@ -5640,6 +5569,14 @@ function updateItemBoxes(delta) {
 // RACE SETUP & START
 // =============================================
 async function startGame() {
+  requestGameplayPointerLock();
+  clearFinishSplashes();
+  rebuildTrackCheckpoints();
+  bombs = [];
+  bananaPeels = [];
+  redShells = [];
+  greenShells = [];
+  blueShells = [];
   await cannonReady;
   const isSolo = gameMode === 'solo';
   soloAI = null;
@@ -5681,14 +5618,6 @@ async function startGame() {
   document.getElementById('hud').style.display = 'block';
   document.getElementById('divider').style.display = isSolo ? 'none' : 'block';
 
-  // Extra CPU HUD boxes — show for solo CPUs 2/3, or coop CPUs 1/2
-  const cpu2HudEl = document.getElementById('hudCpu2');
-  const cpu3HudEl = document.getElementById('hudCpu3');
-  const showCpu2 = (isSolo && soloNumCPUs >= 2) || (!isSolo && coopNumCPUs >= 1);
-  const showCpu3 = (isSolo && soloNumCPUs >= 3) || (!isSolo && coopNumCPUs >= 2);
-  if (cpu2HudEl) cpu2HudEl.style.display = showCpu2 ? '' : 'none';
-  if (cpu3HudEl) cpu3HudEl.style.display = showCpu3 ? '' : 'none';
-
   const W = isSolo ? window.innerWidth : window.innerWidth / 2;
   const H = window.innerHeight;
 
@@ -5719,27 +5648,27 @@ async function startGame() {
 
   const s1 = new THREE.Scene();
   scenes = [s1];
-  buildScene(s1);
+  ACTIVE_TRACK.buildScene(s1, settings, stadiumWalls, () => scenes);
   let s2;
   if (!isSolo) {
     s2 = new THREE.Scene();
     scenes.push(s2);
-    buildScene(s2);
+    ACTIVE_TRACK.buildScene(s2, settings, null, () => scenes);
   }
 
   // Item boxes synced to both scenes — evenly spaced on track centre line
   itemBoxes = [];
-  const BOX_T_OFFSETS = [0.06, 0.17, 0.28, 0.39, 0.50, 0.61, 0.72, 0.83, 0.94];
-  BOX_T_OFFSETS.forEach(t => {
-    const pt = TRACK_CURVE.getPoint(t);
+  ACTIVE_TRACK.itemBoxOffsets.forEach(t => {
+    const pt = ACTIVE_TRACK.curve.getPoint(t);
     const b1 = makeItemBox();
-    b1.position.set(pt.x, 0.8, pt.z); s1.add(b1);
+    const baseHeight = pt.y + 0.8;
+    b1.position.set(pt.x, baseHeight, pt.z); s1.add(b1);
     let b2 = null;
     if (!isSolo) {
       b2 = makeItemBox();
-      b2.position.set(pt.x, 0.8, pt.z); s2.add(b2);
+      b2.position.set(pt.x, baseHeight, pt.z); s2.add(b2);
     }
-    itemBoxes.push({ mesh: b1, mesh2: b2, active: true, respawnTimer: 0 });
+    itemBoxes.push({ mesh: b1, mesh2: b2, t, baseHeight, active: true, respawnTimer: 0 });
   });
 
   const cam1 = new THREE.PerspectiveCamera(75, W/H, 0.1, 1200);
@@ -5749,28 +5678,26 @@ async function startGame() {
   // ── SPAWN ANGLE FIX ──
   // Compute the track tangent at t=0 so karts face the direction of travel.
   // sin/cos(angle) drives movement, so angle = atan2(tan.x, tan.z) matches the movement math.
-  const spawnTangent = TRACK_CURVE.getTangent(0).normalize();
+  const spawnTangent = ACTIVE_TRACK.curve.getTangent(0).normalize();
   const spawnAngle = Math.atan2(spawnTangent.x, spawnTangent.z);
   const spawnPerp = new THREE.Vector3(-spawnTangent.z, 0, spawnTangent.x);
 
-  const spawnOrigin = TRACK_WAYPOINTS[0].clone();
+  const spawnOrigin = ACTIVE_TRACK.waypoints[0].clone();
 
-  // Grid layout: 2 columns (left/right), 2 rows — staggered behind start line.
-  // Row 0 is on the start line, row 1 is one kart-length behind.
-  // The track tangent points forward; behind = -tangent direction.
-  const ROW_SPACING = 4.5; // units between front/rear rows on the grid
-  const spawnSlots = [
-    // [lateral offset, row offset]
-    [-2,  0],          // slot 0: front-left
-    [ 2,  0],          // slot 1: front-right
-    [-2, -ROW_SPACING],// slot 2: rear-left
-    [ 2, -ROW_SPACING],// slot 3: rear-right
-  ].map(([lat, row]) =>
-    spawnOrigin.clone()
-      .addScaledVector(spawnPerp, lat)
-      .addScaledVector(spawnTangent, row)
-      .add(new THREE.Vector3(0, 0.85, 0))
-  );
+  const totalDrivers = gameMode_dev ? 1 : isSolo ? 1 + soloNumCPUs : 2 + coopNumCPUs;
+  const ROW_SPACING = 4.5;
+  const spawnSlots = Array.from({ length: totalDrivers }, (_, index) => {
+    const row = Math.floor(index / 2);
+    const lateralOffset = index % 2 === 0 ? -2 : 2;
+    return spawnOrigin.clone()
+      .addScaledVector(spawnPerp, lateralOffset)
+      .addScaledVector(spawnTangent, -row * ROW_SPACING)
+      .add(new THREE.Vector3(0, 0.85, 0));
+  });
+  for (let i = spawnSlots.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [spawnSlots[i], spawnSlots[j]] = [spawnSlots[j], spawnSlots[i]];
+  }
 
   if (gameMode_dev) {
     // Dev mode: only one player, no CPU at all
@@ -5783,22 +5710,13 @@ async function startGame() {
     document.getElementById('hud1name').textContent = '🔧 ' + CHARACTERS[playerChars[0]].name;
     document.getElementById('hud2').style.display = 'none';
   } else if (isSolo) {
-    // Solo: P1 + 1–3 CPUs, all in scene 1
+    // Solo: P1 + up to 7 CPUs, all in scene 1
     players = [];
-    const totalDrivers = 1 + soloNumCPUs; // P1 + CPUs
     for (let i = 0; i < totalDrivers; i++) {
       players.push(createPlayer(playerChars[i], spawnSlots[i], spawnAngle, s1));
     }
     document.getElementById('hud1name').textContent = '🏎️ ' + CHARACTERS[playerChars[0]].name;
-    document.getElementById('hud2name').textContent = '🤖 ' + CHARACTERS[playerChars[1]].name;
-    document.getElementById('hud2').style.display = '';
-    // Names for extra CPU HUD boxes
-    if (soloNumCPUs >= 2) {
-      document.getElementById('hudCpu2name').textContent = '🤖 ' + CHARACTERS[playerChars[2]].name;
-    }
-    if (soloNumCPUs >= 3) {
-      document.getElementById('hudCpu3name').textContent = '🤖 ' + CHARACTERS[playerChars[3]].name;
-    }
+    document.getElementById('hud2').style.display = 'none';
   } else {
     // Co-op: P1 left, P2 right, + optional CPUs (both rendered in s1 since s2 is P2's viewport)
     players = [
@@ -5816,12 +5734,6 @@ async function startGame() {
     document.getElementById('hud1name').textContent = '🏎️ ' + CHARACTERS[playerChars[0]].name;
     document.getElementById('hud2name').textContent = '🏎️ ' + CHARACTERS[playerChars[1]].name;
     document.getElementById('hud2').style.display = '';
-    if (coopNumCPUs >= 1) {
-      document.getElementById('hudCpu2name').textContent = '🤖 ' + CHARACTERS[playerChars[2]].name;
-    }
-    if (coopNumCPUs >= 2) {
-      document.getElementById('hudCpu3name').textContent = '🤖 ' + CHARACTERS[playerChars[3]].name;
-    }
   }
 
   if (!gameMode_dev && (isSolo || coopNumCPUs > 0)) {
@@ -5833,6 +5745,9 @@ async function startGame() {
     }
     soloAI = soloAIs[0]; // keep legacy reference for compat
   }
+
+  updateCamera(cameras[0], players[0], true);
+  if (!isSolo) updateCamera(cameras[1], players[1], true);
 
   initKartBumpPhysics();
 
@@ -6041,25 +5956,27 @@ async function startGame() {
     // ── DS4 Options button → pause (poll every frame, outside raceRunning guard) ──
     {
       const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-      // Check each assigned gamepad slot
-      [gpAssign[0], gpAssign[1]].forEach((padIdx, slot) => {
-        if (padIdx === undefined || padIdx === null) return;
-        const gp = pads[padIdx];
-        if (!gp) return;
-        const raw = isRawMapping(gp);
-        // Options button: standard mapping = buttons[9], raw Linux = buttons[9] as well
+      const connectedPads = new Set();
+      let optionsPressedThisFrame = false;
+      Array.from(pads).forEach(gp => {
+        if (!gp || !gp.connected) return;
+        connectedPads.add(gp.index);
         const optBtn = gp.buttons[9];
         const pressed = optBtn ? (optBtn.pressed || optBtn.value > 0.5) : false;
-        if (pressed && !_gpOptionsWasPressed[slot]) {
+        if (pressed && !_gpOptionsWasPressed.get(gp.index)) {
           // Only toggle if we're in an active race (not on menu, not on win screen)
           const _menuEl = document.getElementById('mainMenu');
           const _wsEl   = document.getElementById('winScreen');
           const _menuHidden = _menuEl && _menuEl.style.display === 'none';
           const _wsHidden   = !_wsEl  || _wsEl.style.display  !== 'flex';
-          if (_menuHidden && _wsHidden) togglePause();
+          if (_menuHidden && _wsHidden) optionsPressedThisFrame = true;
         }
-        _gpOptionsWasPressed[slot] = pressed;
+        _gpOptionsWasPressed.set(gp.index, pressed);
       });
+      for (const index of _gpOptionsWasPressed.keys()) {
+        if (!connectedPads.has(index)) _gpOptionsWasPressed.set(index, false);
+      }
+      if (optionsPressedThisFrame) togglePause();
     }
 
     if (raceRunning) {
@@ -6097,6 +6014,8 @@ async function startGame() {
       updateItemBoxes(delta);
       updateBananaPeels(delta, players);
       updateRedShells(delta);
+      updateGreenShells(delta);
+      updateBlueShells(delta);
       if (!isSolo) syncItemBoxVisibility();
 
       raceTimer = (Date.now() - raceStart) / 1000;
@@ -6142,7 +6061,7 @@ const FIRE_COLORS = [0xFF4400, 0xFF8800, 0xFFCC00, 0xFF2200, 0xFFFFAA];
 const FIRE_POOL_SIZE = 28; // particles per player
 
 // Pools are initialised lazily on first boost so scenes[] is ready.
-const _firePools = [null, null, null, null]; // up to 4 players
+const _firePools = [];
 
 function initFirePool(pi) {
   if (_firePools[pi]) return;
@@ -6251,7 +6170,7 @@ function updateFireParticles(delta) {
 // DARK SMOKE PARTICLES — launch stall exhaust
 // =============================================
 const SMOKE_POOL_SIZE = 32;
-const _smokePools = [null, null, null, null]; // up to 4 players
+const _smokePools = [];
 
 function initSmokePool(pi) {
   if (_smokePools[pi]) return;
@@ -6347,7 +6266,7 @@ let ghostKarts = null;
 // =============================================
 // Store original material colors so we can restore them when the star expires.
 // We also track the last known starTimer state per player to know when to restore.
-const _starOrigColors = [null, null, null, null]; // per player (up to 4), array of { mesh, color }
+const _starOrigColors = [];
 
 function updateStarEffects(delta) {
   players.forEach((player, pi) => {
@@ -6520,26 +6439,16 @@ function updateHUD() {
   // Determine race position for all players.
   // Already-finished players rank above unfinished ones (by finishTime ascending).
   // Among unfinished players, rank by lap desc then checkpoint desc.
-  const allIndices = players.map((_, i) => i);
-  const ranked = allIndices.slice().sort((a, b) => {
-    const pa = players[a], pb = players[b];
-    if (pa.finishTime !== null && pb.finishTime !== null) return pa.finishTime - pb.finishTime;
-    if (pa.finishTime !== null) return -1;
-    if (pb.finishTime !== null) return  1;
-    if (pa.lap !== pb.lap) return pb.lap - pa.lap;
-    return pb.checkpoint - pa.checkpoint;
-  });
-  const placeOf = new Array(players.length).fill(0);
-  ranked.forEach((playerIdx, rank) => { placeOf[playerIdx] = rank + 1; });
+  const { placeOf } = getPlayerPlacements();
 
   const placeLabels = ['🥇 1st', '🥈 2nd', '🥉 3rd', '4th'];
   const placeFinish = '✅ Finished!';
 
   // Only update HUD for P1 and P2 (the two visible HUD panels)
-  [0, 1].forEach(i => {
+  (gameMode === 'solo' || gameMode_dev ? [0] : [0, 1]).forEach(i => {
     if (!players[i]) return;
     const p = players[i];
-    document.getElementById(`hud${i+1}lap`).textContent = Math.min(p.lap, TOTAL_LAPS);
+    document.getElementById(`hud${i+1}lap`).textContent = Math.min(p.lap, ACTIVE_TRACK.totalLaps);
     document.getElementById(`hud${i+1}speed`).textContent = Math.abs(Math.round(p.speed * 3.6));
     document.getElementById(`hud${i+1}item`).textContent = p.item || '';
     const place = placeOf[i];
@@ -6547,29 +6456,6 @@ function updateHUD() {
       p.finishTime !== null ? placeFinish : (placeLabels[place - 1] || `${place}th`);
   });
 
-  // Extra CPU HUD boxes (indices 2 and 3 in players array = CPU2 and CPU3)
-  // CPU2 box (player index 2)
-  const cpu2El = document.getElementById('hudCpu2');
-  if (cpu2El && cpu2El.style.display !== 'none' && players[2]) {
-    const p = players[2];
-    document.getElementById('hudCpu2lap').textContent = Math.min(p.lap, TOTAL_LAPS);
-    document.getElementById('hudCpu2speed').textContent = Math.abs(Math.round(p.speed * 3.6));
-    document.getElementById('hudCpu2item').textContent = p.item || '';
-    const place = placeOf[2];
-    document.getElementById('hudCpu2place').textContent =
-      p.finishTime !== null ? placeFinish : (placeLabels[place - 1] || `${place}th`);
-  }
-  // CPU3 box (player index 3)
-  const cpu3El = document.getElementById('hudCpu3');
-  if (cpu3El && cpu3El.style.display !== 'none' && players[3]) {
-    const p = players[3];
-    document.getElementById('hudCpu3lap').textContent = Math.min(p.lap, TOTAL_LAPS);
-    document.getElementById('hudCpu3speed').textContent = Math.abs(Math.round(p.speed * 3.6));
-    document.getElementById('hudCpu3item').textContent = p.item || '';
-    const place = placeOf[3];
-    document.getElementById('hudCpu3place').textContent =
-      p.finishTime !== null ? placeFinish : (placeLabels[place - 1] || `${place}th`);
-  }
 }
 
 // =============================================
@@ -6577,7 +6463,9 @@ function updateHUD() {
 // =============================================
 function showFinish() {
   raceRunning = false;
+  releaseGameplayPointerLock();
   stopEngineAudio();
+  stopBlueShellWarning();
   stopBGM();
 
   const times = players.map((p, i) => ({
@@ -6670,18 +6558,16 @@ function spawnConfetti() {
 }
 
 function backToMenu() {
+  clearFinishSplashes();
+  releaseGameplayPointerLock();
   // Reset pause state first so resumeGame() isn't needed
   racePaused = false;
   raceRunning = false;
+  stopBlueShellWarning();
   document.getElementById('pauseScreen').style.display = 'none';
   document.getElementById('winScreen').style.display = 'none';
   document.getElementById('hud').style.display = 'none';
   document.getElementById('hud2').style.display = ''; // restore in case dev mode hid it
-  // Hide extra CPU HUD boxes
-  const cpu2El = document.getElementById('hudCpu2');
-  const cpu3El = document.getElementById('hudCpu3');
-  if (cpu2El) cpu2El.style.display = 'none';
-  if (cpu3El) cpu3El.style.display = 'none';
   ds4Lightbar.resetAll(); // restore DS4 default blue
   document.getElementById('divider').style.display = 'none';
   document.getElementById('mainMenu').style.display = 'flex';
@@ -6710,15 +6596,15 @@ function backToMenu() {
   itemBoxes = [];
   bananaPeels = [];
   redShells = [];
+  greenShells = [];
+  blueShells = [];
   _activeBolts.length = 0;
   soloAIs = [];
   winnerAI = null;
   cinModeIdx = 0;
-  for (let i = 0; i < 4; i++) {
-    _starOrigColors[i] = null;
-    _firePools[i] = null;
-    _smokePools[i] = null;
-  }
+  _starOrigColors.length = 0;
+  _firePools.length = 0;
+  _smokePools.length = 0;
   stadiumWalls.length = 0;
   players = [];
   scenes = [];
@@ -6726,5 +6612,6 @@ function backToMenu() {
   if (animId) cancelAnimationFrame(animId);
   if (_finishFallbackTimer) { clearTimeout(_finishFallbackTimer); _finishFallbackTimer = null; }
   _clearPostFinishCinematic();
+  backToModeSelect();
   updateCharUI();
 }
