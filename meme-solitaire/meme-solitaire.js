@@ -211,6 +211,63 @@ function checkWin(found) {
   return found.every(f => f.length === 13);
 }
 
+// ─── STALEMATE DETECTION ───────────────────────────────────────────────────────
+// Returns true if the player has at least one legal move available right now.
+function playerHasAnyLegalMove() {
+  // Can we move the top waste card somewhere?
+  if (G.playerWaste.length > 0) {
+    const w = G.playerWaste[G.playerWaste.length - 1];
+    for (let fi = 0; fi < 4; fi++) {
+      if (canStackFound(w, G.playerFound[fi])) return true;
+    }
+    for (let pi = 0; pi < 7; pi++) {
+      const top = G.playerTab[pi][G.playerTab[pi].length - 1] || null;
+      if (canStackTab(w, top)) return true;
+    }
+  }
+
+  // Can we draw from stock?
+  if (G.playerStock.length > 0) return true;
+
+  // Can we recycle waste back to stock?
+  if (G.playerWaste.length > 0) return true;
+
+  // Can any face-up tableau card move to a foundation or another tableau column?
+  for (let fromPi = 0; fromPi < 7; fromPi++) {
+    const fromPile = G.playerTab[fromPi];
+    if (fromPile.length === 0) continue;
+    // Find the first face-up card in the pile
+    let firstFaceUp = fromPile.length - 1;
+    while (firstFaceUp > 0 && fromPile[firstFaceUp - 1].faceUp) firstFaceUp--;
+
+    for (let ci = firstFaceUp; ci < fromPile.length; ci++) {
+      const card = fromPile[ci];
+      if (!card.faceUp) continue;
+      // Single top card → foundation?
+      if (ci === fromPile.length - 1) {
+        for (let fi = 0; fi < 4; fi++) {
+          if (canStackFound(card, G.playerFound[fi])) return true;
+        }
+      }
+      // Card (+ stack below it) → another tableau column?
+      for (let toPi = 0; toPi < 7; toPi++) {
+        if (toPi === fromPi) continue;
+        const top = G.playerTab[toPi][G.playerTab[toPi].length - 1] || null;
+        if (canStackTab(card, top)) return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// Check if the player is completely stuck — stock & waste both empty, no moves.
+function isPlayerStalemated() {
+  if (G.playerStock.length > 0) return false; // still cards to draw
+  if (G.playerWaste.length > 0) return false; // can still cycle or play waste top
+  return !playerHasAnyLegalMove();
+}
+
 // ─── UI RENDERING ──────────────────────────────────────────────────────────────
 function cardEl(card, opts = {}) {
   const el = document.createElement('div');
@@ -424,7 +481,12 @@ function playerDrawStock() {
 
   if (G.playerStock.length === 0) {
     if (G.playerWaste.length === 0) {
-      setStatus('💀 NOTHING LEFT! YOU LITERALLY HAVE NOTHING!');
+      // Truly nothing left — check for stalemate
+      if (isPlayerStalemated()) {
+        triggerPlayerStalemate();
+      } else {
+        setStatus('💀 NOTHING LEFT! YOU LITERALLY HAVE NOTHING!');
+      }
       return;
     }
     // Flip waste back to stock
@@ -432,6 +494,16 @@ function playerDrawStock() {
     G.playerWaste = [];
     G.stockPasses++;
     setStatus(MEMES.statusPhrases.stockEmpty);
+
+    // After cycling, check if we've been spinning our wheels with no progress
+    if (G.stockPasses >= 3) {
+      // Give the player a moment to see the recycle, then check if truly stuck
+      setTimeout(() => {
+        if (!G.gameOver && !playerHasAnyLegalMove()) {
+          triggerPlayerStalemate();
+        }
+      }, 400);
+    }
   } else {
     const card = G.playerStock.pop();
     card.faceUp = true;
@@ -442,6 +514,13 @@ function playerDrawStock() {
   G.selected = null;
   renderAll();
   checkGameOverCondition();
+}
+
+function triggerPlayerStalemate() {
+  if (G.gameOver) return;
+  setStatus('💀 NO MOVES LEFT! GAME OVER FOR YOU, BUDDY!');
+  // Give CPU the win since player is stuck
+  setTimeout(() => endGame('cpu'), 1200);
 }
 
 function playerSelectWaste() {
@@ -570,6 +649,11 @@ function checkWinCondition() {
 
 function checkGameOverCondition() {
   checkWinCondition();
+  if (G.gameOver) return;
+  // After every player action, check if they've run out of moves entirely
+  if (isPlayerStalemated()) {
+    triggerPlayerStalemate();
+  }
 }
 
 function endGame(winner) {
@@ -815,6 +899,23 @@ function runCpuTurn() {
     }
   }
 
+  // Track how many cards were in waste when we last cycled, to detect a full
+  // fruitless cycle (drew every card, found nothing useful → truly stuck).
+  let cpuWasteSizeAtCycleStart = -1;
+  let cpuFullCycleDraws = 0;
+
+  function cpuIsTrulyStalemated() {
+    // Stock and waste are both empty → nothing left to draw
+    if (G.cpuStock.length === 0 && G.cpuWaste.length === 0) return true;
+    // We've drawn through a complete cycle of the waste pile without making
+    // any non-draw move → the CPU can never make progress
+    if (cpuFullCycleDraws > 0 && cpuMoveCount === 0 &&
+        G.cpuStock.length === 0 && G.cpuWaste.length === cpuWasteSizeAtCycleStart) {
+      return true;
+    }
+    return false;
+  }
+
   function doNextMove() {
     if (G.gameOver) {
       finishCpuTurn();
@@ -829,13 +930,20 @@ function runCpuTurn() {
     const move  = cpuPickMove(moves);
 
     if (!move) {
-      // No move available at all — force a stock draw to break the deadlock
+      // No moves at all — try a stock draw to break the deadlock
       cpuStuckCount++;
-      if (cpuStuckCount > 3) {
+      if (cpuStuckCount > 1) {
+        // Already tried drawing last time too — we're genuinely stuck
+        if (cpuIsTrulyStalemated()) {
+          // CPU has no moves — player wins by default
+          if (!G.gameOver) {
+            setStatus(`💻 ${G.cpuName} IS STUCK! YOU WIN BY DEFAULT! 🎉`);
+            setTimeout(() => { if (!G.gameOver) endGame('player'); }, 1200);
+          }
+        }
         finishCpuTurn();
         return;
       }
-      // Try to draw; if even that fails (empty stock & waste) then give up
       const drawn = cpuApplyMove({ type: 'draw' });
       if (!drawn) {
         finishCpuTurn();
@@ -844,10 +952,26 @@ function runCpuTurn() {
       cpuDrawsThisTurn++;
     } else {
       const wasDraw = move.type === 'draw';
-      if (wasDraw) cpuDrawsThisTurn++;
-      if (cpuDrawsThisTurn > CPU.MAX_DRAWS) {
-        finishCpuTurn();
-        return;
+      if (wasDraw) {
+        cpuDrawsThisTurn++;
+        cpuStuckCount = 0; // reset stuck counter — we found a draw move fine
+
+        // Detect when stock just got recycled (waste → stock)
+        if (G.cpuStock.length > 0 && G.cpuWaste.length === 0) {
+          // Just cycled: record waste size so we can detect a full fruitless loop
+          cpuWasteSizeAtCycleStart = G.cpuStock.length;
+          cpuFullCycleDraws++;
+          if (cpuFullCycleDraws >= 2 && cpuMoveCount === 0) {
+            // Two full cycles with zero non-draw moves → hopelessly stuck
+            setStatus(`💻 ${G.cpuName} IS STUCK! YOU WIN BY DEFAULT! 🎉`);
+            setTimeout(() => { if (!G.gameOver) endGame('player'); }, 1200);
+            finishCpuTurn();
+            return;
+          }
+        }
+      } else {
+        cpuStuckCount = 0;
+        cpuFullCycleDraws = 0; // made a real move, reset cycle counter
       }
       cpuApplyMove(move);
       if (!wasDraw) cpuMoveCount++;
