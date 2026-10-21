@@ -17,15 +17,17 @@
   display: none;
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
   background: #000;
   z-index: 999999;
   overflow: hidden;
 }
 
-body.mobile-blocked {
+body.mobile-blocked,
+body.spoof-blocked {
   overflow: hidden;
+  padding: 0;
+  background: #000 !important;
+  animation: none;
 }
 
 /* Everything else on the page stays out of the way while blocked */
@@ -46,6 +48,7 @@ body.mobile-blocked #mobile-block {
 .mobile-block-content {
   width: 100%;
   height: 100%;
+  max-width: 100%;
   /* Fully adaptive — fills whatever screen the banned device has.
      No hardcoded aspect ratio so nothing clips on phones, tablets,
      iPads (including the big-ass 13" Pro), or fridges. */
@@ -54,7 +57,10 @@ body.mobile-blocked #mobile-block {
   align-items: center;
   justify-content: center;
   gap: clamp(8px, 2.5vh, 28px);
-  padding: clamp(12px, 4vh, 48px) clamp(16px, 5vw, 60px);
+  padding-top: max(clamp(12px, 4vh, 48px), env(safe-area-inset-top));
+  padding-right: max(clamp(16px, 5vw, 60px), env(safe-area-inset-right));
+  padding-bottom: max(clamp(12px, 4vh, 48px), env(safe-area-inset-bottom));
+  padding-left: max(clamp(16px, 5vw, 60px), env(safe-area-inset-left));
   box-sizing: border-box;
   text-align: center;
   font-family: 'Comic Sans MS', sans-serif;
@@ -64,9 +70,17 @@ body.mobile-blocked #mobile-block {
 }
 
 .mobile-block-line {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   margin: 0;
   line-height: 1.15;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  white-space: normal;
   animation: mobile-block-glow 1.4s ease-in-out infinite;
 }
 
@@ -85,17 +99,17 @@ body.mobile-blocked #mobile-block {
 }
 
 .mobile-block-line.line-1 {
-  /* Scales up from phones to big iPads, but never gets ridiculous */
-  font-size: clamp(2rem, 9vmin, 6rem);
+  font-size: clamp(1.25rem, min(9vmin, 6vh), 6rem);
 }
 
 .mobile-block-line.line-2 {
-  font-size: clamp(1.1rem, 6vmin, 3.5rem);
+  font-size: clamp(0.9rem, min(6vmin, 4vh), 3.5rem);
 }
 
 .mobile-block-img {
-  /* Size relative to the shorter screen edge so it always fits */
-  width: clamp(120px, 40vmin, 320px);
+  width: clamp(80px, min(40vmin, 25vh), 320px);
+  max-height: 25vh;
+  flex-shrink: 1;
   height: auto;
   aspect-ratio: 1 / 1;
   object-fit: contain;
@@ -129,8 +143,6 @@ body.mobile-blocked #mobile-block {
   display: none;
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
   background: #000;
   z-index: 999999;
   overflow: hidden;
