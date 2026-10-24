@@ -17,22 +17,24 @@ cannonReady.then(({ Body, Sphere, Vec3, World }) => {
 const CHARACTERS = [
   // color      = kart body colour in the 3D scene (Three.js hex, lit by scene lighting)
   // lightbarColor = DS4 lightbar LED colour, separate from the kart colour.
-  { name: "Mama Luigi",    img: "assets/Mama-Luigi.png",     color: 0x228B22, lightbarColor: 0x00FF00, voicelines: ['assets/voicelines/mama-luigi-hit.mp3', 'assets/voicelines/mama-luigi-win.mp3', 'assets/voicelines/mama-luigi-lose.mp3'] }, // vivid green
-  { name: "King Harkinian",img: "assets/King-Harkinian.png", color: 0xDAA520, lightbarColor: 0xFF8C00, voicelines: ['assets/voicelines/king-harkinian-hit.mp3', 'assets/voicelines/king-harkinian-win.mp3', 'assets/voicelines/king-harkinian-lose.mp3'] }, // bright orange-gold
-  { name: "Doge",          img: "assets/Doge.png",           color: 0xCBB987, lightbarColor: 0xFFDD44, voicelines: ['assets/voicelines/doge-hit.mp3', 'assets/voicelines/doge-win.mp3', 'assets/voicelines/doge-lose.mp3'] }, // warm yellow
-  { name: "Gwonam",        img: "assets/Gwonam.png",         color: 0x8A45A1, lightbarColor: 0xCC00FF, voicelines: ['assets/voicelines/gwonam-hit.mp3', 'assets/voicelines/gwonam-win.mp3', 'assets/voicelines/gwonam-lose.mp3'] }, // vivid purple
-  { name: "Zelda",         img: "assets/Zelda.png",          color: 0xFF00AA, lightbarColor: 0xFF00CC, voicelines: ['assets/voicelines/zelda-hit.mp3', 'assets/voicelines/zelda-win.mp3', 'assets/voicelines/zelda-lose.mp3'] }, // hot pink
-  { name: "Longcat",       img: "assets/Longcat.png",        color: 0xDEDEDE, lightbarColor: 0xDEDEDE, voicelines: ['assets/voicelines/longcat-hit.mp3', 'assets/voicelines/longcat-win.mp3', 'assets/voicelines/longcat-lose.mp3'] }, // creamy white
-  { name: "Rick Astley",   img: "assets/Rick-Astley.png",    color: 0x363030, lightbarColor: 0x363030, voicelines: ['assets/voicelines/rick-astley-hit.mp3', 'assets/voicelines/rick-astley-win.mp3', 'assets/voicelines/rick-astley-lose.mp3'] }, // almost black
-  { name: "Weegee",        img: "assets/Weegee.png",         color: 0x4c7e66, lightbarColor: 0x33cc66, voicelines: ['assets/voicelines/weegee-hit.mp3', 'assets/voicelines/weegee-win.mp3', 'assets/voicelines/weegee-lose.mp3'] }, // emerald green (distinct from Mama Luigi green)
-  { name: "Morshu",        img: "assets/Morshu.png",         color: 0xFF8000, lightbarColor: 0xFFA500, voicelines: ['assets/voicelines/morshu-hit.mp3', 'assets/voicelines/morshu-win.mp3', 'assets/voicelines/morshu-lose.mp3'] }, // orange
-  { name: "Malleo",        img: "assets/Malleo.png",         color: 0xb30c0c, lightbarColor: 0xFF0000, voicelines: ['assets/voicelines/malleo-hit.mp3', 'assets/voicelines/malleo-win.mp3', 'assets/voicelines/malleo-lose.mp3'] }, // red
-  { name: "Mayor Cravendish", img: "assets/Mayor-Cravendish.png", color: 0x0fa4c8, lightbarColor: 0x0000FF, voicelines: ['assets/voicelines/mayor-cravendish-hit.mp3', 'assets/voicelines/mayor-cravendish-win.mp3', 'assets/voicelines/mayor-cravendish-lose.mp3'] }, // blue
-  { name: "Ganon",          img: "assets/Ganon.png",           color: 0x3C0008, lightbarColor: 0x5D100A, voicelines: ['assets/voicelines/ganon-hit.mp3', 'assets/voicelines/ganon-win.mp3', 'assets/voicelines/ganon-lose.mp3'] }, // maroon
-  { name: "Michael Rosen",     img: "assets/Michael-Rosen.png",    color: 0x708090, lightbarColor: 0xC0C0C0, voicelines: ['assets/voicelines/michael-rosen-hit.mp3', 'assets/voicelines/michael-rosen-win.mp3', 'assets/voicelines/michael-rosen-lose.mp3'] }, // grey
-  { name: "Link",         img: "assets/Link.png",          color: 0x00FF00, lightbarColor: 0x00FF00, voicelines: ['assets/voicelines/link-hit.mp3', 'assets/voicelines/link-win.mp3', 'assets/voicelines/link-lose.mp3'] }, // bright green
-  { name: "Dr. Robotnik" , img: "assets/Dr-Robotnik.png", color: 0xfc5a03, lightbarColor: 0xff5900, voicelines: ['assets/voicelines/dr-robotnik-hit.mp3', 'assets/voicelines/dr-robotnik-win.mp3', 'assets/voicelines/dr-robotnik-lose.mp3'] }, // red
-  { name: "I.M. Meen", img: "assets/I-M-Meen.png", color: 0x9000ff, lightbarColor: 0x9716fa, voicelines: ['assets/voicelines/im-meen-hit.mp3', 'assets/voicelines/im-meen-win.mp3', 'assets/voicelines/im-meen-lose.mp3'] }, // purple
+  { name: "Mama Luigi",    img: "./assets/characters/Mama-Luigi.png",     color: 0x228B22, lightbarColor: 0x00FF00, voicelines: ['assets/voicelines/mama-luigi-hit.mp3', 'assets/voicelines/mama-luigi-win.mp3', 'assets/voicelines/mama-luigi-lose.mp3'] }, // vivid green
+  { name: "King Harkinian",img: "./assets/characters/King-Harkinian.png", color: 0xDAA520, lightbarColor: 0xFF8C00, voicelines: ['assets/voicelines/king-harkinian-hit.mp3', 'assets/voicelines/king-harkinian-win.mp3', 'assets/voicelines/king-harkinian-lose.mp3'] }, // bright orange-gold
+  { name: "Doge",          img: "./assets/characters/Doge.png",           color: 0xCBB987, lightbarColor: 0xFFDD44, voicelines: ['assets/voicelines/doge-hit.mp3', 'assets/voicelines/doge-win.mp3', 'assets/voicelines/doge-lose.mp3'] }, // warm yellow
+  { name: "Gwonam",        img: "./assets/characters/Gwonam.png",         color: 0x8A45A1, lightbarColor: 0xCC00FF, voicelines: ['assets/voicelines/gwonam-hit.mp3', 'assets/voicelines/gwonam-win.mp3', 'assets/voicelines/gwonam-lose.mp3'] }, // vivid purple
+  { name: "Zelda",         img: "./assets/characters/Zelda.png",          color: 0xFF00AA, lightbarColor: 0xFF00CC, voicelines: ['assets/voicelines/zelda-hit.mp3', 'assets/voicelines/zelda-win.mp3', 'assets/voicelines/zelda-lose.mp3'] }, // hot pink
+  { name: "Longcat",       img: "./assets/characters/Longcat.png",        color: 0xDEDEDE, lightbarColor: 0xDEDEDE, voicelines: ['assets/voicelines/longcat-hit.mp3', 'assets/voicelines/longcat-win.mp3', 'assets/voicelines/longcat-lose.mp3'] }, // creamy white
+  { name: "Rick Astley",   img: "./assets/characters/Rick-Astley.png",    color: 0x363030, lightbarColor: 0x363030, voicelines: ['assets/voicelines/rick-astley-hit.mp3', 'assets/voicelines/rick-astley-win.mp3', 'assets/voicelines/rick-astley-lose.mp3'] }, // almost black
+  { name: "Weegee",        img: "./assets/characters/Weegee.png",         color: 0x4c7e66, lightbarColor: 0x33cc66, voicelines: ['assets/voicelines/weegee-hit.mp3', 'assets/voicelines/weegee-win.mp3', 'assets/voicelines/weegee-lose.mp3'] }, // emerald green (distinct from Mama Luigi green)
+  { name: "Morshu",        img: "./assets/characters/Morshu.png",         color: 0xFF8000, lightbarColor: 0xFFA500, voicelines: ['assets/voicelines/morshu-hit.mp3', 'assets/voicelines/morshu-win.mp3', 'assets/voicelines/morshu-lose.mp3'] }, // orange
+  { name: "Malleo",        img: "./assets/characters/Malleo.png",         color: 0xb30c0c, lightbarColor: 0xFF0000, voicelines: ['assets/voicelines/malleo-hit.mp3', 'assets/voicelines/malleo-win.mp3', 'assets/voicelines/malleo-lose.mp3'] }, // red
+  { name: "Mayor Cravendish", img: "./assets/characters/Mayor-Cravendish.png", color: 0x0fa4c8, lightbarColor: 0x0000FF, voicelines: ['assets/voicelines/mayor-cravendish-hit.mp3', 'assets/voicelines/mayor-cravendish-win.mp3', 'assets/voicelines/mayor-cravendish-lose.mp3'] }, // blue
+  { name: "Ganon",          img: "./assets/characters/Ganon.png",           color: 0x3C0008, lightbarColor: 0x5D100A, voicelines: ['assets/voicelines/ganon-hit.mp3', 'assets/voicelines/ganon-win.mp3', 'assets/voicelines/ganon-lose.mp3'] }, // maroon
+  { name: "Michael Rosen",     img: "./assets/characters/Michael-Rosen.png",    color: 0x708090, lightbarColor: 0xC0C0C0, voicelines: ['assets/voicelines/michael-rosen-hit.mp3', 'assets/voicelines/michael-rosen-win.mp3', 'assets/voicelines/michael-rosen-lose.mp3'] }, // grey
+  { name: "Link",         img: "./assets/characters/Link.png",          color: 0x00FF00, lightbarColor: 0x00FF00, voicelines: ['assets/voicelines/link-hit.mp3', 'assets/voicelines/link-win.mp3', 'assets/voicelines/link-lose.mp3'] }, // bright green
+  { name: "Dr. Robotnik" , img: "./assets/characters/Dr-Robotnik.png", color: 0xfc5a03, lightbarColor: 0xff5900, voicelines: ['assets/voicelines/dr-robotnik-hit.mp3', 'assets/voicelines/dr-robotnik-win.mp3', 'assets/voicelines/dr-robotnik-lose.mp3'] }, // red
+  { name: "I.M. Meen", img: "./assets/characters/I-M-Meen.png", color: 0x9000ff, lightbarColor: 0x9716fa, voicelines: ['assets/voicelines/im-meen-hit.mp3', 'assets/voicelines/im-meen-win.mp3', 'assets/voicelines/im-meen-lose.mp3'] }, // purple
+  { name: "Duke Onkled", img: "./assets/characters/Duke-Onkled.png", color: 0xfcbe4c, lightbarColor: 0xf7ac20, voicelines: ['assets/voicelines/duke-onkled-hit.mp3', 'assets/voicelines/duke-onkled-win.mp3', 'assets/voicelines/duke-onkled-lose.mp3'] }, // golden
+  { name: "Hotel Mario", img: "./assets/characters/Hotel-Mario.png", color: 0xFF0000, lightbarColor: 0xFF0000, voicelines: ['assets/voicelines/hotel-mario-hit.mp3', 'assets/voicelines/hotel-mario-win.mp3', 'assets/voicelines/hotel-mario-lose.mp3'] }, // red
 ];
 
 // =============================================
@@ -63,7 +65,9 @@ const HALL_OF_MEMES = [
   { img: "../meme-claw-machine/memes/HotelMarioLuigi.png" },
   { img: "../big-meme-quiz/assets/memes/leeroy-jenkins.png" },
   { img: "../big-meme-quiz/assets/memes/peanut-butter-jelly-time.png" },
-  { img: "../meme-claw-machine/memes/Bad-Luck-Brian.png"}
+  { img: "../meme-claw-machine/memes/Bad-Luck-Brian.png"},
+  { img: "./assets/characters/Duke-Onkled.png" },
+  { img: "./assets/characters/I-M-Meen.png" },
 ];
 
 // =============================================
@@ -683,7 +687,7 @@ function selectMode(mode) {
   gameMode = mode === 'dev' ? 'solo' : mode; // dev uses solo plumbing
   gameMode_dev = (mode === 'dev');
   document.getElementById('screenModeSelect').style.display = 'none';
-  document.getElementById('screenTrackSelect').style.display = 'flex';
+  document.getElementById('screenCCSelect').style.display = 'flex';
   updateCharUI();
 }
 
@@ -696,6 +700,7 @@ function continueToCharacterSelect() {
 }
 
 function backToModeSelect() {
+  document.getElementById('screenCCSelect').style.display = 'none';
   document.getElementById('screenTrackSelect').style.display = 'none';
   document.getElementById('screenCharSolo').style.display = 'none';
   document.getElementById('screenCharCoop').style.display = 'none';
@@ -1386,8 +1391,35 @@ updateCharUI();
 })();
 
 // =============================================
-const AVAILABLE_TRACKS = [ForestStadium, BeachGetaway, TwistyTunnels];
+const AVAILABLE_TRACKS = [ForestStadium, BeachGetaway, TwistyTunnels, JungleTour];
 let ACTIVE_TRACK = ForestStadium;
+let selectedCC = 100;
+
+const CC_PRESETS = {
+  50: { speed: 0.75, acceleration: 0.7, steering: 0.94 },
+  100: { speed: 1, acceleration: 1, steering: 0.86 },
+  150: { speed: 1.25, acceleration: 1.3, steering: 0.75 },
+};
+
+function selectCC(cc) {
+  if (!CC_PRESETS[cc]) return;
+  selectedCC = cc;
+  document.querySelectorAll('.cc-option').forEach(button => {
+    const isSelected = Number(button.dataset.cc) === selectedCC;
+    button.classList.toggle('selected', isSelected);
+    button.setAttribute('aria-pressed', String(isSelected));
+  });
+  applyCCSettings();
+  if (gamepadMenuContext?.id === 'screenCCSelect') {
+    setGamepadMenuFocus(document.querySelector(`.cc-option[data-cc="${cc}"]`), gamepadMenuContext);
+  }
+}
+
+function continueToTrackSelect() {
+  document.getElementById('screenCCSelect').style.display = 'none';
+  document.getElementById('screenTrackSelect').style.display = 'flex';
+  applyCCSettings();
+}
 
 function updateTrackLapLabels() {
   document.querySelectorAll('[data-track-laps]').forEach(element => {
@@ -1429,6 +1461,12 @@ function renderTrackOptions() {
       refreshTrackAudioEcho();
       updateTrackLapLabels();
       renderTrackOptions();
+      if (gamepadMenuContext?.id === 'screenTrackSelect') {
+        setGamepadMenuFocus(
+          document.querySelector('#trackOptions .track-option.selected'),
+          gamepadMenuContext
+        );
+      }
     });
     return button;
   }));
@@ -1443,6 +1481,7 @@ updateTrackLapLabels();
 let scenes = [], cameras = [], renderers = [], players = [];
 let raceRunning = false;
 let racePaused = false;
+let viewportResizeFrame = null;
 let pauseStart = 0;   // timestamp when pause began (for adjusting raceStart)
 let raceStart = 0;
 let raceTimer = 0;
@@ -1455,6 +1494,40 @@ const KART_BUMP_RADIUS = 1.35;
 const TINY_KART_COLLISION_SCALE = 0.5;
 let finishSplashQueue = [];
 let finishSplashTimer = null;
+
+function resizeGameViewport() {
+  if (renderers.length === 0 || cameras.length === 0) return;
+
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const isSplitScreen = renderers.length > 1;
+  const viewWidth = isSplitScreen ? viewportWidth / 2 : viewportWidth;
+  const pixelRatio = window.devicePixelRatio || 1;
+
+  renderers.forEach((renderer, index) => {
+    const canvas = renderer.domElement;
+    renderer.setPixelRatio(pixelRatio);
+    renderer.setSize(viewWidth, viewportHeight);
+    canvas.style.width = `${viewWidth}px`;
+    canvas.style.height = `${viewportHeight}px`;
+    canvas.style.left = isSplitScreen && index === 1 ? `${viewWidth}px` : '0';
+
+    const camera = cameras[index];
+    camera.aspect = viewWidth / viewportHeight;
+    camera.updateProjectionMatrix();
+  });
+}
+
+function scheduleGameViewportResize() {
+  if (viewportResizeFrame !== null) cancelAnimationFrame(viewportResizeFrame);
+  viewportResizeFrame = requestAnimationFrame(() => {
+    viewportResizeFrame = null;
+    resizeGameViewport();
+  });
+}
+
+window.addEventListener('resize', scheduleGameViewportResize);
+document.addEventListener('fullscreenchange', scheduleGameViewportResize);
 
 function queueFinishSplash(player) {
   const place = player.finishPlace;
@@ -1623,6 +1696,14 @@ let devHudHidden = false;       // 7 key toggle
 let devModeTimer = 0;           // seconds spent in dev mode race, counting up
 let devFreecamYaw   = 0;        // freecam look horizontal
 let devFreecamPitch = -0.3;     // freecam look vertical (slight downward default)
+let devOptionsMenuOpen = false;
+let devOptionsSelection = 0;
+let devOptionsPadIndex = null;
+let devControlPadIndex = null;
+let devOptionsNavAt = 0;
+const _gpShareWasPressed = new Map();
+const _gpDevConfirmWasPressed = new Map();
+const _gpDevCancelWasPressed = new Map();
 
 // Konami-style unlock: press 3,4,5,2 within 4 seconds on the main menu
 (function setupDevUnlock() {
@@ -1684,6 +1765,10 @@ function showDevUnlockFlash() {
 // PAUSE SYSTEM — ESC key + DS4 Options button
 // =============================================
 const _gpOptionsWasPressed = new Map();
+const _gpMenuButtonsWasPressed = new Map();
+const _gpMenuDirectionAt = new Map();
+let gamepadMenuFocus = null;
+let gamepadMenuContext = null;
 
 function requestGameplayPointerLock() {
   if (document.pointerLockElement === document.body) return;
@@ -1714,6 +1799,9 @@ function togglePause() {
 
 function pauseGame() {
   if (racePaused) return;
+  devOptionsMenuOpen = false;
+  devOptionsPadIndex = null;
+  updateDevModeMenu();
   racePaused = true;
   raceRunning = false;
   pauseStart = Date.now();
@@ -1738,6 +1826,197 @@ function resumeGame() {
   if (typeof bgmEl !== 'undefined' && bgmEl) bgmEl.play().catch(() => {});
 }
 
+function getGamepadMenuContext() {
+  const visible = element => element && getComputedStyle(element).display !== 'none';
+  if (visible(document.getElementById('devModeOptions'))) return null;
+  if (visible(document.getElementById('pauseScreen'))) return document.getElementById('pauseContent');
+  if (visible(document.getElementById('leaderboardScreen'))) return document.getElementById('leaderboardContent');
+  if (visible(document.getElementById('winScreen'))) return document.getElementById('winContent');
+  if (!visible(document.getElementById('mainMenu'))) return null;
+  return ['screenSettings', 'screenCCSelect', 'screenTrackSelect', 'screenCharSolo', 'screenCharCoop', 'screenModeSelect']
+    .map(id => document.getElementById(id))
+    .find(visible) || null;
+}
+
+function getGamepadMenuItems(context) {
+  if (!context) return [];
+  const items = Array.from(context.querySelectorAll(
+    'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])'
+  )).filter(element => {
+    const style = getComputedStyle(element);
+    return element.getClientRects().length > 0 && style.visibility !== 'hidden' && style.pointerEvents !== 'none';
+  });
+  const hubButton = document.getElementById('hub-btn');
+  if (
+    document.getElementById('mainMenu').style.display !== 'none'
+    && hubButton
+    && hubButton.getClientRects().length > 0
+    && getComputedStyle(hubButton).display !== 'none'
+    && !items.includes(hubButton)
+  ) {
+    items.push(hubButton);
+  }
+  return items;
+}
+
+function setGamepadMenuFocus(element, context) {
+  document.querySelectorAll('.gamepad-focused').forEach(item => item.classList.remove('gamepad-focused'));
+  gamepadMenuFocus = element;
+  gamepadMenuContext = context;
+  if (!element) return;
+  element.classList.add('gamepad-focused');
+  element.focus({ preventScroll: true });
+}
+
+function moveGamepadMenuFocus(items, direction) {
+  if (!items.length) return;
+  const currentIndex = items.indexOf(gamepadMenuFocus);
+  if (currentIndex < 0) {
+    setGamepadMenuFocus(items[0], getGamepadMenuContext());
+    return;
+  }
+
+  const current = items[currentIndex].getBoundingClientRect();
+  const originX = current.left + current.width / 2;
+  const originY = current.top + current.height / 2;
+  let best = null;
+  let bestScore = Infinity;
+
+  items.forEach((item, index) => {
+    if (index === currentIndex) return;
+    const rect = item.getBoundingClientRect();
+    const dx = rect.left + rect.width / 2 - originX;
+    const dy = rect.top + rect.height / 2 - originY;
+    const primary = direction === 'left' ? -dx : direction === 'right' ? dx
+      : direction === 'up' ? -dy : dy;
+    if (primary <= 1) return;
+    const secondary = direction === 'left' || direction === 'right' ? Math.abs(dy) : Math.abs(dx);
+    const score = primary + secondary * 1.8;
+    if (score < bestScore) {
+      bestScore = score;
+      best = item;
+    }
+  });
+
+  if (best) {
+    setGamepadMenuFocus(best, getGamepadMenuContext());
+  } else {
+    const step = direction === 'left' || direction === 'up' ? -1 : 1;
+    const nextIndex = (currentIndex + step + items.length) % items.length;
+    setGamepadMenuFocus(items[nextIndex], getGamepadMenuContext());
+  }
+}
+
+function changeGamepadFocusedControl(direction) {
+  if (gamepadMenuFocus instanceof HTMLInputElement && gamepadMenuFocus.type === 'range') {
+    const step = Number(gamepadMenuFocus.step) || 1;
+    const min = Number(gamepadMenuFocus.min) || 0;
+    const max = Number(gamepadMenuFocus.max) || 100;
+    gamepadMenuFocus.value = String(Math.max(min, Math.min(max,
+      Number(gamepadMenuFocus.value) + (direction === 'right' ? step : -step)
+    )));
+    gamepadMenuFocus.dispatchEvent(new Event('input', { bubbles: true }));
+    gamepadMenuFocus.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  }
+  if (gamepadMenuFocus instanceof HTMLInputElement && gamepadMenuFocus.type === 'checkbox') {
+    gamepadMenuFocus.click();
+    return true;
+  }
+  return false;
+}
+
+function activateGamepadMenuItem() {
+  if (!gamepadMenuFocus) return;
+  if (gamepadMenuFocus instanceof HTMLInputElement && gamepadMenuFocus.type === 'checkbox') {
+    gamepadMenuFocus.click();
+  } else if (gamepadMenuFocus instanceof HTMLInputElement && gamepadMenuFocus.type === 'range') {
+    return;
+  } else {
+    gamepadMenuFocus.click();
+  }
+}
+
+function goBackWithGamepad() {
+  const pauseScreen = document.getElementById('pauseScreen');
+  const winScreen = document.getElementById('winScreen');
+  const leaderboardScreen = document.getElementById('leaderboardScreen');
+  if (getComputedStyle(pauseScreen).display !== 'none') {
+    resumeGame();
+    return;
+  }
+  if (getComputedStyle(leaderboardScreen).display !== 'none') {
+    returnToVictoryScreen();
+    return;
+  }
+  if (getComputedStyle(winScreen).display !== 'none') {
+    backToMenu();
+    return;
+  }
+  const context = getGamepadMenuContext();
+  const backButton = context?.querySelector('.back-btn');
+  if (backButton) backButton.click();
+}
+
+function updateGamepadMenuNavigation() {
+  const pad = getConnectedGamepads()[0];
+  if (!pad) {
+    setGamepadMenuFocus(null, null);
+    return;
+  }
+
+  const context = getGamepadMenuContext();
+  if (!context) {
+    setGamepadMenuFocus(null, null);
+    return;
+  }
+  const items = getGamepadMenuItems(context);
+  if (!items.length) return;
+  if (gamepadMenuContext !== context || !items.includes(gamepadMenuFocus)) {
+    const selectedItem = context.id === 'screenTrackSelect'
+      ? context.querySelector('.track-option.selected')
+      : context.id === 'screenCCSelect'
+        ? context.querySelector('.cc-option.selected')
+        : null;
+    setGamepadMenuFocus(selectedItem || items[0], context);
+  }
+
+  const raw = isRawMapping(pad);
+  const crossIndex = raw ? 1 : 0;
+  const circleIndex = raw ? 2 : 1;
+  const pressed = index => Boolean(pad.buttons[index]?.pressed || pad.buttons[index]?.value > 0.5);
+  const cross = pressed(crossIndex);
+  const circle = pressed(circleIndex);
+  const previous = _gpMenuButtonsWasPressed.get(pad.index) || { cross: false, circle: false };
+  if (cross && !previous.cross) activateGamepadMenuItem();
+  if (circle && !previous.circle) goBackWithGamepad();
+  _gpMenuButtonsWasPressed.set(pad.index, { cross, circle });
+
+  const directions = [];
+  if (pressed(14) || (pad.axes.length > 6 && pad.axes[6] < -0.5)) directions.push('left');
+  if (pressed(15) || (pad.axes.length > 6 && pad.axes[6] > 0.5)) directions.push('right');
+  if (pressed(12) || (pad.axes.length > 7 && pad.axes[7] < -0.5)) directions.push('up');
+  if (pressed(13) || (pad.axes.length > 7 && pad.axes[7] > 0.5)) directions.push('down');
+  const deadzone = 0.55;
+  if (Math.abs(pad.axes[0] || 0) > deadzone) directions.push(pad.axes[0] < 0 ? 'left' : 'right');
+  if (Math.abs(pad.axes[1] || 0) > deadzone) directions.push(pad.axes[1] < 0 ? 'up' : 'down');
+
+  const now = performance.now();
+  const lastMove = _gpMenuDirectionAt.get(pad.index) || 0;
+  if (directions.length && now >= lastMove) {
+    const direction = directions[0];
+    if (!(direction === 'left' || direction === 'right') || !changeGamepadFocusedControl(direction)) {
+      moveGamepadMenuFocus(items, direction);
+    }
+    _gpMenuDirectionAt.set(pad.index, now + 220);
+  }
+}
+
+function startGamepadMenuNavigation() {
+  updateGamepadMenuNavigation();
+  requestAnimationFrame(startGamepadMenuNavigation);
+}
+
 // ESC key listener for pause (global, always active)
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Escape') {
@@ -1755,22 +2034,43 @@ const _devCamPos   = new THREE.Vector3(0, 10, 0);
 const _devCamSpeed = 30; // units per second
 
 function updateDevFreecam(delta, camera) {
-  // Mouse-look: track pointer lock for yaw/pitch
-  // Movement: WASD + Space (up) + Shift (down)
+  // Left stick moves, right stick looks, and L1/R1 move vertically.
   const spd = _devCamSpeed * delta;
   const fwd = new THREE.Vector3(
-    Math.sin(devFreecamYaw) * Math.cos(devFreecamPitch),
-    Math.sin(devFreecamPitch),
-    Math.cos(devFreecamYaw) * Math.cos(devFreecamPitch)
+    Math.sin(devFreecamYaw),
+    0,
+    Math.cos(devFreecamYaw)
   );
-  const right = new THREE.Vector3(-Math.cos(devFreecamYaw), 0, Math.sin(devFreecamYaw));
+  const right = new THREE.Vector3(Math.cos(devFreecamYaw), 0, -Math.sin(devFreecamYaw));
 
-  if (keys['KeyW']) _devCamPos.addScaledVector(fwd, spd);
-  if (keys['KeyS']) _devCamPos.addScaledVector(fwd, -spd);
+  if (keys['KeyW']) _devCamPos.addScaledVector(fwd, -spd);
+  if (keys['KeyS']) _devCamPos.addScaledVector(fwd, spd);
   if (keys['KeyA']) _devCamPos.addScaledVector(right, -spd);
   if (keys['KeyD']) _devCamPos.addScaledVector(right, spd);
   if (keys['Space'])      _devCamPos.y += spd;
   if (keys['ShiftLeft'] || keys['ShiftRight']) _devCamPos.y -= spd;
+
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  let gamepad = devControlPadIndex !== null ? pads[devControlPadIndex] : null;
+  if (!gamepad?.connected) {
+    gamepad = Array.from(pads).find(pad => pad?.connected) || null;
+  }
+  if (gamepad) {
+    const deadzone = value => Math.abs(value) > 0.12 ? value : 0;
+    const moveX = deadzone(gamepad.axes[0] || 0);
+    const moveY = deadzone(gamepad.axes[1] || 0);
+    const lookX = deadzone(gamepad.axes[2] || 0);
+    const lookY = deadzone(gamepad.axes[3] || 0);
+    _devCamPos.addScaledVector(right, moveX * spd);
+    _devCamPos.addScaledVector(fwd, moveY * spd);
+    if (gamepad.buttons[4]?.pressed) _devCamPos.y += spd;
+    if (gamepad.buttons[5]?.pressed) _devCamPos.y -= spd;
+
+    const lookSpeed = 2.4 * delta;
+    devFreecamYaw -= lookX * lookSpeed;
+    devFreecamPitch -= lookY * lookSpeed;
+    devFreecamPitch = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, devFreecamPitch));
+  }
 
   camera.position.copy(_devCamPos);
   camera.rotation.order = 'YXZ';
@@ -1785,6 +2085,154 @@ document.addEventListener('mousemove', (e) => {
   devFreecamPitch -= e.movementY * sens;
   devFreecamPitch  = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, devFreecamPitch));
 });
+
+function toggleDevFreecam() {
+  devFreecam = !devFreecam;
+  if (devFreecam && cameras[0]) {
+    _devCamPos.copy(cameras[0].position);
+    const dir = new THREE.Vector3();
+    cameras[0].getWorldDirection(dir);
+    devFreecamYaw = Math.atan2(dir.x, dir.z);
+    devFreecamPitch = Math.asin(Math.max(-1, Math.min(1, dir.y)));
+    cameras[0].rotation.order = 'YXZ';
+    requestGameplayPointerLock();
+  }
+  updateDevModeMenu();
+  updateDevDebugOverlay();
+}
+
+function toggleDevDebugMenu() {
+  devDebugMenu = !devDebugMenu;
+  updateDevDebugOverlay();
+  updateDevModeMenu();
+}
+
+function toggleDevHud() {
+  devHudHidden = !devHudHidden;
+  const hudEls = [
+    document.getElementById('hud'),
+    document.getElementById('hub-btn'),
+    document.getElementById('divider'),
+  ];
+  hudEls.forEach(el => {
+    if (el) el.style.visibility = devHudHidden ? 'hidden' : '';
+  });
+  const timer = document.getElementById('raceTimer');
+  if (timer) timer.style.visibility = devHudHidden ? 'hidden' : '';
+  updateDevModeMenu();
+}
+
+function getDevModeOptionsMenu() {
+  let menu = document.getElementById('devModeOptions');
+  if (menu) return menu;
+  menu = document.createElement('div');
+  menu.id = 'devModeOptions';
+  menu.className = 'dev-mode-options';
+  menu.setAttribute('role', 'dialog');
+  menu.setAttribute('aria-label', 'Dev Mode options');
+  const title = document.createElement('h2');
+  title.textContent = 'DEV MODE TOOLS';
+  menu.appendChild(title);
+  [
+    { action: 'hud', label: 'Hide UI' },
+    { action: 'debug', label: 'Debug Menu' },
+    { action: 'freecam', label: 'Free Cam' },
+  ].forEach(({ action, label }, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.action = action;
+    button.textContent = label;
+    button.addEventListener('click', () => activateDevOption(index));
+    menu.appendChild(button);
+  });
+  const hint = document.createElement('p');
+  hint.className = 'dev-mode-options-hint';
+  hint.textContent = 'Menu: Left stick / D-pad select, X activate, Share / O close  •  Free Cam: LS move, RS look, L1/R1 up/down';
+  menu.appendChild(hint);
+  document.body.appendChild(menu);
+  return menu;
+}
+
+function updateDevModeMenu() {
+  let menu = document.getElementById('devModeOptions');
+  if (!menu && !gameMode_dev) return;
+  if (!menu) menu = getDevModeOptionsMenu();
+  menu.style.display = devOptionsMenuOpen && gameMode_dev && raceRunning ? 'flex' : 'none';
+  const buttons = menu.querySelectorAll('button[data-action]');
+  buttons.forEach((button, index) => {
+    const action = button.dataset.action;
+    button.classList.toggle('selected', index === devOptionsSelection);
+    button.setAttribute('aria-pressed', String(index === devOptionsSelection));
+    button.textContent = action === 'hud' ? `${devHudHidden ? 'Show' : 'Hide'} UI`
+      : action === 'debug' ? `${devDebugMenu ? 'Hide' : 'Show'} Debug Menu`
+      : `${devFreecam ? 'Disable' : 'Enable'} Free Cam`;
+  });
+}
+
+function activateDevOption(index) {
+  if (index === 0) toggleDevHud();
+  else if (index === 1) toggleDevDebugMenu();
+  else if (index === 2) toggleDevFreecam();
+  devOptionsMenuOpen = false;
+  devOptionsPadIndex = null;
+  updateDevModeMenu();
+}
+
+function updateDevModeGamepad(pads) {
+  const connected = new Set();
+  for (const pad of pads) {
+    if (!pad || !pad.connected) continue;
+    connected.add(pad.index);
+    const sharePressed = Boolean(pad.buttons[8]?.pressed || pad.buttons[8]?.value > 0.5);
+    const shareWasPressed = _gpShareWasPressed.get(pad.index) || false;
+    _gpShareWasPressed.set(pad.index, sharePressed);
+    if (gameMode_dev && raceRunning && sharePressed && !shareWasPressed) {
+      devControlPadIndex = pad.index;
+      devOptionsMenuOpen = !devOptionsMenuOpen;
+      devOptionsPadIndex = devOptionsMenuOpen ? pad.index : null;
+      updateDevModeMenu();
+      continue;
+    }
+    if (!devOptionsMenuOpen || pad.index !== devOptionsPadIndex) continue;
+
+    const raw = isRawMapping(pad);
+    const dpadY = raw ? (pad.axes[7] || 0) : 0;
+    const upPressed = Boolean((raw ? dpadY < -0.5 : pad.buttons[12]?.pressed) || (pad.axes[1] ?? 0) < -0.65);
+    const downPressed = Boolean((raw ? dpadY > 0.5 : pad.buttons[13]?.pressed) || (pad.axes[1] ?? 0) > 0.65);
+    const now = performance.now();
+    if (now >= devOptionsNavAt && (upPressed || downPressed)) {
+      devOptionsSelection = (devOptionsSelection + (upPressed ? 2 : 1)) % 3;
+      devOptionsNavAt = now + 220;
+      updateDevModeMenu();
+    }
+
+    const confirmIndex = raw ? 1 : 0;
+    const cancelIndex = raw ? 2 : 1;
+    const confirmPressed = Boolean(pad.buttons[confirmIndex]?.pressed || pad.buttons[confirmIndex]?.value > 0.5);
+    const confirmWasPressed = _gpDevConfirmWasPressed.get(pad.index) || false;
+    _gpDevConfirmWasPressed.set(pad.index, confirmPressed);
+    if (confirmPressed && !confirmWasPressed) {
+      activateDevOption(devOptionsSelection);
+      continue;
+    }
+
+    const cancelPressed = Boolean(pad.buttons[cancelIndex]?.pressed || pad.buttons[cancelIndex]?.value > 0.5);
+    const cancelWasPressed = _gpDevCancelWasPressed.get(pad.index) || false;
+    _gpDevCancelWasPressed.set(pad.index, cancelPressed);
+    if (cancelPressed && !cancelWasPressed) {
+      devOptionsMenuOpen = false;
+      devOptionsPadIndex = null;
+      updateDevModeMenu();
+    }
+  }
+  for (const index of _gpShareWasPressed.keys()) {
+    if (!connected.has(index)) {
+      _gpShareWasPressed.set(index, false);
+      _gpDevConfirmWasPressed.set(index, false);
+      _gpDevCancelWasPressed.set(index, false);
+    }
+  }
+}
 
 // ── Dev debug overlay ──
 let _devDebugEl = null;
@@ -1838,6 +2286,10 @@ function updateDevDebugOverlay() {
 
   el.innerHTML = [
     '<b style="color:#00ff88;font-size:16px">🔧 DEV DEBUG</b>',
+    `<span style="color:#aaa">Track:</span> <b>${ACTIVE_TRACK.name}</b>`,
+    `<span style="color:#aaa">Engine class:</span> <b>${selectedCC} CC</b>`,
+    `<span style="color:#aaa">Max speed:</span> <b>${(MAX_SPEED * 3.6).toFixed(1)}</b> km/h`,
+    `<span style="color:#aaa">Acceleration:</span> <b>${ACCEL.toFixed(1)}</b> u/s²`,
     `<span style="color:#aaa">Speed (internal):</span> <b>${spd}</b> u/s`,
     `<span style="color:#aaa">Character:</span> <b>${imgFile}</b>`,
     `<span style="color:#aaa">Kart color:</span> <span style="color:${colorHex}">■</span> <b>${colorHex}</b>`,
@@ -2128,7 +2580,7 @@ function startBGM() {
   initAudioContext();
   if (!bgmEl) {
     bgmEl = document.createElement('audio');
-    bgmEl.src = 'assets/grand-meme-prix-3d-theme.mp3';
+    bgmEl.src = 'assets/music/grand-meme-prix-3d-theme.mp3';
     bgmEl.loop = true;
     bgmEl.volume = settings.musicVol / 100;
     routeMediaAudio(bgmEl);
@@ -2150,7 +2602,7 @@ function playWinSound() {
   initAudioContext();
   if (!winSoundEl) {
     winSoundEl = document.createElement('audio');
-    winSoundEl.src = 'assets/win.mp3';
+    winSoundEl.src = 'assets/sounds/win.mp3';
     winSoundEl.volume = settings.sfxVol / 100;
     routeMediaAudio(winSoundEl);
     document.body.appendChild(winSoundEl);
@@ -3107,7 +3559,7 @@ function makeLightningBoltMesh() {
 
 // Play the lightning-strike.mp3 sound file
 function playLightningStrikeSound() {
-  playSfxAudio('assets/lightning-strike.mp3');
+  playSfxAudio('assets/sounds/lightning-strike.mp3');
 }
 
 // ── Live bolt entries — updated every frame by updateLightningEffects() ──────
@@ -3312,7 +3764,7 @@ function updateLightningEffects(delta) {
 }
 
 function triggerSquishSound() {
-  playSfxAudio('assets/squish.mp3');
+  playSfxAudio('assets/sounds/squish.mp3');
 }
 
 function triggerKartSquish(target) {
@@ -3564,7 +4016,7 @@ function makeExplosionMesh() {
 }
 
 function playBombExplosionSound() {
-  playSfxAudio('assets/bomb-explosion.mp3');
+  playSfxAudio('assets/sounds/bomb-explosion.mp3');
 }
 
 function launchPlayerFromBlast(player, origin, blastRadius, playHitVoice = true) {
@@ -4581,6 +5033,14 @@ function collectItem(player, idx) {
   }
 }
 
+function findBlueShellTarget(thrower) {
+  const { ranked } = getPlayerPlacements();
+  const targetIndex = ranked.find(index =>
+    players[index] !== thrower && players[index].finishTime === null
+  );
+  return targetIndex === undefined ? null : players[targetIndex];
+}
+
 // Find the nearest player ahead of `thrower` on the track; falls back to nearest overall.
 function findShellTarget(thrower) {
   const throwerT = closestTrackT(thrower.kart.position);
@@ -4625,8 +5085,8 @@ function useItem(player, otherPlayer) {
     spawnGreenShell(player);
 
   } else if (player.item.includes('Blue Shell')) {
-    const leaderIdx = getPlayerPlacements().ranked[0];
-    if (leaderIdx !== undefined) spawnBlueShell(player, players[leaderIdx]);
+    const target = findBlueShellTarget(player);
+    if (target) spawnBlueShell(player, target);
 
   } else if (player.item.includes('Shell')) {
     // Target the nearest player ahead; fallback to any opponent
@@ -4660,40 +5120,15 @@ document.addEventListener('keydown', e => {
   // ── Dev mode hotkeys ──
   if (gameMode_dev && raceRunning) {
     if (e.code === 'Digit9') {
-      devFreecam = !devFreecam;
-      if (devFreecam) {
-        // Seed freecam position and orientation from current camera
-        _devCamPos.copy(cameras[0].position);
-        // Derive yaw/pitch from the camera's current world direction
-        const dir = new THREE.Vector3();
-        cameras[0].getWorldDirection(dir);
-        devFreecamYaw   = Math.atan2(dir.x, dir.z);
-        devFreecamPitch = Math.asin(Math.max(-1, Math.min(1, dir.y)));
-        cameras[0].rotation.order = 'YXZ';
-        // Gameplay keeps the pointer locked; this enables mouse-look while freecam is active.
-        requestGameplayPointerLock();
-      }
+      toggleDevFreecam();
       e.preventDefault();
     }
     if (e.code === 'Digit8') {
-      devDebugMenu = !devDebugMenu;
-      updateDevDebugOverlay();
+      toggleDevDebugMenu();
       e.preventDefault();
     }
     if (e.code === 'Digit7') {
-      devHudHidden = !devHudHidden;
-      const hudEls = [
-        document.getElementById('hud'),
-        document.getElementById('hub-btn'),
-        document.getElementById('divider'),
-      ];
-      hudEls.forEach(el => {
-        if (!el) return;
-        el.style.visibility = devHudHidden ? 'hidden' : '';
-      });
-      // raceTimer is inside #hud so it hides with it; handle separately for safety
-      const rt = document.getElementById('raceTimer');
-      if (rt) rt.style.visibility = devHudHidden ? 'hidden' : '';
+      toggleDevHud();
       e.preventDefault();
     }
   }
@@ -4709,17 +5144,27 @@ const _gpItemWasPressed = [false, false];
 // =============================================
 // UPDATE PLAYER
 // Physics values:
-//   MAX_SPEED = 20.83 m/s = 75 km/h
+//   100 CC MAX_SPEED = 84 km/h; CC presets scale this to 63/84/105 km/h.
 //   FRICTION applied as speed *= FRICTION^delta so it's frame-rate independent.
 //   At FRICTION=0.15 the time-constant gives a comfortable top speed feel.
 //   HUD shows speed * 3.6 (m/s → km/h).
 // =============================================
-const ACCEL        = 90;       // m/s² acceleration
+const BASE_MAX_SPEED = 84 / 3.6;
+let ACCEL          = 22;       // m/s² acceleration; gentler than the original launch
 const BRAKE        = 70;       // m/s² braking
-const MAX_SPEED    = 20.83;    // m/s  (= 75 km/h)
-const STEER        = 3.8;      // rad/s steering rate
+let MAX_SPEED      = BASE_MAX_SPEED;
+const STEER        = 2.9;      // rad/s steering rate
+let CC_STEERING_MULTIPLIER = 1;
 const FRICTION_PER_SEC = 0.18; // fraction of speed lost per second (frame-rate independent)
 const OFFTRACK_MULT = 0.3;     // speed multiplier when off track
+function applyCCSettings() {
+  const preset = CC_PRESETS[selectedCC];
+  if (!preset) throw new Error(`Unsupported engine class: ${selectedCC} CC`);
+  MAX_SPEED = BASE_MAX_SPEED * preset.speed;
+  ACCEL = 22 * preset.acceleration;
+  CC_STEERING_MULTIPLIER = preset.steering;
+  AI_SPEED_TARGET = MAX_SPEED * 0.82;
+}
 
 function updatePlayer(player, binds, delta, otherPlayer) {
   if (player.finishTime) return;
@@ -4742,7 +5187,6 @@ function updatePlayer(player, binds, delta, otherPlayer) {
     player.boostTimer -= delta;
     if (player.boostTimer < 0) player.boostTimer = 0;
   }
-
   // Tick lightning timer — restore size when it expires
   if (player.lightningTimer > 0) {
     player.lightningTimer -= delta;
@@ -4796,13 +5240,12 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   const squashPenalty = player._squashSpeedMultiplier || 1;
   const stalled = player.launchStallTimer > 0;
 
+  let accelInput = 0, brakeInput = 0, steerInput = 0;
+  let wantsItem = false;
   if (!stunned) {
     // ── Gather analog gamepad inputs if this player uses a pad ──
     const gpInputs = binds._gpIndex !== undefined ? getGamepadInputs(getGamepad(binds._gpIndex)) : null;
     const playerIdx = binds._playerIdx !== undefined ? binds._playerIdx : 0;
-
-    let accelInput = 0, brakeInput = 0, steerInput = 0;
-    let wantsItem = false;
 
     if (gpInputs) {
       // Gamepad: R2 = gas (analog), L2 = brake/reverse (analog), L-stick X = steer
@@ -4837,8 +5280,9 @@ function updatePlayer(player, binds, delta, otherPlayer) {
         player.speed -= (BRAKE * 0.5) * brakeInput * delta * speedMult;
       }
     }
-    if (steerInput !== 0) {
-      player.angle += -steerInput * STEER * delta * (Math.abs(player.speed) / MAX_SPEED + 0.15);
+    if (steerInput !== 0 && (Math.abs(player.speed) > 0.01 || accelInput > 0 || brakeInput > 0)) {
+      player.angle += -steerInput * STEER * CC_STEERING_MULTIPLIER * delta
+        * (Math.abs(player.speed) / MAX_SPEED + 0.15);
       // Mirror sprite via texture repeat.x: THREE.Sprite ignores scale sign, so
       // we flip the UV instead. repeat.x=-1 + offset.x=1 = horizontal mirror.
       const spr = player.kart.userData.charSprite;
@@ -4865,8 +5309,19 @@ function updatePlayer(player, binds, delta, otherPlayer) {
                  : MAX_SPEED * squashPenalty;
   player.speed = Math.max(-6, Math.min(speedCap * speedMult, player.speed));
 
+  const turnRate = Math.abs(steerInput) * STEER * CC_STEERING_MULTIPLIER
+    * (Math.abs(player.speed) / MAX_SPEED + 0.15);
+  const wideTurnLoss = Math.min(0.35, Math.max(0, turnRate - 0.8) * 0.12);
+  player.speed *= Math.pow(1 - wideTurnLoss, delta);
+
   // Frame-rate-independent friction: multiply by (1 - friction)^delta
   player.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
+  // Snap to zero to kill ghost micro-velocities from friction decay
+  // (prevents phantom direction flips when standing still)
+  // Only snap when the player isn't actively driving — otherwise we'd nuke
+  // the speed the instant braking transitions into reverse.
+  const _hasInput = (accelInput > 0 || brakeInput > 0);
+  if (!_hasInput && Math.abs(player.speed) < 0.01) player.speed = 0;
 
   // Move
   player.kart.position.x += Math.sin(player.angle) * player.speed * delta;
@@ -4981,6 +5436,9 @@ function updateSoloAI(delta, cpuIdx) {
   if (aiState.swerveOffset   === undefined) aiState.swerveOffset = 0;
   if (aiState.swerveDir      === undefined) aiState.swerveDir    = 0;
   if (aiState.peelDodge      === undefined) aiState.peelDodge    = null;
+  if (aiState.propStuckTimer       === undefined) aiState.propStuckTimer       = 0;
+  if (aiState.propStuckSampleTimer === undefined) aiState.propStuckSampleTimer = 0;
+  if (aiState.propStuckLastPos     === undefined) aiState.propStuckLastPos     = ai.kart.position.clone();
 
   // ── Star cancels incoming spinouts for the AI too ──
   if (ai.starTimer > 0 && ai.spinoutTimer > 0) {
@@ -5095,7 +5553,6 @@ function updateSoloAI(delta, cpuIdx) {
     for (const other of players) {
       if (other === ai) continue;
       if (other.finishTime !== null) continue;
-
       const dx = other.kart.position.x - ai.kart.position.x;
       const dz = other.kart.position.z - ai.kart.position.z;
       const worldDist = Math.sqrt(dx * dx + dz * dz);
@@ -5170,7 +5627,9 @@ function updateSoloAI(delta, cpuIdx) {
   let angleDiff = desiredAngle - ai.angle;
   while (angleDiff >  Math.PI) angleDiff -= Math.PI * 2;
   while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-  ai.angle += Math.max(-2.8 * delta, Math.min(2.8 * delta, angleDiff));
+  const aiSteeringLimit = 2.55 * CC_STEERING_MULTIPLIER * delta;
+  const aiSteeringDelta = Math.max(-aiSteeringLimit, Math.min(aiSteeringLimit, angleDiff));
+  ai.angle += aiSteeringDelta;
 
   // Mirror AI sprite via texture repeat.x
   if (Math.abs(angleDiff) > 0.01) {
@@ -5195,6 +5654,9 @@ function updateSoloAI(delta, cpuIdx) {
   const targetSpeed = speedCap * (onTrack ? 1 : OFFTRACK_MULT);
   if (ai.speed < targetSpeed) ai.speed += ACCEL * delta;
   ai.speed = Math.min(targetSpeed, ai.speed);
+  const aiTurnRate = Math.abs(aiSteeringDelta) / Math.max(delta, 0.001);
+  const aiWideTurnLoss = Math.min(0.35, Math.max(0, aiTurnRate - 0.8) * 0.12);
+  ai.speed *= Math.pow(1 - aiWideTurnLoss, delta);
   ai.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
   ai.kart.position.x += Math.sin(ai.angle) * ai.speed * delta;
   ai.kart.position.z += Math.cos(ai.angle) * ai.speed * delta;
@@ -5202,6 +5664,65 @@ function updateSoloAI(delta, cpuIdx) {
   ai.kart.rotation.y = ai.angle;
   ai.kart.rotation.z = 0;
   updateKartTrackElevation(ai, delta);
+
+  // ── Prop-stuck rescue: teleport CPU back onto the track if stuck for 6 s ──
+  // HOW IT WORKS:
+  //   Rather than comparing displacement per frame (which breaks at high CC speeds
+  //   because a kart on a tight turn or cresting a hill can move < any sane per-frame
+  //   threshold even while going full speed), we take a position snapshot every
+  //   PROP_STUCK_SAMPLE_INTERVAL seconds and compare against that snapshot.
+  //   Over 0.5 s a normally-moving 150cc kart travels ~4 m; if it moved less than
+  //   PROP_STUCK_MOVE_DIST (1.5 units) in that window it's genuinely stuck.
+  //   The rescue only fires after 6 consecutive seconds of being below that threshold.
+  //   Stun/spinout/bomb/stall time is excluded entirely — those are intentional stops.
+  {
+    const PROP_STUCK_THRESHOLD     = 6.0;  // seconds of consecutive non-movement before rescue
+    const PROP_STUCK_SAMPLE_INTERVAL = 0.5; // seconds between position snapshots
+    const PROP_STUCK_MOVE_DIST     = 1.5;  // units moved per sample window — below this = stuck
+                                           // (150cc moves ~14.6 units/s so 0.5s = ~7.3 units normally)
+
+    const notStunned = ai.spinoutTimer <= 0 && ai.stunTimer <= 0
+                    && ai.bombAirborneTimer <= 0 && ai.launchStallTimer <= 0;
+
+    if (notStunned) {
+      aiState.propStuckSampleTimer = (aiState.propStuckSampleTimer || 0) + delta;
+
+      if (aiState.propStuckSampleTimer >= PROP_STUCK_SAMPLE_INTERVAL) {
+        // Time to take a snapshot and check displacement since the last one
+        const movedDist = ai.kart.position.distanceTo(aiState.propStuckLastPos);
+        aiState.propStuckLastPos.copy(ai.kart.position);
+        aiState.propStuckSampleTimer = 0;
+
+        if (movedDist < PROP_STUCK_MOVE_DIST) {
+          aiState.propStuckTimer += PROP_STUCK_SAMPLE_INTERVAL;
+        } else {
+          aiState.propStuckTimer = 0; // moved fine — reset the streak
+        }
+      }
+
+      if (aiState.propStuckTimer >= PROP_STUCK_THRESHOLD) {
+        // MAMA MIA, they're genuinely stuck! Teleport back to track.
+        const rescueT = closestTrackT(ai.kart.position);
+        const rescuePt = ACTIVE_TRACK.curve.getPoint(rescueT);
+        ai.kart.position.set(rescuePt.x, rescuePt.y + 0.85, rescuePt.z);
+        // Point them in the track's forward direction so they drive away immediately
+        const rescueTan = ACTIVE_TRACK.curve.getTangent(rescueT).normalize();
+        ai.angle = Math.atan2(rescueTan.x, rescueTan.z);
+        ai.speed = 0;
+        ai.verticalVelocity = 0;
+        aiState.propStuckTimer      = 0;
+        aiState.propStuckSampleTimer = 0;
+        aiState.propStuckLastPos.copy(ai.kart.position);
+        console.log(`[GMP] CPU ${cpuIdx} was stuck on a prop for 6s — rescued back to track at T=${rescueT.toFixed(3)}`);
+      }
+    } else {
+      // Intentional stop (stun/spinout/bomb/stall) — reset everything so stun time
+      // doesn't bleed into the stuck counter and keep the snapshot position current
+      aiState.propStuckTimer       = 0;
+      aiState.propStuckSampleTimer = 0;
+      aiState.propStuckLastPos.copy(ai.kart.position);
+    }
+  }
 
   itemBoxes.forEach((box, index) => {
     if (box.active && !ai.item && ai.kart.position.distanceTo(box.mesh.position) < 2.5) collectItem(ai, index);
@@ -5314,7 +5835,7 @@ function updateCamera(camera, player, snap = false) {
 // winnerAI: { playerIdx, trackT, cinCam: { mode, timer, modeTimer } }
 let winnerAI = null;
 
-const AI_SPEED_TARGET = MAX_SPEED * 0.82; // a little slower than max so it feels natural
+let AI_SPEED_TARGET = MAX_SPEED * 0.82; // a little slower than max so it feels natural
 
 // Shared post-finish driver for CPUs and the cinematic-controlled racer.
 function drivePostFinishAI(player, state, delta) {
@@ -5340,7 +5861,7 @@ function drivePostFinishAI(player, state, delta) {
     );
     const maxTurn = Math.min(
       2.8,
-      STEER * (Math.abs(player.speed) / MAX_SPEED + 0.15)
+      STEER * CC_STEERING_MULTIPLIER * (Math.abs(player.speed) / MAX_SPEED + 0.15)
     ) * delta;
     player.angle += Math.max(-maxTurn, Math.min(maxTurn, angleError));
 
@@ -5569,6 +6090,7 @@ function updateItemBoxes(delta) {
 // RACE SETUP & START
 // =============================================
 async function startGame() {
+  applyCCSettings();
   requestGameplayPointerLock();
   clearFinishSplashes();
   rebuildTrackCheckpoints();
@@ -5605,6 +6127,10 @@ async function startGame() {
     devFreecam   = false;
     devDebugMenu = false;
     devModeTimer = 0;
+    devOptionsMenuOpen = false;
+    devOptionsPadIndex = null;
+    devControlPadIndex = null;
+    updateDevModeMenu();
     _devCamPos.set(0, 10, 0);
     devFreecamYaw   = 0;
     devFreecamPitch = -0.3;
@@ -5661,7 +6187,7 @@ async function startGame() {
   ACTIVE_TRACK.itemBoxOffsets.forEach(t => {
     const pt = ACTIVE_TRACK.curve.getPoint(t);
     const b1 = makeItemBox();
-    const baseHeight = pt.y + 0.8;
+    const baseHeight = pt.y + (ACTIVE_TRACK.itemBoxHeightOffset ?? 0.8);
     b1.position.set(pt.x, baseHeight, pt.z); s1.add(b1);
     let b2 = null;
     if (!isSolo) {
@@ -5674,6 +6200,7 @@ async function startGame() {
   const cam1 = new THREE.PerspectiveCamera(75, W/H, 0.1, 1200);
   cameras = [cam1];
   if (!isSolo) cameras.push(new THREE.PerspectiveCamera(75, W/H, 0.1, 1200));
+  resizeGameViewport();
 
   // ── SPAWN ANGLE FIX ──
   // Compute the track tangent at t=0 so karts face the direction of travel.
@@ -5976,6 +6503,7 @@ async function startGame() {
       for (const index of _gpOptionsWasPressed.keys()) {
         if (!connectedPads.has(index)) _gpOptionsWasPressed.set(index, false);
       }
+      updateDevModeGamepad(pads);
       if (optionsPressedThisFrame) togglePause();
     }
 
@@ -6046,6 +6574,7 @@ async function startGame() {
       s.children.forEach(obj => { if (obj._spin) obj.rotation.y += delta * obj._spin; });
     });
 
+    if (typeof ACTIVE_TRACK.update === 'function') ACTIVE_TRACK.update(delta);
     renderers[0].render(scenes[0], cameras[0]);
     if (!isSolo) renderers[1].render(scenes[1], cameras[1]);
   }
@@ -6461,6 +6990,8 @@ function updateHUD() {
 // =============================================
 // FINISH / WIN SCREEN
 // =============================================
+let finalRaceResults = [];
+
 function showFinish() {
   raceRunning = false;
   releaseGameplayPointerLock();
@@ -6471,11 +7002,12 @@ function showFinish() {
   const times = players.map((p, i) => ({
     name:      CHARACTERS[p.charIndex].name,
     img:       CHARACTERS[p.charIndex].img,
-    time:      p.finishTime || raceTimer,
+    time:      p.finishTime ?? raceTimer,
     player:    i + 1,
     charIndex: p.charIndex,
   }));
   times.sort((a, b) => a.time - b.time);
+  finalRaceResults = times;
 
   // Winner portrait & name
   document.getElementById('win1img').src   = times[0].img;
@@ -6513,6 +7045,47 @@ function showFinish() {
   // Show the screen
   const ws = document.getElementById('winScreen');
   ws.style.display = 'flex';
+}
+
+function showLeaderboard() {
+  const rows = document.getElementById('leaderboardRows');
+  rows.replaceChildren();
+
+  finalRaceResults.slice(0, 8).forEach((result, index) => {
+    const place = index + 1;
+    const suffix = place === 1 ? 'st' : place === 2 ? 'nd' : place === 3 ? 'rd' : 'th';
+    const row = document.createElement('div');
+    row.className = `leaderboard-row${place <= 3 ? ` leaderboard-place-${place}` : ''}`;
+    row.setAttribute('role', 'listitem');
+
+    const placeLabel = document.createElement('span');
+    placeLabel.className = 'leaderboard-place';
+    placeLabel.textContent = `${place}${suffix}`;
+
+    const portrait = document.createElement('img');
+    portrait.className = 'leaderboard-portrait';
+    portrait.src = result.img;
+    portrait.alt = `${result.name} sprite`;
+
+    const name = document.createElement('span');
+    name.className = 'leaderboard-name';
+    name.textContent = result.name;
+
+    const time = document.createElement('span');
+    time.className = 'leaderboard-time';
+    time.textContent = `${result.time.toFixed(2)}s`;
+
+    row.append(placeLabel, portrait, name, time);
+    rows.appendChild(row);
+  });
+
+  document.getElementById('winScreen').style.display = 'none';
+  document.getElementById('leaderboardScreen').style.display = 'flex';
+}
+
+function returnToVictoryScreen() {
+  document.getElementById('leaderboardScreen').style.display = 'none';
+  document.getElementById('winScreen').style.display = 'flex';
 }
 
 function spawnConfetti() {
@@ -6566,6 +7139,7 @@ function backToMenu() {
   stopBlueShellWarning();
   document.getElementById('pauseScreen').style.display = 'none';
   document.getElementById('winScreen').style.display = 'none';
+  document.getElementById('leaderboardScreen').style.display = 'none';
   document.getElementById('hud').style.display = 'none';
   document.getElementById('hud2').style.display = ''; // restore in case dev mode hid it
   ds4Lightbar.resetAll(); // restore DS4 default blue
@@ -6579,6 +7153,10 @@ function backToMenu() {
   devFreecam   = false;
   devDebugMenu = false;
   gameMode_dev = false;
+  devOptionsMenuOpen = false;
+  devOptionsPadIndex = null;
+  devControlPadIndex = null;
+  updateDevModeMenu();
   // Restore HUD visibility in case 7 was toggled
   if (devHudHidden) {
     ["hud","hub-btn","divider","raceTimer"].forEach(id => {
@@ -6615,3 +7193,5 @@ function backToMenu() {
   backToModeSelect();
   updateCharUI();
 }
+
+requestAnimationFrame(startGamepadMenuNavigation);

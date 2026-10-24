@@ -124,6 +124,36 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   font-size: 24px;
   font-weight: bold;
 }
+.cc-options {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin: 14px 0;
+}
+.cc-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+  padding: 24px 28px;
+  border: 3px solid rgba(255,215,0,0.45);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(42,0,96,0.9), rgba(10,0,48,0.9));
+  color: #fff;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.cc-option strong { color: #FFD700; font-size: 32px; }
+.cc-option span { color: #ccc; font-size: 16px; }
+.cc-option:hover,
+.cc-option.selected {
+  transform: translateY(-3px);
+  border-color: #FFD700;
+  background: linear-gradient(180deg, rgba(76,0,144,0.95), rgba(26,0,96,0.95));
+  box-shadow: 0 0 22px rgba(255,215,0,0.35);
+}
 .track-select-actions {
   display: flex;
   align-items: center;
@@ -131,7 +161,8 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   gap: 16px;
   margin-top: 8px;
 }
-#continueTrackBtn {
+#continueTrackBtn,
+#continueCCBtn {
   padding: 14px 28px;
   border: 0;
   border-radius: 8px;
@@ -143,7 +174,8 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   font-weight: bold;
   cursor: pointer;
 }
-#continueTrackBtn:hover {
+#continueTrackBtn:hover,
+#continueCCBtn:hover {
   transform: translateY(2px);
   background: linear-gradient(180deg, #fff700, #FFD700);
 }
@@ -219,6 +251,13 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   transition: background 0.15s;
 }
 .back-btn:hover { background: rgba(255,215,0,0.2); }
+.gamepad-focused {
+  outline: 4px solid #00ff88 !important;
+  outline-offset: 4px;
+  box-shadow: 0 0 20px rgba(0,255,136,0.65) !important;
+  position: relative;
+  z-index: 2;
+}
 
 /* INPUT METHOD SELECTOR */
 .input-selector {
@@ -293,7 +332,7 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
 }
 
 /* Screen sub-divs inside mainMenu */
-#screenModeSelect, #screenTrackSelect, #screenCharSolo, #screenCharCoop, #screenSettings {
+#screenModeSelect, #screenCCSelect, #screenTrackSelect, #screenCharSolo, #screenCharCoop, #screenSettings {
   display: flex; flex-direction: column; align-items: center; gap: 20px;
   position: relative; z-index: 1;
 }
@@ -371,6 +410,7 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
 /* Canvases */
 #canvas1, #canvas2 {
   position: fixed; top: 0;
+  display: block;
 }
 #canvas1 { left: 0; }
 #canvas2 { left: 50%; }
@@ -607,7 +647,9 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
 #podium3rd .podium-char-img-wrap { border-color: #cd7f32; width: 64px; height: 64px; }
 #podium3rd { animation-delay: 1.0s; }
 
-#winMenuBtn {
+#winMenuBtn,
+#leaderboardBackBtn,
+#leaderboardMenuBtn {
   background: linear-gradient(180deg, #FFD700, #FF8C00);
   color: #000;
   border: none;
@@ -624,7 +666,120 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   margin-top: 10px;
   animation: podiumRise 0.5s 1.1s ease-out both;
 }
-#winMenuBtn:hover { transform: translateY(3px); box-shadow: 0 3px 0 #8B4500; }
+#winMenuBtn:hover,
+#leaderboardBackBtn:hover,
+#leaderboardMenuBtn:hover { transform: translateY(3px); box-shadow: 0 3px 0 #8B4500; }
+
+#leaderboardScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: radial-gradient(ellipse at center, #1a0044 0%, #000 100%);
+  font-family: 'ComicSans', 'Comic Sans MS', cursive;
+}
+#leaderboardContent {
+  width: min(760px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 28px;
+  border: 3px solid #FFD700;
+  border-radius: 18px;
+  background: rgba(10, 0, 35, 0.92);
+  box-shadow: 0 0 32px rgba(255, 215, 0, 0.3);
+  animation: leaderboardPanelReveal 0.65s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+#leaderboardTitle {
+  color: #FFD700;
+  font-size: clamp(28px, 5vw, 48px);
+  text-align: center;
+  text-shadow: 3px 3px 0 #f00, 5px 5px 0 #0000aa;
+  animation: leaderboardTitleReveal 0.6s 0.15s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+#leaderboardRows {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 76px 54px minmax(0, 1fr) 110px;
+  align-items: center;
+  gap: 14px;
+  min-height: 66px;
+  padding: 6px 14px;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  animation: leaderboardRowReveal 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.leaderboard-row:nth-child(1) { animation-delay: 0.2s; }
+.leaderboard-row:nth-child(2) { animation-delay: 0.29s; }
+.leaderboard-row:nth-child(3) { animation-delay: 0.38s; }
+.leaderboard-row:nth-child(4) { animation-delay: 0.47s; }
+.leaderboard-row:nth-child(5) { animation-delay: 0.56s; }
+.leaderboard-row:nth-child(6) { animation-delay: 0.65s; }
+.leaderboard-row:nth-child(7) { animation-delay: 0.74s; }
+.leaderboard-row:nth-child(8) { animation-delay: 0.83s; }
+@keyframes leaderboardPanelReveal {
+  from { opacity: 0; transform: scale(0.86) rotate(-2deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes leaderboardTitleReveal {
+  from { opacity: 0; transform: translateY(-28px) scale(0.7); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes leaderboardRowReveal {
+  from { opacity: 0; transform: translateX(-48px) rotate(-2deg) scale(0.92); }
+  to { opacity: 1; transform: translateX(0) rotate(0) scale(1); }
+}
+.leaderboard-place {
+  color: #FFD700;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+.leaderboard-portrait {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+.leaderboard-name {
+  overflow: hidden;
+  font-size: 22px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.leaderboard-time {
+  color: #00ff88;
+  font-size: 20px;
+  text-align: right;
+}
+.leaderboard-place-1 { border-color: #FFD700; background: rgba(255, 215, 0, 0.15); }
+.leaderboard-place-2 { border-color: #aaa; }
+.leaderboard-place-3 { border-color: #cd7f32; }
+#leaderboardMenuBtn { margin-top: 4px; }
+#leaderboardBackBtn {
+  background: linear-gradient(180deg, #2a0060, #0a0030);
+  color: #FFD700;
+  box-shadow: 0 6px 0 #1a0033;
+  animation-delay: 1.1s;
+}
+#leaderboardBackBtn:hover { box-shadow: 0 3px 0 #1a0033; }
+
+@media (prefers-reduced-motion: reduce) {
+  #leaderboardContent,
+  #leaderboardTitle,
+  .leaderboard-row { animation: none; }
+}
 
 /* Confetti particles */
 .confetti-piece {
@@ -817,6 +972,53 @@ body { background: #000; overflow: hidden; font-family: 'ComicSans', 'Comic Sans
   min-width: 240px;
   border: 1px solid rgba(255,255,255,0.15);
 }
+.dev-mode-options {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  background: rgba(0,0,0,0.82);
+  color: #fff;
+  font-family: 'ComicSans', 'Comic Sans MS', cursive;
+}
+.dev-mode-options h2 {
+  margin-bottom: 8px;
+  color: #00ff88;
+  font-size: clamp(28px, 5vw, 44px);
+  text-shadow: 3px 3px 0 #000;
+}
+.dev-mode-options button {
+  width: min(420px, 90vw);
+  padding: 16px 24px;
+  border: 3px solid rgba(0,255,136,0.45);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #10271c, #06110b);
+  color: #fff;
+  font: inherit;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+.dev-mode-options button.selected,
+.dev-mode-options button:focus-visible {
+  transform: scale(1.05);
+  border-color: #00ff88;
+  background: linear-gradient(180deg, #176b3e, #0a2d1a);
+  box-shadow: 0 0 20px rgba(0,255,136,0.7);
+  outline: none;
+}
+.dev-mode-options-hint {
+  margin-top: 10px;
+  color: #ccc;
+  font-size: 15px;
+  text-align: center;
+}
+
 /* ── Physics-driven collision memes — kill the CSS animation entirely ──── */
 .meme-floater--physics {
   animation: none !important;

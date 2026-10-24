@@ -20,6 +20,7 @@ const BeachGetaway = (() => {
   const TERRAIN_BLEND_DISTANCE = 58;
   const TRACK_TERRAIN_CLEARANCE = 0.14;
   let islandGeometryCache = null;
+  let oceanTexture = null;
 
   function buildScene(sceneObj, settings, stadiumWalls) {
     sceneObj.background = new THREE.Color(0x38bdf8);
@@ -50,15 +51,17 @@ const BeachGetaway = (() => {
   }
 
   function buildOcean(sceneObj) {
-    const waterTexture = new THREE.TextureLoader().load('./assets/water.png');
-    waterTexture.wrapS = THREE.RepeatWrapping;
-    waterTexture.wrapT = THREE.RepeatWrapping;
-    waterTexture.repeat.set(180, 180);
-    waterTexture.anisotropy = 8;
+    if (!oceanTexture) {
+      oceanTexture = new THREE.TextureLoader().load('./assets/textures/water.png');
+      oceanTexture.wrapS = THREE.RepeatWrapping;
+      oceanTexture.wrapT = THREE.RepeatWrapping;
+      oceanTexture.repeat.set(180, 180);
+      oceanTexture.anisotropy = 8;
+    }
 
     const ocean = new THREE.Mesh(
       new THREE.PlaneGeometry(2400, 2400),
-      new THREE.MeshLambertMaterial({ map: waterTexture })
+      new THREE.MeshLambertMaterial({ map: oceanTexture })
     );
     ocean.rotation.x = -Math.PI / 2;
     ocean.position.y = -0.42;
@@ -69,7 +72,7 @@ const BeachGetaway = (() => {
   function buildIsland(sceneObj, settings) {
     if (!islandGeometryCache) islandGeometryCache = buildIslandGeometry();
 
-    const sandTexture = new THREE.TextureLoader().load('./assets/sand.png');
+    const sandTexture = new THREE.TextureLoader().load('./assets/textures/sand.png');
     sandTexture.wrapS = THREE.RepeatWrapping;
     sandTexture.wrapT = THREE.RepeatWrapping;
     sandTexture.repeat.set(54, 54);
@@ -583,6 +586,12 @@ const BeachGetaway = (() => {
     return closestTrackSurface(position.x, position.z).distance < TRACK_WIDTH / 2 + 3;
   }
 
+  function update(delta) {
+    if (!oceanTexture) return;
+    oceanTexture.offset.x = (oceanTexture.offset.x + delta * 0.012) % 1;
+    oceanTexture.offset.y = (oceanTexture.offset.y + delta * 0.006) % 1;
+  }
+
   return {
     name: 'Beach Getaway',
     curve: TRACK_CURVE,
@@ -595,6 +604,7 @@ const BeachGetaway = (() => {
     checkpointCount: CHECKPOINT_COUNT,
     itemBoxOffsets: ITEM_BOX_T_OFFSETS,
     buildScene,
+    update,
     isOnTrack,
   };
 })();

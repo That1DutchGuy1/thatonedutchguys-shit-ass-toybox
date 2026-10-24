@@ -58,7 +58,7 @@ const ForestStadium = (() => {
     sceneObj.add(sun);
 
     // Ground plane — tiled grass texture (1024×1024 seamless, repeats every 8 world units)
-    const grassTex = new THREE.TextureLoader().load('./assets/grass.png');
+    const grassTex = new THREE.TextureLoader().load('./assets/textures/grass.png');
     grassTex.wrapS = THREE.RepeatWrapping;
     grassTex.wrapT = THREE.RepeatWrapping;
     grassTex.repeat.set(1200 / 8, 1200 / 8); // 150 tiles across each axis

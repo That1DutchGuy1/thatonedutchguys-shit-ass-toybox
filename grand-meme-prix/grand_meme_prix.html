@@ -28,6 +28,27 @@
     <button class="settings-open-btn" onclick="openSettings()">⚙️ SETTINGS</button>
   </div>
 
+  <!-- SCREEN: CC Select -->
+  <div id="screenCCSelect" style="display:none">
+    <h1 style="font-size:52px">🏁 SELECT ENGINE CLASS</h1>
+    <div class="subtitle">CHOOSE YOUR SPEED CLASS</div>
+    <div class="cc-options" role="group" aria-label="Engine class">
+      <button class="cc-option" data-cc="50" aria-pressed="false" onclick="selectCC(50)">
+        <strong>50 CC</strong><span>Slow speed 🚗</span>
+      </button>
+      <button class="cc-option selected" data-cc="100" aria-pressed="true" onclick="selectCC(100)">
+        <strong>100 CC</strong><span>Moderate speed 🏎️</span>
+      </button>
+      <button class="cc-option" data-cc="150" aria-pressed="false" onclick="selectCC(150)">
+        <strong>150 CC</strong><span>High speed 🚀</span>
+      </button>
+    </div>
+    <div class="track-select-actions">
+      <button class="back-btn" onclick="backToModeSelect()">◀ BACK</button>
+      <button id="continueCCBtn" onclick="continueToTrackSelect()">CONTINUE ▶</button>
+    </div>
+  </div>
+
   <!-- SCREEN: Track Select -->
   <div id="screenTrackSelect" style="display:none">
     <h1 style="font-size:52px">🏁 SELECT YOUR TRACK</h1>
@@ -270,7 +291,16 @@
         <div class="podium-block silver-block">2nd</div>
       </div>
     </div>
-    <button id="winMenuBtn" onclick="backToMenu()">🏠 MAIN MENU</button>
+    <button id="winMenuBtn" onclick="showLeaderboard()">LEADERBOARD ▶</button>
+  </div>
+</div>
+
+<div id="leaderboardScreen" aria-labelledby="leaderboardTitle">
+  <div id="leaderboardContent">
+    <h2 id="leaderboardTitle">🏁 FINAL LEADERBOARD 🏁</h2>
+    <div id="leaderboardRows" role="list" aria-label="Race results"></div>
+    <button id="leaderboardBackBtn" onclick="returnToVictoryScreen()">◀ BACK TO PODIUM</button>
+    <button id="leaderboardMenuBtn" onclick="backToMenu()">🏠 MAIN MENU</button>
   </div>
 </div>
 
@@ -281,6 +311,7 @@
 <script src="forest-stadium.js"></script>
 <script src="beach-getaway.js"></script>
 <script src="twisty-tunnels.js"></script>
+<script src="jungle-tour.js"></script>
 <script src="grand_meme_prix.js"></script>
 </body>
 </html>

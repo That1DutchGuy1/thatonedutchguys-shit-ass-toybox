@@ -151,9 +151,10 @@
 
 <p><strong><font size="4">Grand Meme Prix 3D got a big fucking update man! 🏎️</font></strong></p>
 
-* The game now has THREE tracks instead of one! We still got the old track, now named Forest Stadium, but the highlights are Beach Getaway and Twisty Tunnels! 😂
+* The game now has FOUR tracks instead of one! We still got the old track, now named Forest Stadium, but the highlights are Beach Getaway, Twisty Tunnels, and Jungle Tour! 🏟️🏖️🚇🌳
 * You can now race with max SEVEN CPU drivers in singleplayer! 🤖🏎️
-* I.M. Meen has been added to the character roster! 👴🏻
+* I.M. Meen, Duke Onkled, and Hotel Mario Mario have been added to the character roster! 😎
+* Added a leaderboard screen after the podium screen! 🥇
 * And so many other changes and improvements, I can't write them all here! 🤯
 * GO CHECK IT OUT NOW! 🔫
 

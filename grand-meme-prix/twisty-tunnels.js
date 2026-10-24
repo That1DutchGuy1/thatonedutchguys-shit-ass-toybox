@@ -62,7 +62,7 @@ const TwistyTunnels = (() => {
         crossSectionDistances[j - 1] + Math.hypot(side - previousSide, height - previousHeight)
       );
     }
-    const tunnelTexture = loadTiledTexture('./assets/tunnel-concrete.png');
+    const tunnelTexture = loadTiledTexture('./assets/textures/tunnel-concrete.png');
 
     for (let i = 0; i <= TRACK_SAMPLES; i++) {
       const t = i / TRACK_SAMPLES;
@@ -101,7 +101,7 @@ const TwistyTunnels = (() => {
     sceneObj.add(shell);
 
     sceneObj.add(buildSweptStrip(-TUNNEL_HALF_WIDTH, TUNNEL_HALF_WIDTH, -0.08, 0x39352e));
-    const sidewalkTexture = loadTiledTexture('./assets/sidewalk.png');
+    const sidewalkTexture = loadTiledTexture('./assets/textures/sidewalk.png');
     const sidewalkMaterial = new THREE.MeshLambertMaterial({
       map: sidewalkTexture,
       side: THREE.DoubleSide,
