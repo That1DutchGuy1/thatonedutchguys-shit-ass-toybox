@@ -31,7 +31,7 @@ function playErrorSfx() {
 const MEMES = {
   suits: {
     '♠': { img: '../weegees-mansion/Weegee-Sprites/Weegee_Left.png',       name: 'Weegee Spades',   color: 'black' },
-    '♥': { img: '../grand-meme-prix/assets/Rick-Astley.png',               name: 'Rickroll Hearts', color: 'red'   },
+    '♥': { img: '../grand-meme-prix/assets/characters/Rick-Astley.png',    name: 'Rickroll Hearts', color: 'red'   },
     '♦': { img: '../meme-claw-machine/memes/HotelMarioMario.png',          name: 'Mario Diamonds',  color: 'red'   },
     '♣': { img: '../meme-claw-machine/memes/Doge.png',                     name: 'Doge Clubs',      color: 'black' },
   },
