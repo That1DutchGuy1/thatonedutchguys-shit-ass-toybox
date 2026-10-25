@@ -5,6 +5,11 @@
   font-style: normal;
 }
 
+:root {
+  --game-search-right-inset: 40px;
+  --black-text-outline: drop-shadow(2px 2px 0px #000) drop-shadow(-1px -1px 0px #000) drop-shadow(1px -1px 0px #000) drop-shadow(-1px 1px 0px #000);
+}
+
 /* =========================================
    MOBILE PHONE BLOCK SCREEN
    Shown INSTEAD of the warning splash (and instead of
@@ -81,6 +86,7 @@ body.mobile-blocked #mobile-block {
   overflow-wrap: anywhere;
   word-break: normal;
   white-space: normal;
+  filter: var(--black-text-outline);
   animation: mobile-block-glow 1.4s ease-in-out infinite;
 }
 
@@ -286,6 +292,7 @@ body.splash-active {
 
 /* Game's font and background */
 html, body {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
   width: 100%;
@@ -319,7 +326,7 @@ body {
   background-size: 400% 100%;
   animation: meme-wave 8s linear infinite;
   color: #88ff00;
-  -webkit-text-stroke: 0.6px #000;
+  text-shadow: 2px 2px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000;
   text-align: center;
   padding: 50px 20px 10px;
   overflow-x: hidden;
@@ -431,6 +438,108 @@ h1 {
   padding: 30px 80px 30px 30px;
 }
 
+.game-search-dock {
+  width: min(620px, calc(100% - var(--game-search-right-inset)));
+  box-sizing: border-box;
+  margin: 0 var(--game-search-right-inset) 24px auto;
+  padding: 5px;
+  border-radius: 22px;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.35);
+  animation: spin-text-rainbow 2s linear infinite;
+}
+
+.game-search-frame {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 10px 18px;
+  border: 3px solid #222;
+  border-radius: 18px;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.game-search-frame label {
+  flex: 0 0 auto;
+  color: #88ff00;
+  font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+  filter: var(--black-text-outline);
+  text-shadow: none;
+  white-space: nowrap;
+}
+
+#game-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 2px solid #555;
+  border-radius: 10px;
+  background: transparent;
+  color: #88ff00;
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+  font: bold 1rem 'Comic Sans MS', sans-serif;
+}
+
+#game-search-input::placeholder {
+  color: #88ff00;
+  opacity: 1;
+  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+
+#game-search-input:focus-visible {
+  outline: 3px solid #651fff;
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.game-container.is-empty {
+  display: none;
+}
+
+.game-card[hidden] {
+  display: none;
+}
+
+.game-search-empty {
+  max-width: 620px;
+  margin: 0 var(--game-search-right-inset, 110px) 80px auto;
+  padding: 5px;
+  border: 4px solid #333;
+  border-radius: 22px;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  color: #111;
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  animation: spin-text-rainbow 2s linear infinite;
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-search-dock,
+  .game-search-empty {
+    animation: none;
+  }
+}
+
 /* =========================================
    TOYS PANEL (left side)
    ========================================= */
@@ -455,7 +564,8 @@ h1 {
   font-weight: bold;
   font-size: 2.5rem;
   letter-spacing: 0.05em;
-  -webkit-text-stroke: 1.5px #000;
+  filter: var(--black-text-outline);
+  text-shadow: none;
   background: conic-gradient(
     from var(--spin-angle),
     red, orange, yellow, green, cyan, blue, magenta, red
@@ -782,7 +892,8 @@ h1 {
   font-size: 2.5rem;
   margin-top: 0;
   color: #333;
-  -webkit-text-stroke: 0.6px #000;
+  filter: var(--black-text-outline);
+  text-shadow: none;
 }
 
 .game-card p {
@@ -812,6 +923,8 @@ h1 {
   text-decoration: none;
   cursor: pointer;
   margin-top: auto;
+  filter: var(--black-text-outline);
+  text-shadow: none;
   animation: spin-text-rainbow 2s linear infinite; 
   transition: transform 0.1s; 
 }
@@ -868,7 +981,7 @@ h1, .game-card h3 {
   color: transparent !important;
   -webkit-background-clip: text;
   background-clip: text;
-  -webkit-text-stroke: 2px #000;
+  filter: var(--black-text-outline);
   text-shadow: none;
   animation: spin-text-rainbow 2s linear infinite; 
 }
@@ -1026,6 +1139,8 @@ body.meme-art-active #meme-art-view {
 /* Hide main content when Meme Art is open */
 body.meme-art-active #toys-panel,
 body.meme-art-active .game-container,
+body.meme-art-active .game-search-dock,
+body.meme-art-active .game-search-empty,
 body.meme-art-active #readme-view,
 body.meme-art-active .brand-header,
 body.meme-art-active .site-title {
@@ -1051,7 +1166,8 @@ body.meme-art-active .site-title {
   font-weight: bold;
   font-size: 4rem;
   letter-spacing: 0.05em;
-  -webkit-text-stroke: 2px #000;
+  filter: var(--black-text-outline);
+  text-shadow: none;
   background: conic-gradient(
     from var(--spin-angle),
     red, orange, yellow, green, cyan, blue, magenta, red
@@ -1116,7 +1232,8 @@ body.meme-art-active .site-title {
   color: transparent;
   -webkit-background-clip: text;
   background-clip: text;
-  -webkit-text-stroke: 1.5px #000;
+  filter: var(--black-text-outline);
+  text-shadow: none;
   animation: spin-text-rainbow 2s linear infinite;
   display: inline-block;
 }
@@ -1185,6 +1302,8 @@ body.beeg-toybox-active #beeg-toybox-view {
 /* Hide all main content when BEEG TOYBOX is open, keep logos + h1 */
 body.beeg-toybox-active #toys-panel,
 body.beeg-toybox-active .game-container,
+body.beeg-toybox-active .game-search-dock,
+body.beeg-toybox-active .game-search-empty,
 body.beeg-toybox-active #readme-view {
   display: none !important;
 }
@@ -1208,7 +1327,8 @@ body.beeg-toybox-active #readme-view {
   font-weight: bold;
   font-size: 4rem;
   letter-spacing: 0.05em;
-  -webkit-text-stroke: 2px #000;
+  filter: var(--black-text-outline);
+  text-shadow: none;
   background: conic-gradient(
     from var(--spin-angle),
     red, orange, yellow, green, cyan, blue, magenta, red
@@ -1297,8 +1417,8 @@ body.about-active #readme-view {
   -webkit-background-clip: unset !important;
   background-clip: unset !important;
   color: #000;
-  -webkit-text-stroke: 2px #000;
-  text-shadow: 3px 3px 0px rgba(0,0,0,0.4);
+  filter: var(--black-text-outline);
+  text-shadow: none;
   animation: spin-text-rainbow 2s linear infinite;
   box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.35);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -1347,7 +1467,8 @@ body.about-active #readme-view {
   color: transparent;
   -webkit-background-clip: text;
   background-clip: text;
-  -webkit-text-stroke: 1.5px #000;
+  filter: var(--black-text-outline);
+  text-shadow: none;
   animation: spin-text-rainbow 2s linear infinite;
   display: inline-block;
 }
@@ -1394,6 +1515,7 @@ body.about-active #readme-view {
   line-height: 1.6;
   color: #1a1a1a;
   -webkit-text-stroke: 0px;
+  text-shadow: none;
 }
 
 #wiki-content a {
@@ -1411,6 +1533,7 @@ body.about-active #readme-view {
   border-radius: 4px;
   font-family: monospace;
   -webkit-text-stroke: 0px;
+  text-shadow: none;
 }
 
 #wiki-content pre {
@@ -1420,6 +1543,7 @@ body.about-active #readme-view {
   border-radius: 10px;
   overflow-x: auto;
   -webkit-text-stroke: 0px;
+  text-shadow: none;
 }
 #wiki-content pre code {
   background: none;
@@ -1459,7 +1583,9 @@ body.about-active #readme-view {
 body.about-active .brand-header,
 body.about-active .site-title,
 body.about-active #toys-panel,
-body.about-active .game-container {
+body.about-active .game-container,
+body.about-active .game-search-dock,
+body.about-active .game-search-empty {
   display: none;
 }
 
@@ -1483,6 +1609,7 @@ body.about-active .game-container {
   font-size: 1.3rem;
   color: #333;
   -webkit-text-stroke: 0px;
+  text-shadow: none;
 }
 
 /* Reset headings inside the README so they stay readable on the
@@ -1526,6 +1653,7 @@ body.about-active .game-container {
   line-height: 1.6;
   color: #1a1a1a;
   -webkit-text-stroke: 0px;
+  text-shadow: none;
 }
 
 #readme-content a {
@@ -1543,6 +1671,7 @@ body.about-active .game-container {
   border-radius: 4px;
   font-family: monospace;
   -webkit-text-stroke: 0px;
+  text-shadow: none;
 }
 
 #readme-content pre {
@@ -1552,6 +1681,7 @@ body.about-active .game-container {
   border-radius: 10px;
   overflow-x: auto;
   -webkit-text-stroke: 0px;
+  text-shadow: none;
 }
 #readme-content pre code {
   background: none;
@@ -1680,6 +1810,8 @@ body.ytp-tv-active #ytp-tv-view {
 /* Hide main content when YTP TV is open */
 body.ytp-tv-active #toys-panel,
 body.ytp-tv-active .game-container,
+body.ytp-tv-active .game-search-dock,
+body.ytp-tv-active .game-search-empty,
 body.ytp-tv-active #readme-view,
 body.ytp-tv-active .brand-header,
 body.ytp-tv-active .site-title {
@@ -1709,7 +1841,8 @@ body.ytp-tv-active .site-title {
   font-weight: bold;
   font-size: 4rem;
   letter-spacing: 0.08em;
-  -webkit-text-stroke: 2px #000;
+  filter: var(--black-text-outline);
+  text-shadow: none;
   background: conic-gradient(
     from var(--spin-angle),
     red, orange, yellow, green, cyan, blue, magenta, red
@@ -1751,7 +1884,8 @@ body.ytp-tv-active .site-title {
   color: transparent;
   -webkit-background-clip: text;
   background-clip: text;
-  -webkit-text-stroke: 1.5px #000;
+  filter: var(--black-text-outline);
+  text-shadow: none;
   animation: spin-text-rainbow 2s linear infinite;
   display: inline-block;
   text-align: center;
@@ -1910,7 +2044,8 @@ body.ytp-tv-active .site-title {
   font-weight: bold;
   font-size: 0.95rem;
   color: #fff;
-  -webkit-text-stroke: 0.5px #000;
+  filter: var(--black-text-outline);
+  text-shadow: none;
   white-space: nowrap;
   flex-shrink: 0;
   /* push the mute+vol to the right */
@@ -2032,6 +2167,10 @@ body.ytp-tv-active .site-title {
 /* ── 1399px and below (e.g. 1366×768 cheap laptops) ── */
 @media (max-width: 1399px) {
 
+  :root {
+    --game-search-right-inset: 35px;
+  }
+
   /* Shrink the card grid columns so they don't overflow */
   .game-container {
     grid-template-columns: repeat(2, 280px);
@@ -2073,6 +2212,10 @@ body.ytp-tv-active .site-title {
 /* ── 1200px and below (tight 1080p with big browser chrome) ── */
 @media (max-width: 1200px) {
 
+  :root {
+    --game-search-right-inset: 24px;
+  }
+
   .game-container {
     grid-template-columns: repeat(2, 230px);
     gap: 24px 30px;
@@ -2108,100 +2251,42 @@ body.ytp-tv-active .site-title {
 
   #toys-panel { gap: 18px; padding: 10px 10px 14px; }
 }
-/* ── 2160p and above (4K monitors) ── */
-@media (min-width: 2560px) {
 
-  body {
-    padding: 80px 30px 20px;
+@media (max-width: 700px) {
+  :root {
+    --game-search-right-inset: 12px;
   }
 
-  h1 {
-    font-size: 7rem;
-    margin-bottom: 60px;
+  .game-search-dock {
+    width: calc(100% - var(--game-search-right-inset));
+    margin-bottom: 18px;
   }
 
-  .main-logo {
-    width: 240px;
+  .game-search-frame {
+    gap: 8px;
+    padding: 8px 10px;
   }
 
-  .logo-ring-wrap {
-    width: 240px;
-    height: 240px;
+  .game-search-frame label {
+    font-size: 0.85rem;
   }
 
-  .text-logo {
-    width: 700px;
+  #game-search-input {
+    padding: 7px 8px;
+    font-size: 0.9rem;
   }
 
-  /* Bigger cards and grid for 4K */
-  .game-container {
-    grid-template-columns: repeat(2, 580px);
-    gap: 80px 100px;
-    margin-right: 50px;
-    padding: 50px 130px 50px 50px;
+  .game-search-empty {
+    margin-right: 12px;
   }
+}
 
-  .game-card {
-    width: 580px;
-    padding: 50px;
-    border-width: 10px;
-    border-radius: 40px;
-    box-sizing: border-box;
-  }
-
-  .game-card h3 { font-size: 4rem; }
-  .game-card p  { font-size: 2.8rem; }
-
-  .play-button {
-    font-size: 2.4rem;
-    padding: 24px 48px;
-    border-width: 6px;
-    border-radius: 24px;
-  }
-
-  /* Scale up the toys panel */
-  #toys-panel {
-    left: 30px;
-    gap: 50px;
-    padding: 22px 22px 32px;
-    border-width: 6px;
-    border-radius: 30px;
-  }
-
-  #toys-panel-label { font-size: 4rem; }
-
-  .toy-btn          { width: 220px; }
-  .toy-btn img      { width: 190px; }
-
-  /* Scale up right-side buttons */
-  .dvd-projects-btn,
-  .beeg-toybox-btn,
-  .meme-art-btn,
-  .ytp-tv-btn {
-    font-size: 1.8rem;
-    padding: 24px 48px;
-    border-width: 6px;
-    border-radius: 24px;
-    right: 30px;
-  }
-
-  .dvd-projects-btn { top: 30px; }
-  .beeg-toybox-btn  { top: 140px; }
-  .meme-art-btn     { top: 250px; }
-  .ytp-tv-btn       { top: 360px; }
-
-  /* Scale up the ABOUT and MUSIC buttons too */
-  .about-toggle-btn {
-    top: 30px;
-    left: 30px;
-    font-size: 1.8rem;
-    padding: 24px 36px;
-  }
-
-  .music-toggle-btn {
-    bottom: 30px;
-    left: 30px;
-    font-size: 1.8rem;
-    padding: 22px 34px;
-  }
+.play-button,
+.music-toggle-btn,
+.about-toggle-btn,
+.meme-art-download-btn,
+.doc-nav-arrow {
+  filter: none;
+  text-shadow: none;
+  -webkit-text-stroke: 0;
 }

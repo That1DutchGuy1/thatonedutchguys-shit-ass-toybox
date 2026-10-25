@@ -103,7 +103,7 @@
 
 ---
 
-<p><strong><font size="5">🚨 NEW SHIT ASS TOYBOX FEATURES!</font></strong></p>
+<p><strong><font size="5">🚨 MISC SHIT ASS TOYBOX FEATURES!</font></strong></p>
 
 <p><strong><font size="4">🖼️ THE MEME ART GALLERY!</font></strong></p>
 
@@ -111,9 +111,9 @@
 * Too bad if you have a shitty internet connection, cuz they're all BIG MOTHERFUCKING FILES! 🤣
 * Integrated download buttons on all artworks so that you can download my abominations FOR FREE! 🤯
 
-<p><strong><font size="4">📄 REVISED DOCUMENTATION RENDERER!</font></strong></p>
+<p><strong><font size="4">📄 DOCUMENTATION RENDERER!</font></strong></p>
 
-* The thing now fetches the files of my other Markdown documents from my other projects on GitHub! 🤯
+* The thing fetches the files of my Markdown documents from my other projects on GitHub! 🤯
 * It also fetches the embedded images from that repo via a clever trick! 😎
 * All of course with custom styling to make it an absolute FEAST to READ! 🤪
 
@@ -133,7 +133,7 @@
 
 <p><strong><font size="4">📺️ YTP TV PANEL!</font></strong></p>
 
-* You can now watch TWO of my old YTP videos from my inactive YTP channel, plus a brand new one made in Shotcut, directly on-site! 🤯
+* You can watch TWO of my old YTP videos from my inactive YTP channel, plus a brand new one made in Shotcut, directly on-site! 🤯
 * Custom unhinged rainbow controls for the video player! 🌈
 * Each video has a unique fucking thumbnail! 🖼️
 * The music automatically gets paused when you click play! 🔇
@@ -163,12 +163,14 @@
 <p><strong><font size="5">☢️ SMALL HUB UPDATE!</font></strong></p>
 
 * The big ass gamecards now get shuffled around randomly every time you enter the chaos lol! 🔀
+* The old font strokes have been replaced with CHONKY shadows around the glyphs! 🔤
+* Removed the anti-indexing tags from all the games their HTML files cuz I ain't afraid of no soulless copyright lawyers! 😎 
 
 ---
 
 <p><strong><font size="5">📀 THE DVD-R ISO HANGAR!</font></strong></p>
 
-<p><strong><font size="4">AYO! I made a sideproject that's gonna host ISO files for burning onto DVD-R discs! 🤯</font></strong></p>
+<p><strong><font size="4">AYO! I got a sideproject that's hosting ISO files for burning onto DVD-R discs! 🤯</font></strong></p>
 
 * It's still in development, but eventually you'll be able to SQUADALA some DVD ISO files from it! 😂
 * It's mainly a preservation project for old YTP! 😎
@@ -187,16 +189,16 @@
 ---
 
 <p><strong><font size="3">📝 Project Overview</font></strong></p>
-<p><strong><font size="2">I do this as a hobby just for my own amusement. You can give contructive feedback and critism for sure, but don't be an asshole, okay?</font></strong></p>
+<p><strong><font size="2">I do this as a hobby just for my own fucking amusement, and also cuz most modern websites have 0 personality!</font></strong></p>
 
-<p><strong><font size="2">For those who don't know me, I am a retired YouTuber known as That One Dutch Guy. <br> If you want a quick laugh and lose even more of your small amount of braincells simultaneously, the watch my fucking old videos! More interactive toys and games will be continually added here in the future probably!</font></strong></p>
+<p><strong><font size="2">For those who don't know me, I am a retired YouTuber known as That One Dutch Guy. <br> If you want a quick laugh and lose even more of your small amount of braincells simultaneously, then watch my old videos! More interactive toys and games will be continually added here in the future probably!</font></strong></p>
 
 ---
 
 <p><strong><font size="3">💬 Q & A</font></strong></p>
 
 > **Q: Is this site mobile friendly?**  <br>
-> **A:** Why don't you shut the fuck up and grab something with a keyboard and mouse / trackpad? 😁
+> **A:** Why don't you shut the fuck up and grab something with a keyboard and mouse or trackpad? 😁
 
 > **Q: When will the site be finished?**  <br>
 > **A:** Honestly? I don't know. Maybe when I run out of inspiration, but that ain't gonna happen anytime soon! 👍🏻

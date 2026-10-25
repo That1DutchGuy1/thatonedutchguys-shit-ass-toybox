@@ -211,6 +211,8 @@ if (isPhone) {
         }
     }
 } else {
+    setupGameSearch();
+
     // --- WARNING SPLASH SCREEN ---
     const splashScreen = document.getElementById('warning-splash');
     const splashEnterBtn = document.getElementById('splash-enter');
@@ -435,7 +437,7 @@ function setBeegToyboxOpen(open) {
 
     const btn = document.getElementById('beeg-toybox-toggle');
     if (btn) {
-        btn.textContent = open ? '🎮 SHIT ASS TOYBOX' : '🧸 BEEG TOYBOX';
+        btn.textContent = open ? '✖️ BACK TO TOYBOX' : '🧸 BEEG TOYBOX';
     }
 
     // Close other panels if open
@@ -890,7 +892,7 @@ function initGamepadNav() {
         if (ytpTv) els.push(ytpTv);
         if (music) els.push(music);
         document.querySelectorAll('.toy-btn').forEach(el => els.push(el));
-        document.querySelectorAll('.game-card').forEach(el => els.push(el));
+        document.querySelectorAll('.game-card:not([hidden])').forEach(el => els.push(el));
         return els;
     }
 
@@ -1211,6 +1213,39 @@ function shuffleGameCards() {
         // Swap in our local array to keep indices accurate
         [cards[i], cards[j]] = [cards[j], cards[i]];
     }
+}
+
+function setupGameSearch() {
+    const searchInput = document.getElementById('game-search-input');
+    const gameContainer = document.getElementById('game-cards');
+    const emptyMessage = document.getElementById('game-search-empty');
+    const status = document.getElementById('game-search-status');
+    if (!(searchInput instanceof HTMLInputElement) || !gameContainer || !emptyMessage || !status) return;
+
+    const cards = Array.from(gameContainer.querySelectorAll('.game-card'));
+    const searchableText = new Map(cards.map(card => [
+        card,
+        Array.from(card.querySelectorAll('h3, p'), element => element.textContent || '')
+            .join(' ')
+            .toLocaleLowerCase()
+    ]));
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLocaleLowerCase();
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const matches = !query || searchableText.get(card).includes(query);
+            card.hidden = !matches;
+            if (matches) visibleCount++;
+        });
+
+        gameContainer.classList.toggle('is-empty', visibleCount === 0);
+        emptyMessage.hidden = visibleCount !== 0;
+        status.textContent = query
+            ? `${visibleCount} ${visibleCount === 1 ? 'game' : 'games'} found.`
+            : `${visibleCount} games available.`;
+    });
 }
 
 // =========================================
