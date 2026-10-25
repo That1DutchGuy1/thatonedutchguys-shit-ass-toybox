@@ -2023,3 +2023,185 @@ body.ytp-tv-active .site-title {
   pointer-events: none;
   filter: drop-shadow(0 -3px 6px rgba(0,0,0,0.6));
 }
+/* =========================================
+   SMALLER DESKTOP FIXES (1080p laptops etc.)
+   1440p and above: completely untouched.
+   Only kicks in on screens narrower than 1400px.
+   ========================================= */
+
+/* ── 1399px and below (e.g. 1366×768 cheap laptops) ── */
+@media (max-width: 1399px) {
+
+  /* Shrink the card grid columns so they don't overflow */
+  .game-container {
+    grid-template-columns: repeat(2, 280px);
+    gap: 30px 40px;
+    padding: 20px 50px 20px 20px;
+    margin-right: 20px;
+  }
+
+  .game-card {
+    width: 280px;
+    padding: 22px;
+  }
+
+  .game-card h3 { font-size: 2rem; }
+  .game-card p  { font-size: 1.4rem; }
+
+  h1 { font-size: 3rem; }
+
+  /* Shrink right-side button stack slightly so they don't crowd */
+  .dvd-projects-btn,
+  .beeg-toybox-btn,
+  .meme-art-btn,
+  .ytp-tv-btn {
+    font-size: 0.95rem;
+    padding: 11px 18px;
+  }
+
+  /* Re-stack them tighter since buttons are shorter now */
+  .beeg-toybox-btn { top: 84px; }
+  .meme-art-btn    { top: 150px; }
+  .ytp-tv-btn      { top: 216px; }
+
+  /* Slightly smaller toys panel */
+  #toys-panel-label { font-size: 1.9rem; }
+  .toy-btn          { width: 110px; }
+  .toy-btn img      { width: 92px; }
+}
+
+/* ── 1200px and below (tight 1080p with big browser chrome) ── */
+@media (max-width: 1200px) {
+
+  .game-container {
+    grid-template-columns: repeat(2, 230px);
+    gap: 24px 30px;
+    padding: 16px 40px 16px 16px;
+    margin-right: 10px;
+  }
+
+  .game-card {
+    width: 230px;
+    padding: 18px;
+  }
+
+  .game-card h3 { font-size: 1.6rem; }
+  .game-card p  { font-size: 1.2rem; }
+
+  h1 { font-size: 2.5rem; margin-bottom: 24px; }
+
+  .dvd-projects-btn,
+  .beeg-toybox-btn,
+  .meme-art-btn,
+  .ytp-tv-btn {
+    font-size: 0.85rem;
+    padding: 9px 14px;
+  }
+
+  .beeg-toybox-btn { top: 76px; }
+  .meme-art-btn    { top: 136px; }
+  .ytp-tv-btn      { top: 196px; }
+
+  #toys-panel-label { font-size: 1.5rem; }
+  .toy-btn          { width: 90px; }
+  .toy-btn img      { width: 75px; }
+
+  #toys-panel { gap: 18px; padding: 10px 10px 14px; }
+}
+/* ── 2160p and above (4K monitors) ── */
+@media (min-width: 2560px) {
+
+  body {
+    padding: 80px 30px 20px;
+  }
+
+  h1 {
+    font-size: 7rem;
+    margin-bottom: 60px;
+  }
+
+  .main-logo {
+    width: 240px;
+  }
+
+  .logo-ring-wrap {
+    width: 240px;
+    height: 240px;
+  }
+
+  .text-logo {
+    width: 700px;
+  }
+
+  /* Bigger cards and grid for 4K */
+  .game-container {
+    grid-template-columns: repeat(2, 580px);
+    gap: 80px 100px;
+    margin-right: 50px;
+    padding: 50px 130px 50px 50px;
+  }
+
+  .game-card {
+    width: 580px;
+    padding: 50px;
+    border-width: 10px;
+    border-radius: 40px;
+    box-sizing: border-box;
+  }
+
+  .game-card h3 { font-size: 4rem; }
+  .game-card p  { font-size: 2.8rem; }
+
+  .play-button {
+    font-size: 2.4rem;
+    padding: 24px 48px;
+    border-width: 6px;
+    border-radius: 24px;
+  }
+
+  /* Scale up the toys panel */
+  #toys-panel {
+    left: 30px;
+    gap: 50px;
+    padding: 22px 22px 32px;
+    border-width: 6px;
+    border-radius: 30px;
+  }
+
+  #toys-panel-label { font-size: 4rem; }
+
+  .toy-btn          { width: 220px; }
+  .toy-btn img      { width: 190px; }
+
+  /* Scale up right-side buttons */
+  .dvd-projects-btn,
+  .beeg-toybox-btn,
+  .meme-art-btn,
+  .ytp-tv-btn {
+    font-size: 1.8rem;
+    padding: 24px 48px;
+    border-width: 6px;
+    border-radius: 24px;
+    right: 30px;
+  }
+
+  .dvd-projects-btn { top: 30px; }
+  .beeg-toybox-btn  { top: 140px; }
+  .meme-art-btn     { top: 250px; }
+  .ytp-tv-btn       { top: 360px; }
+
+  /* Scale up the ABOUT and MUSIC buttons too */
+  .about-toggle-btn {
+    top: 30px;
+    left: 30px;
+    font-size: 1.8rem;
+    padding: 24px 36px;
+  }
+
+  .music-toggle-btn {
+    bottom: 30px;
+    left: 30px;
+    font-size: 1.8rem;
+    padding: 22px 34px;
+  }
+}
