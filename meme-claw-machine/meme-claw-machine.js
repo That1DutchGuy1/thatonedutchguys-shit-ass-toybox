@@ -162,7 +162,8 @@ const memes = [
   'Shoop-Da-Whoop.png', 'HotelMarioMario.png', 'HotelMarioLuigi.png', 'King-Harkinian-CD-i.png', 'Hampter.png', 'phil-swift.png', 'Illuminati-Logo.png',
   'Rickroll.png', 'Mama-Luigi.png', 'bup.png', 'Mayor-Cravendish.png', 'Caveman-SpongeBob.png', 'Doge.png', 'Dramatic-Chipmunk.png', 'Michael-Rosen.png',
   'MTNDew.png', 'NyanCat.png', 'Spaghetti-Monster.png', 'Malleo.png', 'Dildosaurus.png', 'E.png', 'fish-shoes.png', 'Lugi.png', 'Obamaprism.png', 'Shrek.png',
-  'Sanic.png', 'Deez-Nuts.png', 'Dat-Boi.png', 'Ugandan-Knuckles.png', 'Rage-Guy-FFFUUU.png', 'Stonks.png', 'Philosoraptor.png'
+  'Sanic.png', 'Deez-Nuts.png', 'Dat-Boi.png', 'Ugandan-Knuckles.png', 'Rage-Guy-FFFUUU.png', 'Stonks.png', 'Philosoraptor.png', 'Overly-Attached-Girlfriend.png',
+  'Success-Kid.png'
 ];
 
 // --- STATE INITIALIZATION & DOM REFLECTION ---
