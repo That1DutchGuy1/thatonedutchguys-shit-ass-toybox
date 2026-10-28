@@ -130,6 +130,7 @@
 * My YTP Videos README
 * GTA 5 YTP T-shirts For Franklin README
 * Funny Error Messages for Linux Mint 22 README
+* Terminal Rickroll for Linux Mint 22 README
 
 <p><strong><font size="4">📺️ YTP TV PANEL!</font></strong></p>
 
