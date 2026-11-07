@@ -107,7 +107,7 @@ h1 {
     background-color: #0d1a2e;
     top: 20px;
     left: 20px;
-    position: absolute;
+    position: fixed;
     padding: 14px 28px;
     font-size: 20px;
     border: 2px solid #00AEEF;
