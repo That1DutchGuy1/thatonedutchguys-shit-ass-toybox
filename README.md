@@ -172,6 +172,17 @@
 
 ---
 
+<p><strong><font size="5">🚨 PHILIPS CD-i SOUNDBOARD UPDATE!</font></strong></p>
+
+<p><strong><font size="4">Philips CD-i Soundboard got a big ass update! 💿️</font></strong></p>
+
+* The entire site's CSS has been redesigned with a new fucking CRT filter overlay! 📺️
+* Each character now has their own unique gradient ring around their buttons! 💍
+* Added several new sounds as well! 📣
+* GO CHECK IT OUT NOW! 🔫
+
+---
+
 <p><strong><font size="5">☢️ SMALL HUB UPDATE!</font></strong></p>
 
 * The big ass gamecards now get shuffled around randomly every time you enter the chaos lol! 🔀

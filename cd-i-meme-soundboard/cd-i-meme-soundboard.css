@@ -5,74 +5,161 @@
   font-style: normal;
 }
 
+/* ═══════════════════════════════════════════════════
+   CRT OVERLAY — sits on top of everything
+═══════════════════════════════════════════════════ */
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+
+    /* Scanlines */
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            transparent 0px,
+            transparent 3px,
+            rgba(0, 0, 0, 0.35) 3px,
+            rgba(0, 0, 0, 0.35) 4px
+        );
+}
+
+/* CRT screen vignette + subtle RGB fringe */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+    border-radius: 4% / 3%;
+
+    /* Vignette */
+    background: radial-gradient(
+        ellipse at center,
+        transparent 60%,
+        rgba(0, 0, 0, 0.75) 100%
+    );
+
+    /* Slight RGB colour fringe around the edges */
+    box-shadow:
+        inset 0 0 60px rgba(0, 174, 239, 0.08),
+        inset 0 0 120px rgba(0, 0, 0, 0.5);
+}
+
 html, body {
-    background: repeating-conic-gradient(#f1c40f 0% 25%, #8CC63F 0% 50%) 50% / 40px 40px;
+    background-color: #0a0a0f;
+    /* Very subtle dark grid to evoke a phosphor screen */
+    background-image:
+        linear-gradient(rgba(0, 174, 239, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 174, 239, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+
     min-height: 100%;
     margin: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 80px 20px;
+    padding: 40px 20px 120px;
     font-family: 'Comic Sans MS', sans-serif;
     font-weight: bold;
-        /* Hiding the scrollbar */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
+    color: #e0e8ff;
+
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
-/* Chrome, Safari and Opera */
 html::-webkit-scrollbar, body::-webkit-scrollbar {
-  display: none;
+    display: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════════ */
+
+#site-logo {
+    width: min(600px, 90vw);
+    margin-bottom: 10px;
+    /* Faint blue glow matching the logo colour */
+    filter: drop-shadow(0 0 18px rgba(0, 174, 239, 0.55));
+    image-rendering: auto;
 }
 
 h1 {
-    color: #ff9dcd;
-    text-shadow: 2px 2px #00AEEF;
-    font-size: 48px;
+    color: #00AEEF;
+    text-shadow:
+        0 0 8px rgba(0, 174, 239, 0.9),
+        2px 2px 0 #000;
+    font-size: 36px;
     font-weight: bold;
+    letter-spacing: 2px;
+    margin-top: 0;
+    text-transform: uppercase;
 }
 
+/* ═══════════════════════════════════════════════════
+   HUB BUTTON
+═══════════════════════════════════════════════════ */
+
 #hub-btn {
-    background-color: #5856D6;
+    background-color: #0d1a2e;
     top: 20px;
     left: 20px;
     position: absolute;
-    padding: 16px 32px;
-    font-size: 24px;
-    border: 3px solid #92278F;
+    padding: 14px 28px;
+    font-size: 20px;
+    border: 2px solid #00AEEF;
     border-radius: 4px;
-    color: #4CD964;
+    color: #00AEEF;
     cursor: pointer;
     z-index: 10;
     text-decoration: none;
-    transition: transform 0.1s;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 0 10px rgba(0, 174, 239, 0.3);
+    font-family: 'Comic Sans MS', sans-serif;
+    font-weight: bold;
 }
 
 #hub-btn:hover {
-  transform: scale(1.1);
+    transform: scale(1.07);
+    box-shadow: 0 0 20px rgba(0, 174, 239, 0.7);
 }
+
+/* ═══════════════════════════════════════════════════
+   SOUNDBOARD LAYOUT
+═══════════════════════════════════════════════════ */
 
 #soundboard-container {
     display: flex;
     flex-direction: column;
-    gap: 50px;
+    gap: 40px;
     width: 100%;
     max-width: 1200px;
-    margin-top: 40px;
+    margin-top: 30px;
 }
 
 .character-group {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 20px;
-    border-radius: 15px;
-    border: 2px dashed #ff0000;
+    background: rgba(0, 20, 50, 0.65);
+    padding: 20px 24px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 174, 239, 0.3);
+    box-shadow:
+        0 0 20px rgba(0, 174, 239, 0.08),
+        inset 0 0 40px rgba(0, 0, 0, 0.3);
 }
 
 .character-group h2 {
-    color: #fff;
-    text-shadow: 2px 2px #000;
+    color: #00AEEF;
+    text-shadow: 0 0 10px rgba(0, 174, 239, 0.7);
     margin-top: 0;
-    border-bottom: 2px solid white;
+    margin-bottom: 16px;
+    font-size: 22px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(0, 174, 239, 0.3);
+    padding-bottom: 8px;
 }
 
 .button-wrapper {
@@ -81,6 +168,10 @@ h1 {
     gap: 25px;
     justify-content: flex-start;
 }
+
+/* ═══════════════════════════════════════════════════
+   SOUND BUTTONS
+═══════════════════════════════════════════════════ */
 
 .sound-item {
     display: flex;
@@ -93,186 +184,256 @@ h1 {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    background-color: #444;
+    background-color: #111;
     cursor: pointer;
     overflow: hidden;
-    transition: transform 0.1s, background-color 0.2s;
+    transition: transform 0.1s, filter 0.15s;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    border: none; /* Removed the old static border */
+    border: none;
     padding: 0;
 }
 
 .sound-btn:hover {
     transform: scale(1.1);
-    background-color: #666;
+    filter: brightness(1.2);
 }
 
-/* ─── The Animated Rainbow Ring ─── */
-/* We use ::after so it layers OVER the image child */
+/* ─── The Animated Character Rings ─── */
 .sound-btn::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    padding: 6px; /* This defines the thickness of the ring */
-    background: conic-gradient(
-        from 0deg, 
-        red, orange, yellow, green, cyan, blue, magenta, red
-    );
-    
-    /* The mask creates the "ring" by hiding the center area */
-    -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
+    padding: 6px;
+
+    /* Default fallback ring (overridden per character below) */
+    background: conic-gradient(from 0deg, #00AEEF, #fff, #00AEEF);
+
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
         linear-gradient(#fff 0 0);
-    mask: 
-        linear-gradient(#fff 0 0) content-box, 
+    mask:
+        linear-gradient(#fff 0 0) content-box,
         linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
-    
-    pointer-events: none; /* Clicks go through the ring to the button */
-    animation: rotate-rainbow 4s linear infinite;
-    z-index: 10; /* Keeps it above the character image */
+
+    pointer-events: none;
+    animation: rotate-ring 3s linear infinite;
+    z-index: 10;
 }
 
-@keyframes rotate-rainbow {
+@keyframes rotate-ring {
     from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    to   { transform: rotate(360deg); }
 }
 
-/* Base style for all character images */
+/* ─── Base image style ─── */
 .sound-btn img {
     position: absolute;
     object-fit: cover;
-    z-index: 1; /* Sits behind the rainbow ring */
+    z-index: 1;
 }
 
-/* ─── Per-character image classes ─────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   PER-CHARACTER RINGS
+   Each uses a unique conic-gradient that fits their
+   personality / colour palette from the games.
+═══════════════════════════════════════════════════ */
 
-.img-mario {
-    width: 100%;
-    height: 108%;
-    object-position: center 10%;
+/* Mario — classic red & blue overalls */
+.character-group.char-mario .sound-btn::after {
+    background: conic-gradient(from 0deg,
+        #E52521, #FFD700, #E52521, #1565C0, #E52521);
 }
 
-.img-luigi {
-    width: 100%;
-    height: 120%;
-    object-position: center 12%;
+/* Luigi — green & white */
+.character-group.char-luigi .sound-btn::after {
+    background: conic-gradient(from 0deg,
+        #2E7D32, #A5D6A7, #fff, #2E7D32, #fff, #A5D6A7, #2E7D32);
 }
 
-.img-bowser {
-    width: 110%;
-    height: 110%;
-    object-position: center 40%;
+/* Bowser — dark orange & spikey yellow */
+.character-group.char-bowser .sound-btn::after {
+    background: conic-gradient(from 0deg,
+        #BF360C, #FF8F00, #FDD835, #FF8F00, #BF360C);
+    animation-duration: 2s;
 }
 
-.img-ganon {
-    width: 200%;
-    height: 200%;
-    object-position: 37% 30%;
+/* Ganon — swamp darkness: deep reds, murky greens, sickly yellow-green, muddy brown */
+.character-group.char-ganon .sound-btn::after {
+    background: conic-gradient(from 0deg,
+        #4E0000, #1B3A1B, #6B8C00, #3B2200, #6B0000, #1B3A1B, #4E0000);
+    animation-duration: 5s;
 }
 
-.img-gwonam {
-    width: 140%;
-    height: 100%;
-    object-position: center 15%;
+/* Gwonam — magenta/purple robes, lavender skin, olive belt, emerald gem */
+.character-group.char-gwonam .sound-btn::after {
+    background: conic-gradient(from 0deg,
+        #880E4F, #9C27B0, #CE93D8, #4CAF50, #CE93D8, #9C27B0, #880E4F);
 }
 
-.img-king-harkinian {
-    width: 130%;
-    height: 110%;
-    object-position: center 20%;
+/* King Harkinian — royal gold & crimson */
+.character-group.char-king-harkinian .sound-btn::after {
+    background: conic-gradient(from 0deg,
+        #B71C1C, #FFD700, #FFF8DC, #FFD700, #B71C1C);
+    animation-duration: 4s;
 }
 
-.img-duke-onkled {
-    width: 140%;
-    height: 100%;
-    object-position: center 25%;
+/* Duke Onkled — crimson red robes, gold crown, hot pink/magenta trim */
+.character-group.char-duke-onkled .sound-btn::after {
+    background: conic-gradient(from 0deg,
+        #B71C1C, #E91E8C, #FFD700, #B71C1C, #FFD700, #E91E8C, #B71C1C);
+    animation-duration: 6s;
 }
 
-.img-link {
-    width: 140%;
-    height: 105%;
-    object-position: center 20%;
+/* Link — Hyrule green & Triforce gold */
+.character-group.char-link .sound-btn::after {
+    background: conic-gradient(from 0deg,
+        #1B5E20, #FFD700, #43A047, #FFD700, #1B5E20);
 }
 
-.img-morshu {
-    width: 120%;
-    height: 110%;
-    object-position: center 15%;
+/* Morshu — burnt orange shirt, olive green hat, warm amber/gold, earthy brown belt */
+.character-group.char-morshu .sound-btn::after {
+    background: conic-gradient(from 0deg,
+        #E65100, #FFA000, #558B2F, #FFA000, #E65100, #795548, #E65100);
+    animation-duration: 2.5s;
 }
+
+/* Zelda — royal pink & silver */
+.character-group.char-zelda .sound-btn::after {
+    background: conic-gradient(from 0deg,
+        #AD1457, #F48FB1, #E1BEE7, #CE93D8, #F48FB1, #AD1457);
+    animation-duration: 4.5s;
+}
+
+/* Mayor Cravendish — teal/cyan coat, mustard yellow vest, grey wig */
+.character-group.char-mayor-cravendish .sound-btn {
+    background-image: url('assets/images/Mayor-Cravendish.png');
+    background-size: 300px 280px;
+    background-position: -52px -32px;
+    background-repeat: no-repeat;
+}
+
+.character-group.char-mayor-cravendish .sound-btn::after {
+    background: conic-gradient(from 0deg,
+        #00838F, #FFD600, #00ACC1, #9E9E9E, #FFD600, #00838F);
+    animation-duration: 3.5s;
+}
+
+/* ═══════════════════════════════════════════════════
+   PER-CHARACTER IMAGE POSITIONING
+═══════════════════════════════════════════════════ */
+
+.img-mario         { width: 100%;  height: 108%; object-position: center 10%; }
+.img-luigi         { width: 100%;  height: 120%; object-position: center 12%; }
+.img-bowser        { width: 110%;  height: 110%; object-position: center 40%; }
+.img-ganon         { width: 200%;  height: 200%; object-position: 37% 30%; }
+.img-gwonam        { width: 140%;  height: 100%; object-position: center 15%; }
+.img-king-harkinian{ width: 130%;  height: 110%; object-position: center 20%; }
+.img-duke-onkled   { width: 140%;  height: 100%; object-position: center 25%; }
+.img-link          { width: 140%;  height: 105%; object-position: center 20%; }
+.img-morshu        { width: 120%;  height: 110%; object-position: center 15%; }
+.img-zelda              { width: 130%;  height: 130%; object-position: center 18%; }
+.img-mayor-cravendish   { display: none; }
+
+/* ═══════════════════════════════════════════════════
+   SOUND LABEL
+═══════════════════════════════════════════════════ */
 
 .sound-label {
     margin-top: 10px;
-    font-size: 14px;
+    font-size: 13px;
     text-align: center;
     font-weight: bold;
-    color: #000;
-    background: #fff;
-    padding: 2px 5px;
+    color: #c8e6ff;
+    background: rgba(0, 20, 50, 0.85);
+    border: 1px solid rgba(0, 174, 239, 0.25);
+    padding: 3px 6px;
     border-radius: 4px;
     width: 100%;
     word-wrap: break-word;
+    text-shadow: 0 0 6px rgba(0, 174, 239, 0.5);
 }
+
+/* ═══════════════════════════════════════════════════
+   MASTER VOLUME
+═══════════════════════════════════════════════════ */
 
 #master-volume-control {
     position: fixed;
     bottom: 20px;
     left: 20px;
-    background: #ff9dcd; /* Pink background */
-    padding: 15px;
-    border: 4px solid #00AEEF; /* Blue border */
-    border-radius: 15px;
+    background: rgba(0, 15, 40, 0.92);
+    padding: 14px;
+    border: 2px solid #00AEEF;
+    border-radius: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
     z-index: 100;
-    box-shadow: 5px 5px 0px #5856D6;
+    box-shadow:
+        0 0 20px rgba(0, 174, 239, 0.4),
+        inset 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 #master-volume-control label {
     font-weight: bold;
-    color: #fff;
-    text-shadow: 1px 1px #000;
+    color: #00AEEF;
+    text-shadow: 0 0 8px rgba(0, 174, 239, 0.8);
+    font-size: 13px;
+    letter-spacing: 1px;
 }
 
 #volumeValue {
-    background: white;
-    padding: 2px 8px;
-    border-radius: 5px;
+    background: rgba(0, 174, 239, 0.15);
+    border: 1px solid #00AEEF;
+    color: #00AEEF;
+    padding: 2px 10px;
+    border-radius: 4px;
     font-weight: bold;
+    font-size: 13px;
 }
 
 #volumeSlider {
     cursor: pointer;
-    accent-color: #4CD964; /* Vibrant green thumb */
+    accent-color: #00AEEF;
     width: 150px;
 }
+
+/* ═══════════════════════════════════════════════════
+   RANDOM BUTTON
+═══════════════════════════════════════════════════ */
 
 #random-btn {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #4CD964; /* Vibrant green */
-    padding: 15px 25px;
-    border: 4px solid #92278F; /* Purple border */
-    border-radius: 15px;
+    background: rgba(0, 15, 40, 0.92);
+    padding: 14px 24px;
+    border: 2px solid #E52521;
+    border-radius: 10px;
     font-family: 'Comic Sans MS', sans-serif;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
-    color: white;
-    text-shadow: 2px 2px #000;
+    color: #E52521;
+    text-shadow: 0 0 8px rgba(229, 37, 33, 0.8);
     cursor: pointer;
     z-index: 100;
-    box-shadow: 5px 5px 0px #5856D6;
-    transition: transform 0.1s;
+    box-shadow:
+        0 0 20px rgba(229, 37, 33, 0.35),
+        inset 0 0 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.1s, box-shadow 0.1s;
+    letter-spacing: 1px;
 }
 
 #random-btn:hover {
-    transform: scale(1.1) rotate(-3deg);
+    transform: scale(1.08) rotate(-2deg);
+    box-shadow:
+        0 0 35px rgba(229, 37, 33, 0.7),
+        inset 0 0 10px rgba(0, 0, 0, 0.5);
 }
