@@ -54,7 +54,7 @@
 * Weegee Town XP (Finished, no unless, no buts, I'm done)
 * Weegee's Mansion 3D (Finished, unless I come up with some big brain additions)
 * King Harkinian's Personal Chef Simulator (Finished, unless I come up with some big brain additions)
-* CD-i Tinder (Alpha / WIP)
+* CD-i Tinder (Finished, unless I come up with some big brain additions)
 * Meme Claw Machine (I dunno, stable, logic works, but might add more shit in the future)
 * The Big Meme Quiz (Finished, unless I come up with some big brain additions)
 * Meme Mafia (Finished, unless I come up with some big brain additions)
