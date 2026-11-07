@@ -62,6 +62,7 @@
 * I.M. Meen's Book Shredding Simulator (Beta / WIP)
 * Meme Solitaire (Finished, unless I come up with some big brain additions)
 * King Harkinian Desktop Pet - Browser Version (Finished, until I decide to update the real Python version on Linux)
+* Meme MIDI Player (Beta / WIP)
 
 ---
 
@@ -143,8 +144,18 @@
 **Currently available YTPs:**
 
 * The King Hates Bad Shrek Toys (new one made by me!)
-* Rick Astley Doesn't Give A Fuck (old one)
-* Hotel Mario Insanity (old one)
+* Rick Astley Doesn't Give A Fuck (old one made by me!)
+* Hotel Mario Insanity (old one made by me!)
+
+---
+
+<p><strong><font size="5">🚨 NEW BETA!</font></strong></p>
+
+<p><strong><font size="4">Meme MIDI Player has been added to the Shit Ass Toybox! 🎵</font></strong></p>
+
+* Play MIDIs through my custom meme SoundFont through a player with an eye-searing design! 🎵🔥
+* Comes with a few bundled MIDIs of iconic songs, but you can also upload your own shitty MIDIs! 😂
+* And much more! GO CHECK IT OUT NOW! 🔫
 
 ---
 

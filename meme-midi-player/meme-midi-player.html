@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <script src="../device-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mah boi, this MIDI player is what all true meme musicians strive for!">
+    <title>MEME MIDI PLAYER 2000</title>
+    <link rel="icon" type="image/x-icon" href="./meme-midi-player.ico">
+    <link rel="stylesheet" href="./meme-midi-player.css">
+</head>
+<body>
+    <main id="player-screen" class="player-shell">
+        <header class="masthead">
+            <a href="../index.html" id="hub-btn-battle" class="hub-btn-battle">← HUB</a>
+            <p id="made-by-credit"><span>Made by YouTuber</span><a href="https://youtube.com/@that1dutchguy" target="_blank" rel="noopener noreferrer" id="made-by-link">That One Dutch Guy</a></p>
+            <div class="eyebrow">THE INTERNET'S WORST INSTRUMENT</div>
+            <h1>MEME MIDI PLAYER <span>2000</span></h1>
+            <p class="subtitle">100% vanilla MIDI parsing. 0% taste. Press play and regret all your life choices.</p>
+            <div class="masthead-actions">
+                <button id="open-settings" class="settings-button" type="button">⚙ AUDIO SETTINGS</button>
+                <button id="open-about" class="settings-button" type="button">🛈 ABOUT</button>
+            </div>
+        </header>
+
+        <section class="control-deck" aria-label="Player controls">
+            <label class="file-control">
+                <span>SELECT A BUNDLED MIDI</span>
+                <select id="midi-select">
+                    <option value="">No MIDI selected</option>
+                    <option value="./assets/midis/Crazy-Frog-Axel-F.mid">Crazy Frog - Axel F</option>
+                    <option value="./assets/midis/Hotel-Mario-Main-Theme.mid">Hotel Mario - Main Theme</option>
+                    <option value="./assets/midis/Never-Gonna-Give-You-Up.mid">Rick Astley - Never Gonna Give You Up</option>
+                    <option value="./assets/midis/Queen-Bohemian-Rhapsody.mid">Queen - Bohemian Rhapsody</option>
+                    <option value="./assets/midis/Super-Mario-64-Staff-Roll.mid">Super Mario 64 - Staff Roll</option>
+                    <option value="./assets/midis/Stephen-Foster-Oh-Susanna.mid">Stephen Foster - Oh Susanna</option>
+                    <option value="./assets/midis/Metallica-Enter-Sandman.mid">Metallica - Enter Sandman</option>
+                </select>
+            </label>
+            <label class="file-control upload-control">
+                <span>OR SMUGGLE IN A .MID</span>
+                <input id="midi-upload" type="file" accept=".mid,.midi,audio/midi,audio/x-midi">
+            </label>
+            <label class="file-control upload-control soundfont-control">
+                <span>SWAP THE MEME JUICE (.SF2)</span>
+                <input id="sf2-upload" type="file" accept=".sf2,audio/sf2">
+            </label>
+        </section>
+
+        <section class="transport" aria-label="Playback controls">
+            <button id="play-button" type="button" disabled>▶ PLAY</button>
+            <button id="stop-button" type="button" disabled>■ STOP</button>
+            <div class="seek-control">
+                <span id="current-time">00:00</span>
+                <input id="seek-bar" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek through MIDI">
+                <span id="total-time">00:00</span>
+            </div>
+            <div class="audio-controls">
+                <label class="volume-control">VOLUME <input id="volume" type="range" min="0" max="100" value="72"></label>
+                <label class="loop-control"><input id="loop-toggle" type="checkbox" checked> LOOP</label>
+            </div>
+        </section>
+
+        <div id="status" class="status-line" role="status" aria-live="polite">Loading the classic meme soundfont...</div>
+        <div id="song-title" class="song-title">NO MIDI LOADED</div>
+
+        <section class="visualizer-frame" aria-label="MIDI channel visualizer and 128-key keyboard">
+            <div class="screen-heading">
+                <span>CHANNELS // PRESETS // NOISE</span>
+                <span id="engine-status">SYNTH: WARMING UP...</span>
+            </div>
+            <canvas id="visualizer" aria-label="Live waveforms for used MIDI channels and a 128-key piano keyboard"></canvas>
+            <div class="keyboard-hint">CLICK A KEY TO TEST THE SOUNDFONT • MIDI NOTES 0–127 • GM CHANNEL 10 + BANK 128 = DRUMS</div>
+        </section>
+        <footer>
+            <span>NO FRAMEWORKS. NO LIBRARIES. NO CLOUD. JUST VINTAGE BROWSER AUDIO AND QUESTIONABLE DECISIONS.</span>
+            <span id="soundfont-name">SOUNDFONT: LOADING...</span>
+        </footer>
+    </main>
+    <main id="settings-screen" class="settings-screen" hidden>
+        <header class="settings-header">
+            <div>
+                <div class="eyebrow">TWEAK THE NOISE MACHINE</div>
+                <h1>Audio Settings <span>!!!</span></h1>
+            </div>
+            <button id="close-settings" class="settings-button" type="button">↩ BACK TO THE BANGER</button>
+        </header>
+        <section class="settings-grid" aria-label="Audio engine settings">
+            <article class="settings-card sound-card">
+                <h2>Sound Engine Stuff</h2>
+                <label class="setting-row">
+                    <span>Master trim</span>
+                    <input id="master-trim" type="range" min="50" max="150" value="100" step="1">
+                    <output id="master-trim-value" for="master-trim">100%</output>
+                </label>
+                <label class="setting-row">
+                    <span>Polyphony / simultaneous sample voices</span>
+                    <input id="polyphony" type="range" min="64" max="4096" value="1024" step="64">
+                    <output id="polyphony-value" for="polyphony">1024</output>
+                </label>
+                <label class="setting-row">
+                    <span>Sample interpolation</span>
+                    <select id="interpolation">
+                        <option value="nearest">Nearest (fastest)</option>
+                        <option value="linear">Linear (balanced)</option>
+                        <option value="cubic">4-point cubic (smoother)</option>
+                    </select>
+                </label>
+                <label class="setting-row">
+                    <span>Channel 10 drum kit</span>
+                    <select id="drum-kit">
+                        <option value="auto">Auto / MIDI selects kit</option>
+                    </select>
+                </label>
+                <p class="settings-note">Raise the voice limit for dense, layered soundfonts; nearest interpolation uses the least CPU. Very high polyphony can still exceed real-time audio limits. Settings are saved in this browser.</p>
+                <p class="settings-note">Bank 128 contains drum kits. MIDI program changes select the kit; this override lets you audition another kit without rewriting the MIDI.</p>
+            </article>
+            <article class="settings-card effects-card">
+                <h2>Room Full Of Effects</h2>
+                <label class="setting-row">
+                    <span>Extra reverb send</span>
+                    <input id="reverb-level" type="range" min="0" max="70" value="0" step="1">
+                    <output id="reverb-value" for="reverb-level">0%</output>
+                </label>
+                <label class="setting-row">
+                    <span>Chorus amount / stereo wobble</span>
+                    <input id="chorus-level" type="range" min="0" max="60" value="16" step="1">
+                    <output id="chorus-value" for="chorus-level">16%</output>
+                </label>
+                <p class="settings-note">MIDI CC91 sets channel reverb depth; SoundFont zones can also set per-voice sends. Extra reverb adds to those sends and starts at 0%.</p>
+                <div class="effect-readout">
+                    <strong>BUILT-IN AUDIO GEAR:</strong>
+                    <span>MIDI CC91 + SOUNDFONT REVERB SENDS</span>
+                    <span>OPTIONAL EXTRA REVERB SEND (OFF BY DEFAULT)</span>
+                    <span>TWO-TAP MODULATED CHORUS</span>
+                    <span>OUTPUT PEAK CONTROL</span>
+                </div>
+            </article>
+        </section>
+    </main>
+    <main id="about-screen" class="about-screen" hidden>
+        <header class="settings-header">
+            <div>
+                <div class="eyebrow">Check out the enclosed instruction book! (totally not a Hotel Mario reference lol)</div>
+                <h1>About The Player <span>!!!</span></h1>
+            </div>
+            <button id="close-about" class="settings-button" type="button">↩ BACK TO THE PLAYER</button>
+        </header>
+        <article id="about-content" class="about-content" aria-live="polite">
+            <p>Loading the about page...</p>
+        </article>
+    </main>
+    <script src="../marked.min.js"></script>
+    <script src="./meme-midi-core.js"></script>
+    <script src="./meme-midi-player.js"></script>
+</body>
+</html>
