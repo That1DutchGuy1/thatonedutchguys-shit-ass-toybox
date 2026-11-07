@@ -59,7 +59,7 @@
 * The Big Meme Quiz (Finished, unless I come up with some big brain additions)
 * Meme Mafia (Finished, unless I come up with some big brain additions)
 * Grand Meme Prix 3D (Finished, unless I come up with some big brain additions)
-* I.M. Meen's Book Shredding Simulator (Beta / WIP)
+* I.M. Meen's Book Shredding Simulator (Finished, unless I come up with some big brain additions)
 * Meme Solitaire (Finished, unless I come up with some big brain additions)
 * King Harkinian Desktop Pet - Browser Version (Finished, until I decide to update the real Python version on Linux)
 * Meme MIDI Player (Beta / WIP)
