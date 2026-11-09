@@ -533,13 +533,6 @@ h1 {
   text-shadow: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .game-search-dock,
-  .game-search-empty {
-    animation: none;
-  }
-}
-
 /* =========================================
    TOYS PANEL (left side)
    ========================================= */
