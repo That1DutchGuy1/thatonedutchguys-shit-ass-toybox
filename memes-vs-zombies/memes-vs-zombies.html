@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script src="../device-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Memes vs Zombies is a dumb Plants VS Zombies ripoff where you defend your lawn from zombies using memes lol.">
+  <title>Memes VS Zombies</title>
+  <link rel="icon" type="image/x-icon" href="memes-vs-zombies.ico">
+  <link rel="stylesheet" href="memes-vs-zombies.css">
+  <script src="memes-vs-zombies.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <section class="menu-screen" id="menu-screen" aria-labelledby="game-title">
+      <div class="menu-sun sunburst" aria-hidden="true">☀</div>
+      <div class="menu-copy">
+        <p class="eyebrow">A totally serious lawn defense game</p>
+        <h1 id="game-title">MEMES <span>VS</span><br>ZOMBIES</h1>
+        <p class="menu-subtitle">The internet is cooked. Your lawn is next.</p>
+        <div class="menu-rules">
+          <div><img src="assets/memes/me-gusta-sunflower.png" alt=""><span>Plant a Me Gusta Sunflower to produce suns<br><b>50 Me Gusta Suns</b></span></div>
+          <div><img src="assets/memes/king-harkinian-peashooter.png" alt=""><span>Deploy King Harkinian and have him throw goblets<br><b>100 Me Gusta Suns</b></span></div>
+          <div><img src="assets/memes/morshu-bomb.png" alt=""><span>Call Morshu's bomb to kill large hordes of zombies<br><b>150 Me Gusta Suns</b></span></div>
+          <div><img src="assets/memes/illuminati-shield.png" alt=""><span>Block the horde with the Illuminati Shield<br><b>50 Me Gusta Suns</b></span></div>
+          <div><img src="assets/memes/weegee-hypnotizer.png" alt=""><span>Hypnotize a zombies to become Weegee clones<br><b>225 Me Gusta Suns</b></span></div>
+        </div>
+        <button class="start-button" id="start-button">LET'S GET THIS SHIT <span>▶</span></button>
+        <p class="menu-footnote">PC lawn defense • 9 lanes wide • 6 rows of chaos</p>
+        <a href="../index.html" id="hub-btn">← HUB</a>
+      </div>
+      <div class="menu-mascot" aria-hidden="true">
+        <img src="assets/memes/king-harkinian-peashooter.png" alt="">
+        <span class="speech-bubble">Mah boi,<br>the lawn!</span>
+      </div>
+      <div class="menu-sticker sticker-top">100%<br>MEME<br>POWER</div>
+      <div class="menu-sticker sticker-bottom">NO<br>THOUGHTS<br>JUST GOBLETS</div>
+      <p id="made-by-credit">Made by YouTuber&nbsp;<a href="https://youtube.com/@that1dutchguy" target="_blank" rel="noopener noreferrer" id="made-by-link">That One Dutch Guy</a></p>
+    </section>
+
+    <section class="game-screen is-hidden" id="game-screen" aria-label="Lawn defense game">
+      <header class="game-header">
+        <div class="brand-lockup"><span class="brand-mark">M✦Z</span><span>MEMES <b>VS</b> ZOMBIES<small>LAWN OF THE DEAD</small></span></div>
+        <div class="sun-bank" aria-live="polite">
+          <img src="assets/misc/me-gusta-sun.png" alt="">
+          <span id="sun-count">150</span><small>ME GUSTA<br>SUNS</small>
+        </div>
+        <div class="header-actions">
+          <div class="level-counter">LEVEL <b id="level-count">1 / 10</b></div>
+          <div class="wave-counter">WAVE <b id="wave-count">1</b></div>
+          <button class="icon-button" id="sound-button" aria-label="Mute all audio" title="Toggle audio">🔊</button>
+          <button class="icon-button" id="menu-button" aria-label="Return to main menu" title="Main menu">⌂</button>
+        </div>
+      </header>
+
+      <div class="seed-bank" aria-label="Choose a plant">
+        <div class="seed-label">YOUR<br>MEME<br>TEAM</div>
+        <button class="seed-card selected" data-plant="sunflower" aria-pressed="true" title="Me Gusta Sunflower — 50 suns">
+          <span class="seed-cost">50</span><img src="assets/memes/me-gusta-sunflower.png" alt="">
+          <span class="seed-name">ME GUSTA<br>SUNFLOWER</span>
+          <span class="cooldown-overlay" aria-hidden="true"><b></b></span>
+        </button>
+        <button class="seed-card" data-plant="king" aria-pressed="false" title="King Harkinian — 100 suns">
+          <span class="seed-cost">100</span><img src="assets/memes/king-harkinian-peashooter.png" alt="">
+          <span class="seed-name">KING<br>HARKINIAN</span>
+          <span class="cooldown-overlay" aria-hidden="true"><b></b></span>
+        </button>
+        <button class="seed-card" data-plant="bomb" aria-pressed="false" title="Morshu's Bomb — 150 suns">
+          <span class="seed-cost">150</span><img src="assets/memes/morshu-bomb.png" alt="">
+          <span class="seed-name">MORSHU'S<br>BOMB</span>
+          <span class="cooldown-overlay" aria-hidden="true"><b></b></span>
+        </button>
+        <button class="seed-card" data-plant="shield" aria-pressed="false" title="Illuminati Shield — 50 suns">
+          <span class="seed-cost">50</span><img src="assets/memes/illuminati-shield.png" alt="">
+          <span class="seed-name">ILLUMINATI<br>SHIELD</span>
+          <span class="cooldown-overlay" aria-hidden="true"><b></b></span>
+        </button>
+        <button class="seed-card" data-plant="weegee" aria-pressed="false" title="Weegee Hypnotizer — 225 suns, 25s cooldown">
+          <span class="seed-cost">225</span><img src="assets/memes/weegee-hypnotizer.png" alt="">
+          <span class="seed-name">WEEGEE<br>HYPNOTIZER</span>
+          <span class="cooldown-overlay" aria-hidden="true"><b></b></span>
+        </button>
+        <div class="seed-tip">Pick a plant,<br>then click a lawn tile!</div>
+        <div class="goal-card"><span id="goal-kicker">LEVEL 1 MISSION</span><b id="goal-title">DEFEND THE LAWN</b><small id="goal-detail">Watch for a huge final wave!</small><div class="progress-track"><i id="time-progress"></i></div></div>
+      </div>
+
+      <div class="board-wrap">
+        <div class="yard-sign" aria-label="Keep out zombies">
+          <span aria-hidden="true">🏠</span>
+          <b>KEEP OUT<br>ZOMBIES!</b>
+        </div>
+        <div class="lawn" id="lawn" aria-label="Six row, nine column lawn">
+          <div class="lawn-grid" id="lawn-grid"></div>
+          <div class="actors-layer" id="actors-layer"></div>
+          <div class="sky-suns" id="sky-suns"></div>
+        </div>
+        <div class="sidewalk"><span>STAY OFF THE GRASS</span><span>THE GRASS IS WATCHING</span></div>
+      </div>
+      <footer class="game-footer"><span id="game-message">Click a seed packet, then choose a tile.</span><span>THE ZOMBIES ARE COMING FROM THE RIGHT <b>→</b></span></footer>
+      <div class="wave-alert is-hidden" id="wave-alert" role="status" aria-live="assertive">A HUGE WAVE OF ZOMBIES IS APPROACHING!</div>
+
+      <div class="game-overlay is-hidden" id="game-overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+        <div class="overlay-card">
+          <div class="overlay-stamp" id="overlay-stamp">OH NO!</div>
+          <div class="victory-celebration" aria-hidden="true">
+            <span class="victory-meme-sprite sunflower"><img src="assets/memes/me-gusta-sunflower.png" alt=""></span>
+            <span class="victory-meme-sprite king"><img src="assets/memes/king-harkinian-peashooter.png" alt=""></span>
+            <span class="victory-meme-sprite bomb"><img src="assets/memes/morshu-bomb.png" alt=""></span>
+            <span class="victory-meme-sprite shield"><img src="assets/memes/illuminati-shield.png" alt=""></span>
+            <span class="victory-meme-sprite weegee"><img src="assets/memes/weegee-hypnotizer.png" alt=""></span>
+          </div>
+          <h2 id="overlay-title">THE LAWN IS TOAST</h2>
+          <p id="overlay-message">The zombies made it to the house.</p>
+          <button class="start-button is-hidden" id="next-level-button">NEXT LEVEL <span>▶</span></button>
+          <button class="start-button" id="again-button">RUN IT BACK <span>↻</span></button>
+          <button class="text-button" id="overlay-menu-button">Back to main menu</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

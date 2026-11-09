@@ -63,6 +63,7 @@
 * Meme Solitaire (Finished, unless I come up with some big brain additions)
 * King Harkinian Desktop Pet - Browser Version (Finished, until I decide to update the real Python version on Linux)
 * Meme MIDI Player (Beta / WIP)
+* Memes VS Zombies (Finished, unless I come up with some big brain additions)
 
 ---
 
@@ -149,7 +150,21 @@
 
 ---
 
-<p><strong><font size="5">🚨 NEW BETA!</font></strong></p>
+<p><strong><font size="5">🚨 NEW GAME ADDED!</font></strong></p>
+
+<p><strong><font size="4">Memes VS Zombies has been added to the Shit Ass Toybox! 🧟</font></strong></p>
+
+<img src="./memes-vs-zombies/assets/memes/me-gusta-sunflower.png" width="256px" alt="Me Gusta Sunflower"/>
+
+* Defend your holy lawn from those idiot bastard zombies using memes! 🔫
+* Buy memes using Me Gusta Suns and plant them onto the lawn grid! ☀️🌱
+* More memes will be added soon! 😎👍🏻
+
+---
+
+<p><strong><font size="5">🚨 NEW BETA ADDED!</font></strong></p>
+
+<img src="./meme-midi-player/assets/images/gwonam-synthesizer.png" width="256px" alt="Gwonam synthesizer"/>
 
 <p><strong><font size="4">Meme MIDI Player has been added to the Shit Ass Toybox! 🎵</font></strong></p>
 
@@ -260,7 +275,7 @@
 > **A:** Good question! My goal is to help out a hand keep the internet from becoming a soulless corporate minimalist wasteland, and keep the soul of 2000s and early 2010s internet culture alive by making fucking hilarious uncensored non-profit interactive shit completely for free! I do this as a hobby for my own amusement mainly, but I like sharing my cursed shit too to other enjoyers! 😎
 
 > **Q: What the hell is your profile picture logo?** <br>
-> **A:** It's a new one! Basically same vibe as the old sloppy AI generated one of Trevor from GTA 5 wearing a suit and top hat, but now actually shot within the game itself! 🎩
+> **A:** It's Trevor from GTA 5 wearing a suit and top hat, flipping the bird while holding a rifle in the other hand! 🎩🖕🏻
 
 ---
 
