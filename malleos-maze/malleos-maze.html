@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2421a7">
+  <title>Malleo's Maze</title>
+  <link rel="icon" type="image/x-icon" href="./assets/collectibles/fireflower.png">
+  <link rel="stylesheet" href="./malleos-maze.css">
+</head>
+<body>
+  <main id="game" aria-label="First-person maze game">
+    <div id="viewport" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div id="jumpscare-effect" aria-hidden="true"></div>
+
+    <section id="hud" aria-live="polite">
+      <div class="hud-top">
+        <div class="objective-panel">
+          <div class="eyebrow">GRAB THESE BEFORE HE GRABS YOU</div>
+          <div class="objective-line"><img class="objective-icon" src="./assets/collectibles/fireflower.png" alt=""><span id="item-count">0 / 6</span><span class="objective-label">fireflowers</span></div>
+          <div class="item-track"><span id="item-progress"></span></div>
+          <div class="objective-footer">THEN RUN TO THE EXIT, GENIUS</div>
+        </div>
+        <div id="malleo-status" class="level-tag"><span class="signal-dot"></span>MALLEO <b>AT LARGE</b></div>
+      </div>
+      <div id="pickup-toast" role="status"></div>
+      <div id="malleo-warning" aria-live="assertive"><span>!!!</span> MALLEO IS CLOSE <span>!!!</span></div>
+      <div id="crosshair" aria-hidden="true"><i></i><b></b></div>
+      <div id="minimap-panel" role="img" aria-label="Maze map. Your position and direction are shown by a yellow arrow. Malleo appears as a flashing red dot when nearby.">
+        <span class="minimap-title">MAZE MAP</span>
+        <canvas id="minimap" width="248" height="248" aria-hidden="true"></canvas>
+      </div>
+      <div class="hud-bottom">
+        <div id="hint">WASD <span>MOVE</span><b>·</b> MOUSE <span>LOOK</span></div>
+        <div id="stamina-panel" class="stamina-panel">
+          <div class="stamina-heading"><span>SPRINT JUICE</span><strong id="stamina-state">FULL</strong></div>
+          <div class="stamina-track" role="meter" aria-label="Sprint stamina" aria-valuemin="0" aria-valuemax="20" aria-valuenow="20">
+            <span id="stamina-progress"></span>
+          </div>
+          <div id="hotbar" role="group" aria-label="Item hotbar">
+            <div class="hotbar-slot selected" aria-label="Slot 1, empty, selected"><kbd>1</kbd><img src="./assets/items/energy-drink-can.png" alt="" hidden></div>
+            <div class="hotbar-slot" aria-label="Slot 2, empty"><kbd>2</kbd><img src="./assets/items/energy-drink-can.png" alt="" hidden></div>
+            <div class="hotbar-slot" aria-label="Slot 3, empty"><kbd>3</kbd><img src="./assets/items/energy-drink-can.png" alt="" hidden></div>
+            <div class="hotbar-slot" aria-label="Slot 4, empty"><kbd>4</kbd><img src="./assets/items/energy-drink-can.png" alt="" hidden></div>
+            <div class="hotbar-slot" aria-label="Slot 5, empty"><kbd>5</kbd><img src="./assets/items/energy-drink-can.png" alt="" hidden></div>
+            <div class="hotbar-slot" aria-label="Slot 6, empty"><kbd>6</kbd><img src="./assets/items/energy-drink-can.png" alt="" hidden></div>
+          </div>
+          <div class="stamina-caption">1-6 / <kbd>WHEEL</kbd> SELECT · CLICK TO USE</div>
+        </div>
+        <div class="depth-tag"><span class="depth-dot"></span>HE'S DOING A LITTLE HUNT</div>
+      </div>
+    </section>
+
+    <section id="menu" class="menu-screen">
+      <div class="menu-card">
+        <div class="menu-kicker"><span class="kicker-line"></span>ONE MAZE. ONE WEIRD GUY.<span class="kicker-line"></span></div>
+        <h1 id="menu-title">MALLEO'S<br><span>MAZE!</span></h1>
+        <p id="menu-description">Six fireflowers. One extremely suspicious plumber.<br>Find the flowers, find the exit, do NOT get bonked.</p>
+        <button id="menu-button" type="button"><span>OKAY, I'M GOING IN</span><b>▶</b></button>
+        <button id="main-menu-button" type="button">BACK TO MAIN MENU</button>
+        <div class="menu-controls">
+          <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> MOVE</span>
+          <span><kbd>MOUSE</kbd> LOOK</span>
+          <span><kbd>SHIFT</kbd> SPRINT</span>
+          <span><kbd>E</kbd> OPEN EXIT</span>
+          <span><kbd>ESC</kbd> PAUSE</span>
+          <span><kbd>1-6</kbd><kbd>WHEEL</kbd> SELECT ITEM</span>
+          <span><kbd>CLICK</kbd> USE ITEM</span>
+        </div>
+        <div class="menu-footer"><span>FIRST PERSON <i>·</i> PC ONLY</span><span>MAP? STILL BAD DECISIONS.</span></div>
+      </div>
+      <a href="../index.html" id="hub-btn" class="button">← HUB</a>
+      <a href="https://youtube.com/@that1dutchguy" id="creator-link" target="_blank" rel="noopener noreferrer">Created by That One Dutch Guy</a>
+      <div class="menu-sticker" aria-hidden="true">HE'S<br>RIGHT<br>THERE!!</div>
+      <img class="menu-malleo" src="./assets/malleo/Malleo.png" alt="">
+      <div class="menu-grain" aria-hidden="true"></div>
+    </section>
+
+    <section id="loading-screen" class="loading-screen hidden" aria-busy="false">
+      <div class="loading-card">
+        <div class="menu-kicker"><span class="kicker-line"></span>THE MAZE IS GETTING ITS ACT TOGETHER<span class="kicker-line"></span></div>
+        <h2>PREPARING<br><span>YOUR PANIC!</span></h2>
+        <progress id="loading-progress" max="100" value="0" aria-label="Game loading progress"></progress>
+        <div class="loading-status-row"><span id="loading-status" aria-live="polite">LOADING GAME ASSETS</span><strong id="loading-percent">0%</strong></div>
+        <p id="loading-error" class="hidden" role="alert"></p>
+        <button id="loading-retry" type="button" hidden>RELOAD AND TRY AGAIN</button>
+      </div>
+    </section>
+
+    <div id="ending" class="ending-screen hidden" aria-live="polite">
+      <div class="ending-card">
+        <div class="ending-mark">🌼</div>
+        <div class="eyebrow">SOMEHOW, YOU SURVIVED</div>
+        <h2>YOU BEAT<br><span>MALLEO'S MAZE!</span></h2>
+        <p>Six fireflowers collected. One Malleo absolutely fuming.</p>
+        <button id="restart-button" type="button">RUN IT BACK <b>▶</b></button>
+      </div>
+    </div>
+
+    <div id="caught" class="ending-screen hidden" aria-live="assertive">
+      <div class="ending-card caught-card">
+        <div class="eyebrow">BONKED. ABSOLUTELY BONKED.</div>
+        <img class="caught-malleo" src="./assets/malleo/Malleo.png" alt="Malleo caught you">
+        <h2>MALLEO<br><span>GOT YOU!</span></h2>
+        <p>Skill issue? Maybe. Maze issue? Also maybe.</p>
+        <button id="caught-button" type="button">ONE MORE TRY <b>▶</b></button>
+      </div>
+    </div>
+
+    <div id="transition-fade" aria-hidden="true"></div>
+  </main>
+  <audio id="game-music" src="./assets/music/malleos-maze-theme.mp3" loop preload="none"></audio>
+  <script src="../three.min.js"></script>
+  <script src="./malleos-maze.js"></script>
+</body>
+</html>

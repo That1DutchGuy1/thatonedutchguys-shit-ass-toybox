@@ -64,6 +64,7 @@
 * King Harkinian Desktop Pet - Browser Version (Finished, until I decide to update the real Python version on Linux)
 * Meme MIDI Player (Beta / WIP)
 * Memes VS Zombies (Finished, unless I come up with some big brain additions)
+* Malleo's Maze (Finished, unless I come up with some big brain additions)
 
 ---
 
@@ -160,6 +161,21 @@
 * Defend your holy lawn from those idiot bastard zombies using memes! 🔫
 * Buy memes using Me Gusta Suns and plant them onto the lawn grid! ☀️🌱
 * More memes will be added soon! 😎👍🏻
+
+---
+
+<p><strong><font size="5">🚨 ANOTHER NEW GAME ADDED!</font></strong></p>
+
+<p><strong><font size="4">Malleo's Maze has been added to the Shit Ass Toybox! 🪠</font></strong></p>
+
+The objective is to collect all 6 fireflowers before Malleo gets you! 😱 <br>
+There are 3 types of items that can be used:
+
+1. Energy Drink - Restores your stamina and gives you a short speedboost
+2. Banana peel - Makes anyone walking over it slip instantly onto their face. Either Malleo or the player lol
+3. Fireflower Tracker - When equipped, a white dot somewhere on the maze minimap will start flashing and beeping, indicating that a fireflower is there!
+
+When you got all fireflowers, you can try to find the exit door and escape Malleo's Maze! 🌼
 
 ---
 
