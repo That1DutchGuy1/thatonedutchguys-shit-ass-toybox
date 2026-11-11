@@ -1325,6 +1325,11 @@ const MEME_ARTWORKS = [
         url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/hotel-mario-wallpaper.png",
         aspect: "landscape"
     },
+    {
+        title: "4K Meme Group Photo On Bliss",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/Meme-Group-Photo.png",
+        aspect: "landscape"
+    }
 ];
 
 let memeArtIsOpen  = false;
