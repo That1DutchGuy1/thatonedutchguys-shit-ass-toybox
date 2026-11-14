@@ -42,9 +42,9 @@
 
 ---
 
-<p><strong><font size="5">🕹️ LIST OF CURRENTLY AVAILABLE MINI-TOYZ AND GAMES</font></strong></p>
+<p><strong><font size="5">🕹️ LIST OF CURRENTLY AVAILABLE MINI-TOYZ, GAMES, AND WEBAPPS!</font></strong></p>
 
-**GAMES:**
+**GAMES & WEBAPPS:**
 
 * Whack A Meme (Finished, unless I come up with some big brain additions)
 * Bup The Super Awesome Clicker Game (Finished, unless I come up with some big brain additions)

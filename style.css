@@ -197,6 +197,18 @@ body.spoof-blocked #spoof-block {
   -ms-overflow-style: none;
 }
 
+#warning-splash::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: url("./hub-assets/warning-splash-background.png") center / cover no-repeat;
+  opacity: 0;
+  animation: splash-background-fade-in 1.2s ease forwards;
+  animation-delay: 0.2s;
+  z-index: 0;
+  pointer-events: none;
+}
+
 /* Hide scrollbar for Chrome, Safari, Opera, and Chromium Edge */
 #warning-splash::-webkit-scrollbar {
   display: none;
@@ -207,6 +219,8 @@ body.spoof-blocked #spoof-block {
 }
 
 .splash-content {
+  position: relative;
+  z-index: 1;
   max-width: 650px;
   width: 100%;
   text-align: center;
@@ -216,6 +230,12 @@ body.spoof-blocked #spoof-block {
   opacity: 0;
   animation: splash-fade-in 1.2s ease forwards;
   animation-delay: 0.2s;
+}
+
+@keyframes splash-background-fade-in {
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes splash-fade-in {
