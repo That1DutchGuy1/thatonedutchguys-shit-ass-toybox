@@ -191,6 +191,15 @@ body.spoof-blocked #spoof-block {
   overflow-y: auto;
   padding: 40px 20px;
   box-sizing: border-box;
+  /* Hide scrollbar for Firefox */
+  scrollbar-width: none;
+  /* Hide scrollbar for IE and older Edge */
+  -ms-overflow-style: none;
+}
+
+/* Hide scrollbar for Chrome, Safari, Opera, and Chromium Edge */
+#warning-splash::-webkit-scrollbar {
+  display: none;
 }
 
 #warning-splash.splash-hidden {
