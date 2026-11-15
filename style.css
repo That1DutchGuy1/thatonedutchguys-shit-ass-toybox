@@ -226,7 +226,7 @@ body.spoof-blocked #spoof-block {
   text-align: center;
   font-family: 'Comic Sans MS', sans-serif;
   font-weight: bold;
-  color: #ff2b2b;
+  color: #ff0000;
   opacity: 0;
   animation: splash-fade-in 1.2s ease forwards;
   animation-delay: 0.2s;
@@ -252,14 +252,14 @@ body.spoof-blocked #spoof-block {
 .splash-title {
   font-size: 2.2rem;
   margin-bottom: 20px;
-  color: #ff2b2b;
+  color: #ff0000;
 }
 
 .splash-text {
   font-size: 1.1rem;
   line-height: 1.5;
   margin: 12px 0;
-  color: #ff2b2b;
+  color: #ff0000;
 }
 
 .splash-list {
@@ -274,7 +274,7 @@ body.spoof-blocked #spoof-block {
   font-size: 1.05rem;
   line-height: 1.6;
   margin: 10px 0;
-  color: #ff2b2b;
+  color: #ff0000;
 }
 
 .splash-buttons {
@@ -290,28 +290,28 @@ body.spoof-blocked #spoof-block {
   font-weight: bold;
   font-size: 1.2rem;
   padding: 14px 28px;
-  border: 3px solid #ff2b2b;
+  border: 3px solid #ff0000;
   border-radius: 12px;
   background: transparent;
-  color: #ff2b2b;
+  color: #ff0000;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 
 .splash-btn:hover {
   transform: scale(1.08);
-  background: #ff2b2b;
+  background: #ff0000;
   color: #000;
 }
 
 #splash-enter {
-  background: #ff2b2b;
+  background: #ff0000;
   color: #000;
 }
 
 #splash-enter:hover {
   background: transparent;
-  color: #ff2b2b;
+  color: #ff0000;
 }
 
 /* Prevent the page behind the splash from scrolling while it's up */
