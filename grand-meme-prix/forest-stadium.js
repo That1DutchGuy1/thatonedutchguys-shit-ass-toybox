@@ -761,7 +761,7 @@ const ForestStadium = (() => {
 
     // ── Load King image async ─────────────────────────────────────────────────
     const king = new Image();
-    king.src = 'assets/King-Harkinian.png';
+    king.src = './assets/characters/King-Harkinian.png';
     king.onload = () => {
       ctx.drawImage(king, kingX, kingY, kingW, kingH);
       const parentCanvas = ctx.canvas;

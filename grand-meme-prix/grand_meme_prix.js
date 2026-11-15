@@ -524,9 +524,9 @@ function setSoloInput(method) {
   document.getElementById('soloGpBtn').classList.toggle('active', method === 'gamepad');
   const hint = document.getElementById('soloControlsHint');
   if (method === 'keyboard') {
-    hint.innerHTML = '<span>WASD</span> to drive<br><span>SPACE</span> = item';
+    hint.innerHTML = '<span>WASD</span> to drive<br><span>SPACE</span> = item<br><span>Hold LEFT SHIFT</span> = look behind';
   } else {
-    hint.innerHTML = '<span>L-Stick</span> steer &nbsp;<span>R2</span> gas<br><span>L2</span> brake &nbsp;<span>✕</span> item';
+    hint.innerHTML = '<span>L-Stick</span> steer &nbsp;<span>R2</span> gas<br><span>L2</span> brake &nbsp;<span>✕</span> item<br><span>Hold R3</span> = look behind';
     updateGamepadReadyUI();
     menuLightbarUpdate(0); // request HID permission + set P1 character colour
   }
@@ -539,11 +539,11 @@ function setCoopInput(player, method) {
   document.getElementById(prefix + 'GpBtn').classList.toggle('active', method === 'gamepad');
   const hint = document.getElementById(prefix + 'ControlsHint');
   if (method === 'keyboard') {
-    if (player === 0) hint.innerHTML = '<span>WASD</span> to drive<br><span>SPACE</span> = item';
-    else hint.innerHTML = '<span>↑↓←→</span> to drive<br><span>ENTER</span> = item';
+    if (player === 0) hint.innerHTML = '<span>WASD</span> to drive<br><span>SPACE</span> = item<br><span>Hold LEFT SHIFT</span> = look behind';
+    else hint.innerHTML = '<span>↑↓←→</span> to drive<br><span>RIGHT SHIFT</span> = item<br><span>Hold NUMPAD 0</span> = look behind';
   } else {
     const padNum = player === 0 ? '1' : '2';
-    hint.innerHTML = `<span>L-Stick</span> steer &nbsp;<span>R2</span> gas<br><span>L2</span> brake &nbsp;<span>✕</span> item (Pad ${padNum})`;
+    hint.innerHTML = `<span>L-Stick</span> steer &nbsp;<span>R2</span> gas<br><span>L2</span> brake &nbsp;<span>✕</span> item (Pad ${padNum})<br><span>Hold R3</span> = look behind`;
     updateGamepadReadyUI();
     menuLightbarUpdate(player); // request HID permission + set character colour
   }
@@ -726,7 +726,7 @@ function goBack() {
 //   buttons[0]=Cross  buttons[1]=Circle  buttons[2]=Square  buttons[3]=Triangle
 //   buttons[4]=L1     buttons[5]=R1
 //   buttons[6]=L2 (value 0..1)   buttons[7]=R2 (value 0..1)
-//   buttons[8]=Share  buttons[9]=Options
+//   buttons[8]=Share  buttons[9]=Options  buttons[10]=L3  buttons[11]=R3
 //   buttons[12]=DUp   buttons[13]=DDown  buttons[14]=DLeft  buttons[15]=DRight
 //   axes[0]=LX  axes[1]=LY  axes[2]=RX  axes[3]=RY
 //
@@ -801,7 +801,12 @@ function getGamepadInputs(gp) {
     cross = btn ? (btn.pressed || btn.value > 0.5) : false;
   }
 
-  return { r2, l2, lx, cross };
+  const lookBackButton = gp.buttons[11];
+  const lookBack = lookBackButton
+    ? lookBackButton.pressed || lookBackButton.value > 0.5
+    : false;
+
+  return { r2, l2, lx, cross, lookBack };
 }
 
 // Returns fresh gamepad object (must re-poll each frame — Gamepad API snapshots)
@@ -4347,6 +4352,7 @@ function trackSurfaceHeightAt(position) {
 
 function resolveStadiumWallCollision(player) {
   const kartRadius = 1.4;
+  let collided = false;
   for (const wall of stadiumWalls) {
     const dx = player.kart.position.x - wall.cx;
     const dz = player.kart.position.z - wall.cz;
@@ -4357,6 +4363,7 @@ function resolveStadiumWallCollision(player) {
     const overlapZ = wall.halfD + kartRadius - Math.abs(localZ);
 
     if (overlapX <= 0 || overlapZ <= 0) continue;
+    collided = true;
 
     let pushLocalX = 0, pushLocalZ = 0;
     if (overlapX < overlapZ) {
@@ -4378,6 +4385,7 @@ function resolveStadiumWallCollision(player) {
       player.speed *= -0.15;
     }
   }
+  return collided;
 }
 
 function spawnRedShell(thrower, target) {
@@ -5167,7 +5175,7 @@ function showHitEffect(player) {
 // =============================================
 // INPUT HANDLING
 // =============================================
-const GAME_KEYS = new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','Enter']);
+const GAME_KEYS = new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','Enter','KeyC','Numpad0','ShiftLeft','ShiftRight']);
 document.addEventListener('keydown', e => {
   keys[e.code] = true;
   if (GAME_KEYS.has(e.code)) e.preventDefault();
@@ -5190,8 +5198,8 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
-const P1_KEYS = { forward:'KeyW', back:'KeyS', left:'KeyA', right:'KeyD', item:'Space' };
-const P2_KEYS = { forward:'ArrowUp', back:'ArrowDown', left:'ArrowLeft', right:'ArrowRight', item:'Enter' };
+const P1_KEYS = { forward:'KeyW', back:'KeyS', left:'KeyA', right:'KeyD', item:'Space', lookBack:'ShiftLeft' };
+const P2_KEYS = { forward:'ArrowUp', back:'ArrowDown', left:'ArrowLeft', right:'ArrowRight', item:'ShiftRight', lookBack:'Numpad0' };
 
 // Per-player gamepad button edge detection (for item use — we want press, not hold)
 const _gpItemWasPressed = [false, false];
@@ -5494,6 +5502,7 @@ function updateSoloAI(delta, cpuIdx) {
   if (aiState.peelDodge      === undefined) aiState.peelDodge    = null;
   if (aiState.propStuckTimer       === undefined) aiState.propStuckTimer       = 0;
   if (aiState.propStuckSampleTimer === undefined) aiState.propStuckSampleTimer = 0;
+  if (aiState.propStuckHitCollision === undefined) aiState.propStuckHitCollision = false;
   if (aiState.propStuckLastPos     === undefined) aiState.propStuckLastPos     = ai.kart.position.clone();
 
   // ── Star cancels incoming spinouts for the AI too ──
@@ -5716,19 +5725,19 @@ function updateSoloAI(delta, cpuIdx) {
   ai.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
   ai.kart.position.x += Math.sin(ai.angle) * ai.speed * delta;
   ai.kart.position.z += Math.cos(ai.angle) * ai.speed * delta;
-  resolveStadiumWallCollision(ai);
+  const hitImmovableCollision = resolveStadiumWallCollision(ai);
   ai.kart.rotation.y = ai.angle;
   ai.kart.rotation.z = 0;
   updateKartTrackElevation(ai, delta);
 
-  // ── Prop-stuck rescue: teleport CPU back onto the track if stuck for 6 s ──
+  // ── Prop-stuck rescue: require persistent immovable-wall contact and no progress ──
   // HOW IT WORKS:
   //   Rather than comparing displacement per frame (which breaks at high CC speeds
   //   because a kart on a tight turn or cresting a hill can move < any sane per-frame
   //   threshold even while going full speed), we take a position snapshot every
-  //   PROP_STUCK_SAMPLE_INTERVAL seconds and compare against that snapshot.
-  //   Over 0.5 s a normally-moving 150cc kart travels ~4 m; if it moved less than
-  //   PROP_STUCK_MOVE_DIST (1.5 units) in that window it's genuinely stuck.
+  //   PROP_STUCK_SAMPLE_INTERVAL seconds and compare against that snapshot. Low
+  //   movement counts only when the CPU also touched a static collision wall.
+  //   A moving 150cc kart covers the 1.5-unit threshold comfortably within 0.5 s.
   //   The rescue only fires after 6 consecutive seconds of being below that threshold.
   //   Stun/spinout/bomb/stall time is excluded entirely — those are intentional stops.
   {
@@ -5742,6 +5751,7 @@ function updateSoloAI(delta, cpuIdx) {
 
     if (notStunned) {
       aiState.propStuckSampleTimer = (aiState.propStuckSampleTimer || 0) + delta;
+      aiState.propStuckHitCollision = aiState.propStuckHitCollision || hitImmovableCollision;
 
       if (aiState.propStuckSampleTimer >= PROP_STUCK_SAMPLE_INTERVAL) {
         // Time to take a snapshot and check displacement since the last one
@@ -5749,11 +5759,12 @@ function updateSoloAI(delta, cpuIdx) {
         aiState.propStuckLastPos.copy(ai.kart.position);
         aiState.propStuckSampleTimer = 0;
 
-        if (movedDist < PROP_STUCK_MOVE_DIST) {
+        if (movedDist < PROP_STUCK_MOVE_DIST && aiState.propStuckHitCollision) {
           aiState.propStuckTimer += PROP_STUCK_SAMPLE_INTERVAL;
         } else {
-          aiState.propStuckTimer = 0; // moved fine — reset the streak
+          aiState.propStuckTimer = 0;
         }
+        aiState.propStuckHitCollision = false;
       }
 
       if (aiState.propStuckTimer >= PROP_STUCK_THRESHOLD) {
@@ -5768,6 +5779,7 @@ function updateSoloAI(delta, cpuIdx) {
         ai.verticalVelocity = 0;
         aiState.propStuckTimer      = 0;
         aiState.propStuckSampleTimer = 0;
+        aiState.propStuckHitCollision = false;
         aiState.propStuckLastPos.copy(ai.kart.position);
         console.log(`[GMP] CPU ${cpuIdx} was stuck on a prop for 6s — rescued back to track at T=${rescueT.toFixed(3)}`);
       }
@@ -5776,6 +5788,7 @@ function updateSoloAI(delta, cpuIdx) {
       // doesn't bleed into the stuck counter and keep the snapshot position current
       aiState.propStuckTimer       = 0;
       aiState.propStuckSampleTimer = 0;
+      aiState.propStuckHitCollision = false;
       aiState.propStuckLastPos.copy(ai.kart.position);
     }
   }
@@ -5873,16 +5886,24 @@ function updateSoloAI(delta, cpuIdx) {
 // =============================================
 // CAMERA
 // =============================================
-function updateCamera(camera, player, snap = false) {
-  const behind = new THREE.Vector3(
-    Math.sin(player.angle) * -player.camDist,
-    player.camHeight,
-    Math.cos(player.angle) * -player.camDist
-  );
-  const targetPosition = player.kart.position.clone().add(behind);
+function isLookBackHeld(binds) {
+  if (binds._gpIndex !== undefined) {
+    return getGamepadInputs(getGamepad(binds._gpIndex))?.lookBack ?? false;
+  }
+  return Boolean(keys[binds.lookBack]);
+}
+
+function updateCamera(camera, player, snap = false, lookBehind = false) {
+  const forward = new THREE.Vector3(Math.sin(player.angle), 0, Math.cos(player.angle));
+  const cameraOffset = forward.clone().multiplyScalar(lookBehind ? 8 : -player.camDist);
+  cameraOffset.y = player.camHeight;
+  const targetPosition = player.kart.position.clone().add(cameraOffset);
   if (snap) camera.position.copy(targetPosition);
   else camera.position.lerp(targetPosition, 0.12);
-  camera.lookAt(player.kart.position.clone().add(new THREE.Vector3(0, 1, 0)));
+  const lookAtPosition = player.kart.position.clone();
+  if (lookBehind) lookAtPosition.addScaledVector(forward, -player.camDist);
+  lookAtPosition.y += 1;
+  camera.lookAt(lookAtPosition);
 }
 
 // =============================================
@@ -6609,8 +6630,8 @@ async function startGame() {
         // Freecam: WASD/Space/Shift move camera, mouse-look
         updateDevFreecam(delta, cameras[0]);
       } else {
-        if (aiIdx !== 0) updateCamera(cameras[0], players[0]);
-        if (!isSolo && aiIdx !== 1) updateCamera(cameras[1], players[1]);
+        if (aiIdx !== 0) updateCamera(cameras[0], players[0], false, isLookBackHeld(p1Binds));
+        if (!isSolo && aiIdx !== 1) updateCamera(cameras[1], players[1], false, isLookBackHeld(p2Binds));
       }
 
       if (!isSolo) updateMirrorKarts();
