@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveAll();
         milestoneAudio.currentTime = 0;
         milestoneAudio.play();
-        milestoneEl.innerText = `Milestone reached: ${milestone.description} you've clicked the button ${milestone.value.toLocaleString()} times!`;
+        milestoneEl.innerText = `Milestone reached: ${milestone.description} you've wasted even more precious time of your life and accumulated ${milestone.value.toLocaleString()} BUP!`;
         milestoneEl.style.display = 'block';
         if (milestone.value === 1000000000) {
           setTimeout(() => { window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; }, 5000);
