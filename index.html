@@ -23,7 +23,7 @@
     <link rel="preload" href="./hub-assets/That-One-Dutch-Guy-Logo-Text.png" as="image">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="platform-detection-pending">
 
     <div id="mobile-block" role="alert" aria-live="assertive">
         <div class="mobile-block-content">
@@ -110,6 +110,18 @@
         <div id="beeg-toybox-panel">
             <div id="beeg-toybox-label">BEEG TOYBOX</div>
             <div id="beeg-toys-container"></div>
+        </div>
+    </div>
+
+    <div id="windows11-warning" role="alert" aria-live="assertive" aria-modal="true" aria-labelledby="windows11-warning-title">
+        <div class="windows11-warning-content">
+            <h2 id="windows11-warning-title">⚠️ WINDOWS 11 USER DETECTED ⚠️</h2>
+            <img src="./hub-assets/windows11-warning-chipmunk.png" alt="Dramatic Chipmunk staring in alarm">
+            <p>AYO! YOU USE WINDOWS 11?! WHAT IS WRONG WITH YOU?! 🤮</p>
+            <p>🚨 BLOATWARE ALERT! BLOATWARE ALERT! 🚨</p>
+            <p>DRAMATIC CHIPMUNK HAS AN OPINION ON THIS! 🐿️</p>
+            <p>DON'T YOU KNOW THAT THERE IS A SAVIOR AND THAT HIS NAME IS TUX THE LINUX PENGUIN?! 🐧</p>
+            <button id="windows11-warning-continue" type="button">I KNOW THAT THIS IS A SIN - CONTINUE 🪟</button>
         </div>
     </div>
 

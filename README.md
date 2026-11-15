@@ -36,6 +36,7 @@
 * Request desktop site spoofing detection that kicks the fuckers out too! Spoofing as usual I see?! 🕵🏻‍♂️
 * Aggresive dynamic ban messages depending on the type of banned device! 💀
 * Eh, if they do figure a way around device-guard, then ENJOY THE BROKEN CSS! HA! 🤣
+* Windows 11 users get warned by Dramatic Chipmunk and get their OS choice roasted! 🪟
 * Native DualShock 4 page navigation support for absolutely no fucking reason! 🎮️
 * The gamecards get fucking shuffled each time you enter or return to the page for absolutely no fucking good reason lol! 🔀
 * And much more smart shit! Go check it out! NOW! 🔫

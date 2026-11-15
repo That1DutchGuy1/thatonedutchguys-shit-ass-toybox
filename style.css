@@ -40,7 +40,10 @@ body.mobile-blocked #warning-splash,
 body.mobile-blocked #page-content,
 body.mobile-blocked .about-toggle-btn,
 body.mobile-blocked .music-toggle-btn,
-body.mobile-blocked .dvd-projects-btn {
+body.mobile-blocked .dvd-projects-btn,
+body.mobile-blocked #beeg-toybox-view,
+body.mobile-blocked #meme-art-view,
+body.mobile-blocked #ytp-tv-view {
   display: none !important;
 }
 
@@ -164,7 +167,10 @@ body.spoof-blocked #page-content,
 body.spoof-blocked .about-toggle-btn,
 body.spoof-blocked .music-toggle-btn,
 body.spoof-blocked .dvd-projects-btn,
-body.spoof-blocked #mobile-block {
+body.spoof-blocked #mobile-block,
+body.spoof-blocked #beeg-toybox-view,
+body.spoof-blocked #meme-art-view,
+body.spoof-blocked #ytp-tv-view {
   display: none !important;
 }
 
@@ -177,6 +183,86 @@ body.spoof-blocked #spoof-block {
 /* =========================================
    WARNING SPLASH SCREEN
    ========================================= */
+
+body.platform-detection-pending #windows11-warning,
+body.platform-detection-pending #warning-splash,
+body.platform-detection-pending #page-content,
+body.platform-detection-pending .about-toggle-btn,
+body.platform-detection-pending .dvd-projects-btn,
+body.platform-detection-pending .music-toggle-btn {
+  visibility: hidden;
+}
+
+#windows11-warning {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #080808;
+  color: #ff0000;
+  text-align: center;
+}
+
+body.windows11-warning-active {
+  overflow: hidden;
+}
+
+body.windows11-warning-active #windows11-warning {
+  display: flex;
+}
+
+body.windows11-warning-active #warning-splash {
+  display: none;
+}
+
+.windows11-warning-content {
+  width: 900px;
+  padding: 28px;
+  box-sizing: border-box;
+  border: 6px ridge #ff0000;
+  background: #111;
+  box-shadow: 0 0 35px #ff0000;
+  font-family: 'Comic Sans MS', sans-serif;
+  font-size: 1.4rem;
+  text-shadow: 2px 2px #000;
+}
+
+.windows11-warning-content h2 {
+  margin: 0 0 18px;
+  font-size: 2.4rem;
+}
+
+.windows11-warning-content img {
+  display: block;
+  width: 530px;
+  height: auto;
+  margin: 0 auto 18px;
+  object-fit: contain;
+  border: 4px solid #ff0000;
+}
+
+.windows11-warning-content p {
+  margin: 12px 0;
+}
+
+#windows11-warning-continue {
+  margin-top: 18px;
+  padding: 14px 24px;
+  border: 3px solid #ff0000;
+  border-radius: 10px;
+  background: #ff0000;
+  color: #000;
+  font: bold 1.2rem 'Comic Sans MS', sans-serif;
+  cursor: pointer;
+}
+
+#windows11-warning-continue:hover {
+  background: #000;
+  color: #ff0000;
+}
 
 #warning-splash {
   position: fixed;

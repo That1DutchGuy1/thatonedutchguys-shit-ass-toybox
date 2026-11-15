@@ -2,6 +2,23 @@ let isAudioInitialized = false;
 let hubTheme = null;
 let isMusicPlaying = false;
 
+async function detectWindows11() {
+    const userAgentData = navigator.userAgentData;
+    if (userAgentData?.platform !== 'Windows' || typeof userAgentData.getHighEntropyValues !== 'function') {
+        return false;
+    }
+
+    try {
+        const { platformVersion } = await userAgentData.getHighEntropyValues(['platformVersion']);
+        const platformMajorVersion = Number(platformVersion?.split('.')[0]);
+        // Windows 11 reports platformVersion 13 or later; Windows 10 does not.
+        return Number.isFinite(platformMajorVersion) && platformMajorVersion >= 13;
+    } catch (error) {
+        console.warn('Could not determine whether this is Windows 11:', error);
+        return false;
+    }
+}
+
 // Opt out of bfcache entirely. This forces a real fresh page load on back/forward
 // navigation, so sessionStorage handles the splash skip cleanly every time.
 // beforeunload is used instead of unload — unload is blocked by Permissions Policy
@@ -211,26 +228,24 @@ if (isPhone) {
         }
     }
 } else {
-    setupGameSearch();
-
-    // --- WARNING SPLASH SCREEN ---
+    const pageContent = document.getElementById('page-content');
+    const windows11ContinueBtn = document.getElementById('windows11-warning-continue');
     const splashScreen = document.getElementById('warning-splash');
     const splashEnterBtn = document.getElementById('splash-enter');
     const splashLeaveBtn = document.getElementById('splash-leave');
-    const pageContent = document.getElementById('page-content');
 
-    const splashAlreadyAccepted = sessionStorage.getItem('splashAccepted') === 'true';
+    function showMainWarning() {
+        const splashAlreadyAccepted = sessionStorage.getItem('splashAccepted') === 'true';
 
-    if (splashAlreadyAccepted) {
-        // Returning player — skip splash, show page immediately
-        splashScreen.classList.add('splash-hidden');
-        document.body.classList.remove('splash-active');
-        if (pageContent) pageContent.inert = false;
-        shuffleGameCards();
-        // Kick off music (user gesture already happened earlier this session)
-        startMusic();
-    } else {
-        // First visit — show splash as normal
+        if (splashAlreadyAccepted) {
+            splashScreen.classList.add('splash-hidden');
+            document.body.classList.remove('splash-active');
+            if (pageContent) pageContent.inert = false;
+            shuffleGameCards();
+            startMusic();
+            return;
+        }
+
         document.body.classList.add('splash-active');
         if (pageContent) pageContent.inert = true;
 
@@ -251,6 +266,25 @@ if (isPhone) {
             });
         }
     }
+
+    detectWindows11().then(isWindows11 => {
+        document.body.classList.remove('platform-detection-pending');
+        setupGameSearch();
+
+        if (isWindows11 && sessionStorage.getItem('windows11WarningAccepted') !== 'true') {
+            document.body.classList.add('windows11-warning-active');
+            document.body.classList.add('splash-active');
+            if (pageContent) pageContent.inert = true;
+            windows11ContinueBtn.addEventListener('click', () => {
+                sessionStorage.setItem('windows11WarningAccepted', 'true');
+                document.body.classList.remove('windows11-warning-active');
+                showMainWarning();
+            });
+            return;
+        }
+
+        showMainWarning();
+    });
 }
 
 function startMusic() {
@@ -835,6 +869,7 @@ function initGamepadNav() {
 
     // ---- Context ----
     function getContext() {
+        if (document.body.classList.contains('windows11-warning-active')) return 'windows11-warning';
         if (document.body.classList.contains('splash-active'))       return 'splash';
         if (document.body.classList.contains('about-active'))        return 'about';
         if (document.body.classList.contains('beeg-toybox-active'))  return 'beeg';
@@ -851,6 +886,9 @@ function initGamepadNav() {
         const memeArt = document.getElementById('meme-art-toggle');
         const ytpTv = document.getElementById('ytp-tv-toggle');
 
+        if (ctx === 'windows11-warning') {
+            return [document.getElementById('windows11-warning-continue')].filter(Boolean);
+        }
         if (ctx === 'splash') {
             return [document.getElementById('splash-enter'), document.getElementById('splash-leave')]
                 .filter(Boolean);

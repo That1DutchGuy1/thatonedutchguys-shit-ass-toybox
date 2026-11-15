@@ -21,6 +21,27 @@
 // =========================================
 
 (function () {
+    async function detectWindows11() {
+        const userAgentData = navigator.userAgentData;
+        if (userAgentData?.platform !== 'Windows' || typeof userAgentData.getHighEntropyValues !== 'function') {
+            return false;
+        }
+
+        try {
+            const { platformVersion } = await userAgentData.getHighEntropyValues(['platformVersion']);
+            const platformMajorVersion = Number(platformVersion?.split('.')[0]);
+            // Windows 11 reports platformVersion 13 or later; Windows 10 does not.
+            return Number.isFinite(platformMajorVersion) && platformMajorVersion >= 13;
+        } catch (error) {
+            console.warn('Could not determine whether this is Windows 11:', error);
+            return false;
+        }
+    }
+
+    detectWindows11().then(isWindows11 => {
+        document.documentElement.dataset.windows11 = String(isWindows11);
+    });
+
     function getDeviceType() {
         const ua = navigator.userAgent || navigator.vendor || window.opera || '';
 
