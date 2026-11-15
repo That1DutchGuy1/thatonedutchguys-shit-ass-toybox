@@ -1401,6 +1401,10 @@ const CC_PRESETS = {
   150: { speed: 1.25, acceleration: 1.3, steering: 0.75 },
 };
 
+function getCCScaledShellSpeed(speedAt100CC) {
+  return speedAt100CC * CC_PRESETS[selectedCC].speed;
+}
+
 function selectCC(cc) {
   if (!CC_PRESETS[cc]) return;
   selectedCC = cc;
@@ -1654,8 +1658,9 @@ function updateKartBumpPhysics(delta) {
     const vz = body.velocity.z;
     const resolvedSpeed = Math.hypot(vx, vz);
     if (resolvedSpeed > 0.01) {
-      player.angle = Math.atan2(vx, vz);
-      player.speed = resolvedSpeed;
+      const movingBackward = vx * Math.sin(player.angle) + vz * Math.cos(player.angle) < 0;
+      player.angle = Math.atan2(vx, vz) + (movingBackward ? Math.PI : 0);
+      player.speed = movingBackward ? -resolvedSpeed : resolvedSpeed;
     } else {
       player.speed = 0;
     }
@@ -3043,6 +3048,7 @@ function buildKart(charIndex, scene) {
   const exhaustRim      = new THREE.MeshLambertMaterial({ color: 0x6a6a6a }); // slightly lighter rim ring
   const exhaustDark     = new THREE.MeshLambertMaterial({ color: 0x111111 }); // near-black inner mouth
 
+  const exhaustPoints = [];
   [-0.22, 0.22].forEach((xOffset) => {
     const pipeGroup = new THREE.Group();
 
@@ -3063,6 +3069,11 @@ function buildKart(charIndex, scene) {
     const mouth = new THREE.Mesh(mouthGeo, exhaustDark);
     mouth.position.z = -0.285;
     pipeGroup.add(mouth);
+
+    const exhaustPoint = new THREE.Object3D();
+    exhaustPoint.position.copy(mouth.position);
+    pipeGroup.add(exhaustPoint);
+    exhaustPoints.push(exhaustPoint);
 
     // Subtle darker band near exit — like heat discoloration on real exhausts
     const bandGeo = new THREE.TorusGeometry(0.138, 0.016, 6, 14);
@@ -3088,6 +3099,7 @@ function buildKart(charIndex, scene) {
   sprite.position.set(0, 1.6, 0.3);
   group.add(sprite);
   group.userData.charSprite = sprite; // expose for flip logic
+  group.userData.exhaustPoints = exhaustPoints;
 
   const img = new Image();
   img.crossOrigin = '';
@@ -4399,7 +4411,7 @@ function spawnRedShell(thrower, target) {
     active: true,
     trackT: shellT,
     trackDir,            // which way to travel around the curve
-    speed: 48,           // m/s along curve — noticeably faster than max kart speed
+    speed: getCCScaledShellSpeed(48), // m/s along curve — noticeably faster than max kart speed
     homingDist: 40,      // large window: switch to direct homing within 40 units
     homingVel: new THREE.Vector3(Math.sin(thrower.angle), 0, Math.cos(thrower.angle)),
     phase: 'track',
@@ -4528,7 +4540,7 @@ function spawnGreenShell(thrower) {
     mesh2,
     owner: thrower,
     direction,
-    speed: 42,
+    speed: getCCScaledShellSpeed(42),
     elapsed: 0,
     distance: 0,
     bounces: 0,
@@ -4741,7 +4753,7 @@ function spawnBlueShell(thrower, target) {
     active: true,
     trackT: shellT,
     trackDir,
-    speed: 42,
+    speed: getCCScaledShellSpeed(42),
     phase: 'track',
     elapsed: 0,
     swoopStart: null,
@@ -5002,17 +5014,60 @@ function playLaunchStallSound() {
 }
 
 function getPlayerPlacements() {
+  const progress = players.map(getPlayerRaceProgress);
   const ranked = players.map((_, index) => index).sort((a, b) => {
     const pa = players[a], pb = players[b];
     if (pa.finishTime !== null && pb.finishTime !== null) return pa.finishTime - pb.finishTime;
     if (pa.finishTime !== null) return -1;
     if (pb.finishTime !== null) return 1;
-    if (pa.lap !== pb.lap) return pb.lap - pa.lap;
-    return pb.checkpoint - pa.checkpoint;
+    return progress[b] - progress[a];
   });
   const placeOf = new Array(players.length).fill(0);
   ranked.forEach((playerIdx, rank) => { placeOf[playerIdx] = rank + 1; });
   return { ranked, placeOf };
+}
+
+function getPlayerRaceProgress(player) {
+  const checkpointCount = ACTIVE_TRACK.checkpointCount;
+  const checkpoint = ((player.checkpoint % checkpointCount) + checkpointCount) % checkpointCount;
+  // Keep the projection within this segment so nearby parts of the circuit can't steal progress.
+  const startT = checkpoint / checkpointCount;
+  const endT = startT + 1 / checkpointCount;
+  const samples = Math.max(16, Math.ceil(ACTIVE_TRACK.samples / checkpointCount));
+  const sampleStep = (endT - startT) / samples;
+  let bestT = startT;
+  let bestDistSq = Infinity;
+
+  const checkPoint = t => {
+    const trackT = t % 1;
+    const point = ACTIVE_TRACK.curve.getPoint(trackT);
+    const dx = player.kart.position.x - point.x;
+    const dz = player.kart.position.z - point.z;
+    return dx * dx + dz * dz;
+  };
+
+  for (let i = 0; i <= samples; i++) {
+    const t = startT + i * sampleStep;
+    const distanceSq = checkPoint(t);
+    if (distanceSq < bestDistSq) {
+      bestT = t;
+      bestDistSq = distanceSq;
+    }
+  }
+
+  const refineStart = Math.max(startT, bestT - sampleStep);
+  const refineEnd = Math.min(endT, bestT + sampleStep);
+  let low = refineStart;
+  let high = refineEnd;
+  for (let i = 0; i < 16; i++) {
+    const left = low + (high - low) / 3;
+    const right = high - (high - low) / 3;
+    if (checkPoint(left) <= checkPoint(right)) high = right;
+    else low = left;
+  }
+  bestT = (low + high) / 2;
+
+  return player.lap + bestT;
 }
 
 function collectItem(player, idx) {
@@ -5281,7 +5336,8 @@ function updatePlayer(player, binds, delta, otherPlayer) {
       }
     }
     if (steerInput !== 0 && (Math.abs(player.speed) > 0.01 || accelInput > 0 || brakeInput > 0)) {
-      player.angle += -steerInput * STEER * CC_STEERING_MULTIPLIER * delta
+      const travelDirection = player.speed < 0 ? -1 : 1;
+      player.angle += -steerInput * travelDirection * STEER * CC_STEERING_MULTIPLIER * delta
         * (Math.abs(player.speed) / MAX_SPEED + 0.15);
       // Mirror sprite via texture repeat.x: THREE.Sprite ignores scale sign, so
       // we flip the UV instead. repeat.x=-1 + offset.x=1 = horizontal mirror.
@@ -6614,27 +6670,24 @@ function spawnFireParticle(pool, player) {
   const p = pool.find(p => p.life <= 0);
   if (!p) return;
 
-  // Exhaust exits from behind the kart
-  const bx = -Math.sin(player.angle) * 1.9;
-  const bz = -Math.cos(player.angle) * 1.9;
+  const exhaustPoints = player.kart.userData.exhaustPoints;
+  const exhaustPoint = exhaustPoints[Math.floor(Math.random() * exhaustPoints.length)];
+  const origin = exhaustPoint.getWorldPosition(new THREE.Vector3());
+  const exhaustDirection = exhaustPoint.getWorldDirection(new THREE.Vector3()).negate();
 
-  // Random spread around the exhaust point
-  const spread = 0.35;
-  const ox = (Math.random() - 0.5) * spread;
-  const oz = (Math.random() - 0.5) * spread;
-
-  const worldX = player.kart.position.x + bx + ox;
-  const worldY = player.kart.position.y + 0.1 + Math.random() * 0.3;
-  const worldZ = player.kart.position.z + bz + oz;
-
-  p.mesh1.position.set(worldX, worldY, worldZ);
-  if (p.mesh2) p.mesh2.position.set(worldX, worldY, worldZ);
+  const spread = 0.12;
+  p.mesh1.position.set(
+    origin.x + (Math.random() - 0.5) * spread,
+    origin.y + (Math.random() - 0.5) * spread,
+    origin.z + (Math.random() - 0.5) * spread,
+  );
+  if (p.mesh2) p.mesh2.position.copy(p.mesh1.position);
 
   // Velocity: mostly backward/upward with slight randomness
   const speed = 3 + Math.random() * 3;
-  p.vx = bx / 1.9 * speed * 0.5 + (Math.random() - 0.5) * 1.5;
+  p.vx = exhaustDirection.x * speed * 0.5 + (Math.random() - 0.5) * 1.5;
   p.vy = 1.5 + Math.random() * 2.5;
-  p.vz = bz / 1.9 * speed * 0.5 + (Math.random() - 0.5) * 1.5;
+  p.vz = exhaustDirection.z * speed * 0.5 + (Math.random() - 0.5) * 1.5;
 
   p.maxLife = 0.25 + Math.random() * 0.2;
   p.life    = p.maxLife;
