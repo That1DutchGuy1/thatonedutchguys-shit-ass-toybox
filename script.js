@@ -291,7 +291,7 @@ function startMusic() {
     if (isAudioInitialized) return;
     isAudioInitialized = true;
 
-    hubTheme = new Audio('./hub-assets/hub-theme.wav');
+    hubTheme = new Audio('./hub-assets/hub-theme.mp3');
     hubTheme.loop = true;
     hubTheme.play().catch(() => {});
     isMusicPlaying = true;

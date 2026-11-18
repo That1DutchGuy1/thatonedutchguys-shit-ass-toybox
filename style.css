@@ -996,6 +996,9 @@ h1 {
 .card-bg-malleos-maze {
   background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-malleos-maze.png');
 }
+.card-bg-flappy-gwonam {
+  background-image: linear-gradient(rgba(255,255,255,0.500), rgba(255,255,255,0.500)), url('./gamecard-images/Gamecard-bg-flappy-gwonam.png');
+}
 
 /* Card hover effect: slight scale up and rotation, plus border color change */
 

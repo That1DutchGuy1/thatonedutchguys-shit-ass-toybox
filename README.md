@@ -167,28 +167,15 @@
 
 <p><strong><font size="5">🚨 ANOTHER NEW GAME ADDED!</font></strong></p>
 
-<p><strong><font size="4">Malleo's Maze has been added to the Shit Ass Toybox! 🪠</font></strong></p>
+<p><strong><font size="4">Flappy Gwonam has been added to the Shit Ass Toybox! 🧙🏻‍♂️</font></strong></p>
 
-The objective is to collect all 6 fireflowers before Malleo gets you! 😱 <br>
-There are 3 types of items that can be used:
+The perfectly infuriating Flappy Bird clone starring Gwonam! 😤🧙🏻‍♂️
 
-1. Energy Drink - Restores your stamina and gives you a short speedboost
-2. Banana peel - Makes anyone walking over it slip instantly onto their face. Either Malleo or the player lol
-3. Fireflower Tracker - When equipped, a white dot somewhere on the maze minimap will start flashing and beeping, indicating that a fireflower is there!
+* Control Gwonam on his magic carpet as he flies around Koridai! 🪽
+* Avoid hitting the pillars or else you will DIE! 😵
+* Collect rubies while you navigate between the pillars! 💎
 
-When you got all fireflowers, you can try to find the exit door and escape Malleo's Maze! 🌼
-
----
-
-<p><strong><font size="5">🚨 NEW BETA ADDED!</font></strong></p>
-
-<img src="./meme-midi-player/assets/images/gwonam-synthesizer.png" width="256px" alt="Gwonam synthesizer"/>
-
-<p><strong><font size="4">Meme MIDI Player has been added to the Shit Ass Toybox! 🎵</font></strong></p>
-
-* Play MIDIs through my custom meme SoundFont through a player with an eye-searing design! 🎵🔥
-* Comes with a few bundled MIDIs of iconic songs, but you can also upload your own shitty MIDIs! 😂
-* And much more! GO CHECK IT OUT NOW! 🔫
+Fun fact: Most of the sprites used are ripped from the actual Link: The Faces Of Evil! 🤯
 
 ---
 

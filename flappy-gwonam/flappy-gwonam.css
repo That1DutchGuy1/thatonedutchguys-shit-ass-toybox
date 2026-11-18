@@ -1,0 +1,95 @@
+@font-face {
+  font-family: 'Zelda CD-i Font';
+  src: url('./assets/fonts/zelda-cd-i-map.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Charlemagne Std Bold';
+  src: url('../king-harkinians-personal-chef-simulator/assets/fonts/Charlemagne\ Std\ Bold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#bgGif {
+  position: fixed;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  z-index: 0;
+  /* width/height/top/left are set by JS to exactly match the canvas */
+}
+
+#gameCanvas {
+  display: block;
+  position: relative;
+  z-index: 1;
+  /* canvas fills the viewport — sizing is handled by JS */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#hub-btn {
+  position: fixed;
+  top: 10px;
+  right: 14px;
+  z-index: 10;
+  font-family: 'Zelda CD-i Font', cursive;
+  font-size: 14px;
+  color: #FFD700;
+  background: rgba(0, 0, 0, 0.65);
+  border: 2px solid #884400;
+  border-radius: 6px;
+  padding: 5px 10px;
+  text-decoration: none;
+  letter-spacing: 0.03em;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+#hub-btn:hover {
+  background: rgba(136, 68, 0, 0.85);
+  border-color: #FFD700;
+  color: #fff;
+}
+
+#yt-credit {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  font-family: 'Zelda CD-i Font', cursive;
+  font-size: 30px;
+  color: #e39700;
+  -webkit-text-stroke: #000;
+  -webkit-text-stroke-width: 1px;
+  text-decoration: none;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.3s, color 0.15s;
+}
+
+#yt-credit:hover {
+  color: #ff6600;
+}
+
+#yt-credit.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
