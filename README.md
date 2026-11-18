@@ -176,6 +176,7 @@ The perfectly infuriating Flappy Bird clone starring Gwonam! 😤🧙🏻‍♂�
 * Collect rubies while you navigate between the pillars! 💎
 
 Fun fact: Most of the sprites used are ripped from the actual Link: The Faces Of Evil! 🤯
+Another fun fact: The font used is the actual fucking CD-i Zelda map font! 🤯
 
 ---
 
