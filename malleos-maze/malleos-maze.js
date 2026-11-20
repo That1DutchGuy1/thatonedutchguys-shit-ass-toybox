@@ -20,6 +20,19 @@
   const malleoOofAudio = createAudioElement("./assets/malleo/oof.mp3");
   const malleoMammaMiaAudio = createAudioElement("./assets/malleo/mamamia.mp3");
   const victoryAudio = createAudioElement("./assets/victory/yay.mp3");
+  const weegeeAnnouncementAudio = createAudioElement("../weegees-mansion/Audio/Weegee/im-weegee-number-1.mp3");
+  weegeeAnnouncementAudio.volume = 0.8;
+  const weegeeVoiceLinePaths = [
+    "../weegees-mansion/Audio/Weegee/go-weegee.mp3",
+    "../weegees-mansion/Audio/Weegee/weegee-hurry-up-already-eh.mp3",
+    "../weegees-mansion/Audio/Weegee/weegee-isolated.mp3",
+    "../weegees-mansion/Audio/Weegee/weegee-laughing-01.mp3",
+    "../weegees-mansion/Audio/Weegee/weegee-laughing-02.mp3",
+    "../weegees-mansion/Audio/Weegee/weegee-laughing-03.mp3",
+    "../weegees-mansion/Audio/Weegee/weegee-weegee-oh-yeah-oh-yeah.mp3"
+  ];
+  const weegeeVoiceLines = weegeeVoiceLinePaths.map(createAudioElement);
+  const weegeeScreamAudio = createAudioElement("../weegees-mansion/Audio/Weegee/weegee-scream.mp3");
   const gameElement = document.getElementById("game");
   gameElement.classList.add("menu-active");
   const jumpscareEffect = document.getElementById("jumpscare-effect");
@@ -50,7 +63,10 @@
     malleoOofAudio,
     malleoMammaMiaAudio,
     victoryAudio,
+    weegeeAnnouncementAudio,
     ...malleoVoiceLines,
+    ...weegeeVoiceLines,
+    weegeeScreamAudio,
     jumpscareAudio,
     postKillAudio
   ];
@@ -62,12 +78,25 @@
   let rendererPrepared = false;
   const itemCount = document.getElementById("item-count");
   const itemProgress = document.getElementById("item-progress");
+  const coinCountElement = document.getElementById("coin-count");
   const pickupToast = document.getElementById("pickup-toast");
+  const toadDialogue = document.getElementById("toad-dialogue");
+  const toadDialogueText = toadDialogue.querySelector("p");
+  const toadDialogueHint = toadDialogue.querySelector(".toad-card-hint");
+  const toadShop = document.getElementById("toad-shop");
+  const toadShopCoins = document.getElementById("toad-shop-coins");
+  const toadShopStatus = document.getElementById("toad-shop-status");
+  const toadShopButtons = Array.from(document.querySelectorAll(".toad-shop-item"));
   const hint = document.getElementById("hint");
   const ending = document.getElementById("ending");
   const caughtScreen = document.getElementById("caught");
   const malleoStatus = document.getElementById("malleo-status");
+  const weegeeStatus = document.getElementById("weegee-status");
   const malleoWarning = document.getElementById("malleo-warning");
+  const caughtEnemyImage = document.getElementById("caught-enemy-image");
+  const caughtTitle = document.getElementById("caught-title");
+  const caughtDescription = document.getElementById("caught-description");
+  const endingDescription = document.getElementById("ending-description");
   const hud = document.getElementById("hud");
   const staminaPanel = document.getElementById("stamina-panel");
   const staminaProgress = document.getElementById("stamina-progress");
@@ -81,10 +110,29 @@
   const MALLEO_HEARING_RADIUS = 9;
   const MALLEO_SIGHT_RANGE = 30;
   const MALLEO_CHASE_MEMORY = 9000;
+  const WEEGEE_SPAWN_MIN_DELAY = 120000;
+  const WEEGEE_SPAWN_MAX_DELAY = 240000;
   const HOTBAR_SLOT_COUNT = 6;
   const ENERGY_DRINK_PICKUP_COUNT = 6;
   const BANANA_PEEL_PICKUP_COUNT = 6;
   const FIREFLOWER_TRACKER_PICKUP_COUNT = 2;
+  const COIN_BAG_COUNT = 20;
+  const COINS_PER_BAG = 10;
+  const TOAD_HINT_INITIAL_DELAY_MS = 120000;
+  const TOAD_HINT_INTERVAL_MS = 60000;
+  const TOAD_RETURN_INTERVAL_MS = 30000;
+  const TOAD_GREETING = "Hey dude! Welcome to my little shop! I will sell you some shit to get you through this place, but only if you got some of those nice coins on ya!";
+  const TOAD_RETURN_GREETING = "Back again, huh? Well, buy you whatever you need, my dude!";
+  const TOAD_CREDIT_MESSAGE = "Sorry dude, I can't give credit! Come back when you're a little... MMMMMM... richer!";
+  const TOAD_SOLD_OUT_MESSAGE = "Welp, looks like you bought everything from me! Now run, before Malleo or Weegee catches up!";
+  const SHOP_CATALOG = {
+    "energy-drink": { price: 10, label: "Energy Drink" },
+    "banana-peel": { price: 25, label: "Banana Peel" },
+    "fireflower-tracker": { price: 50, label: "Fireflower Tracker" }
+  };
+  const SHOP_ENERGY_DRINK_STOCK = 5;
+  const SHOP_BANANA_PEEL_STOCK = 3;
+  const SHOP_TRACKER_STOCK = 1;
   const ENERGY_DRINK_REFILL_RATE = 4;
   const ENERGY_DRINK_MIN_CHUG_TIME = 0.75;
   const ENERGY_DRINK_THROW_TIME = 0.68;
@@ -92,8 +140,17 @@
   const ENERGY_DRINK_SPEED_MULTIPLIER = 1.35;
   const EXIT_HINT_INTERVAL = 10000;
   const EXIT_HINT_DURATION = 2400;
-  const EXIT_DOOR_OPENING_WIDTH = 2.9;
-  const EXIT_DOOR_OPENING_HEIGHT = 3.1;
+  const EXIT_DOOR_OPENING_WIDTH = CELL;
+  const EXIT_DOOR_OPENING_HEIGHT = WALL_HEIGHT;
+  const EXIT_DOOR_OPEN_DURATION = 3.5;
+  const EXIT_WALK_DURATION = 5;
+  const EXIT_WALK_SPEED = 5.2;
+  const EXIT_TURN_DURATION = 0.8;
+  const EXIT_SEQUENCE_TRIGGER_DISTANCE = -0.6;
+  const EXIT_TREE_COUNT = 20;
+  const EXIT_TREE_MIN_DISTANCE = 12;
+  const EXIT_TREE_MAX_DISTANCE = 62;
+  const EXIT_TREE_LATERAL_RADIUS = 36;
   const BANANA_PLACE_RELEASE_TIME = 0.28;
   const BANANA_PLACE_DURATION = 0.62;
   const BANANA_PEEL_IMMUNITY_MS = 3000;
@@ -131,39 +188,52 @@
     floor: textureLoader.load("./assets/textures/floor-texture.png"),
     ceiling: textureLoader.load("./assets/textures/ceiling-texture.png"),
     door: textureLoader.load("./assets/textures/door-texture.png"),
+    outsideSkybox: textureLoader.load("./assets/textures/outside-skybox-texture.png"),
+    outsideGrass: textureLoader.load("./assets/textures/outside-grass-texture.png"),
+    exitTree: textureLoader.load("./assets/other-sprites/tree-billboard-sprite.png"),
+    coinBag: textureLoader.load("./assets/collectibles/coin-bag.png"),
+    toad: textureLoader.load("./assets/toads-item-shop/toad-billboard-sprite.png"),
     fireflower: textureLoader.load("./assets/collectibles/fireflower.png"),
     energyDrink: textureLoader.load("./assets/items/energy-drink-can.png"),
     bananaPeel: textureLoader.load("./assets/items/banana-peel.png"),
     fireflowerTracker: textureLoader.load("./assets/items/fireflower-tracker.png"),
-    malleo: textureLoader.load("./assets/malleo/Malleo.png")
+    malleo: textureLoader.load("./assets/malleo/Malleo.png"),
+    weegee: textureLoader.load("./assets/weegee/Weegee.png")
   };
 
   for (const texture of Object.values(textures)) {
     texture.magFilter = THREE.NearestFilter;
     texture.minFilter = THREE.NearestFilter;
     texture.generateMipmaps = false;
-    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.encoding = THREE.sRGBEncoding;
   }
   textures.wall.wrapS = textures.wall.wrapT = THREE.RepeatWrapping;
   textures.floor.wrapS = textures.floor.wrapT = THREE.RepeatWrapping;
   textures.ceiling.wrapS = textures.ceiling.wrapT = THREE.RepeatWrapping;
+  textures.outsideGrass.wrapS = textures.outsideGrass.wrapT = THREE.RepeatWrapping;
 
   const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
   renderer.setPixelRatio(1);
   renderer.setSize(Math.max(320, Math.floor(window.innerWidth * 0.52)), Math.max(180, Math.floor(window.innerHeight * 0.52)), false);
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.15;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.domElement.setAttribute("aria-label", "First-person view of a dark maze");
   viewport.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x171310);
-  scene.fog = new THREE.Fog(0x171310, 18, 83);
+  scene.background = new THREE.Color(0x080706);
+  scene.fog = new THREE.Fog(0x080706, 5, 38);
 
   const camera = new THREE.PerspectiveCamera(73, window.innerWidth / window.innerHeight, 0.08, 120);
   camera.rotation.order = "YXZ";
   scene.add(camera);
+  const exitDoorRaycaster = new THREE.Raycaster();
+  const reticlePosition = new THREE.Vector2(0, 0);
+  const litBillboards = [];
+  const billboardGeometry = new THREE.PlaneGeometry(1, 1);
   const heldItemMaterial = new THREE.SpriteMaterial({
     map: textures.energyDrink,
     transparent: true,
@@ -178,8 +248,19 @@
   heldItemSprite.renderOrder = 1000;
   heldItemSprite.visible = false;
   camera.add(heldItemSprite);
-  scene.add(new THREE.HemisphereLight(0x897969, 0x171312, 0.42));
-  scene.add(new THREE.AmbientLight(0x907b66, 0.2));
+  scene.add(new THREE.HemisphereLight(0x897969, 0x171312, 0.035));
+  scene.add(new THREE.AmbientLight(0x907b66, 0.015));
+  const flashlight = new THREE.SpotLight(0xffe3ad, 8, 38, Math.PI / 8, 0.35, 1.4);
+  flashlight.position.set(0, 0, 0);
+  flashlight.target.position.set(0, 0, -1);
+  flashlight.castShadow = true;
+  flashlight.shadow.mapSize.width = 1024;
+  flashlight.shadow.mapSize.height = 1024;
+  flashlight.shadow.camera.near = 0.01;
+  flashlight.shadow.camera.far = 38;
+  flashlight.shadow.camera.updateProjectionMatrix();
+  camera.add(flashlight);
+  camera.add(flashlight.target);
 
   const maze = generateMaze(MAZE_SIZE);
   const patrolWaypoints = getPatrolWaypoints(maze);
@@ -213,40 +294,86 @@
     [...flowerCells, ...energyDrinkCells, ...bananaPeelCells],
     FIREFLOWER_TRACKER_PICKUP_COUNT
   );
+  const toadCell = chooseToadDeadEndCell(maze, [
+    start,
+    exitCell,
+    malleoCell,
+    ...flowerCells,
+    ...energyDrinkCells,
+    ...bananaPeelCells,
+    ...fireflowerTrackerCells
+  ]);
+  const coinBagCells = chooseCoinBagCells(maze, [
+    start,
+    exitCell,
+    malleoCell,
+    toadCell,
+    ...flowerCells,
+    ...energyDrinkCells,
+    ...bananaPeelCells,
+    ...fireflowerTrackerCells
+  ], COIN_BAG_COUNT);
   const doorDirection = getDoorDirection(maze, exitCell);
   const doorWallCell = { x: exitCell.x + doorDirection.x, z: exitCell.z + doorDirection.z };
   const worldSize = MAZE_SIZE * CELL;
+  const outdoorSkyRadius = worldSize * 1.8;
+  camera.far = worldSize * 3;
+  camera.updateProjectionMatrix();
 
   const wallMaterial = new THREE.MeshStandardMaterial({ map: textures.wall, roughness: 1, metalness: 0 });
   const floorMaterial = new THREE.MeshStandardMaterial({ map: textures.floor, roughness: 1, metalness: 0 });
   const ceilingMaterial = new THREE.MeshStandardMaterial({ map: textures.ceiling, roughness: 1, metalness: 0, side: THREE.DoubleSide });
+  const outsideGrassMaterial = new THREE.MeshBasicMaterial({ map: textures.outsideGrass });
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(worldSize, worldSize), floorMaterial);
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = 0;
+  floor.receiveShadow = true;
   floorMaterial.map.repeat.set(MAZE_SIZE * 0.85, MAZE_SIZE * 0.85);
   scene.add(floor);
   const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(worldSize, worldSize), ceilingMaterial);
   ceiling.rotation.x = Math.PI / 2;
   ceiling.position.y = WALL_HEIGHT;
+  ceiling.receiveShadow = true;
   ceilingMaterial.map.repeat.set(MAZE_SIZE * 0.85, MAZE_SIZE * 0.85);
   scene.add(ceiling);
 
+  const outsideGrass = new THREE.Mesh(
+    new THREE.PlaneGeometry(worldSize * 5, worldSize * 5),
+    outsideGrassMaterial
+  );
+  outsideGrass.rotation.x = -Math.PI / 2;
+  outsideGrass.position.y = -0.03;
+  outsideGrass.receiveShadow = true;
+  textures.outsideGrass.repeat.set(MAZE_SIZE * 4.25, MAZE_SIZE * 4.25);
+  scene.add(outsideGrass);
+
+  const outsideSkybox = new THREE.Mesh(
+    new THREE.SphereGeometry(outdoorSkyRadius, 16, 10),
+    new THREE.MeshBasicMaterial({
+      map: textures.outsideSkybox,
+      side: THREE.BackSide,
+      fog: false,
+      depthWrite: false
+    })
+  );
+  outsideSkybox.frustumCulled = false;
+  outsideSkybox.renderOrder = -1;
+  scene.add(outsideSkybox);
+
   const wallGeometry = new THREE.BoxGeometry(CELL, WALL_HEIGHT, CELL);
   const wallCenter = new THREE.Vector3();
-  let lampIndex = 0;
   for (let z = 0; z < MAZE_SIZE; z += 1) {
     for (let x = 0; x < MAZE_SIZE; x += 1) {
       if (maze[z][x] === 0) {
         if (x === doorWallCell.x && z === doorWallCell.z) {
-          addExitDoorwayWall(x, z, doorDirection.z !== 0, wallMaterial);
           continue;
         }
         wallCenter.set(cellWorld(x), WALL_HEIGHT / 2, cellWorld(z));
         const wall = new THREE.Mesh(wallGeometry, wallMaterial);
         wall.position.copy(wallCenter);
+        wall.castShadow = true;
+        wall.receiveShadow = true;
         scene.add(wall);
-      } else if ((x * 7 + z * 13) % 83 === 0) {
-        addLamp(cellWorld(x), cellWorld(z), lampIndex++);
       }
     }
   }
@@ -255,9 +382,20 @@
   const energyDrinkPickups = energyDrinkCells.map(createEnergyDrinkPickup);
   const bananaPeelPickups = bananaPeelCells.map(createBananaPeelPickup);
   const fireflowerTrackerPickups = fireflowerTrackerCells.map(createFireflowerTrackerPickup);
+  const coinBagPickups = coinBagCells.map(createCoinBagPickup);
+  const toad = createToad(toadCell);
   const malleo = createMalleo(malleoCell);
   const malleoFlatMesh = createMalleoFlatMesh();
+  const weegee = createMalleo(malleoCell, textures.weegee);
+  const weegeeFlatMesh = createMalleoFlatMesh(textures.weegee);
+  weegee.visible = false;
+  weegeeFlatMesh.visible = false;
+  const malleoEnemy = createEnemyState("Malleo", malleo, malleoFlatMesh);
+  const weegeeEnemy = createEnemyState("Weegee", weegee, weegeeFlatMesh);
+  weegeeEnemy.spawned = false;
+  let weegeeSpawnDelay = null;
   const door = createExitDoor(exitCell, doorDirection);
+  const exitTrees = createExitTreeBillboards();
   const playerPosition = new THREE.Vector3(cellWorld(start.x), 1.62, cellWorld(start.z));
   const player = { yaw: Math.PI, pitch: 0, speed: 5.2 };
   const pressed = new Set();
@@ -274,7 +412,6 @@
   let bananaPlacementAttempted = false;
   let bananaDropPosition = null;
   let playerSlipState = null;
-  let malleoSlipState = null;
   let playerWasWalkingBackward = false;
   let speedBoostRemaining = 0;
   let energyDrinkAudioPending = false;
@@ -288,9 +425,14 @@
   let isSprinting = false;
   let isStaminaRecovering = false;
   let flowersFound = 0;
+  let coins = 0;
   let nextExitHintTime = Infinity;
   let exitHintStartedAt = -Infinity;
   let exitHintAudioFailed = false;
+  let toadHintElapsed = 0;
+  let nextToadHintTime = TOAD_HINT_INITIAL_DELAY_MS;
+  let toadHintAudioFailed = false;
+  let toadFound = false;
   let activeFireflowerTrackerTarget = null;
   let fireflowerTrackerElapsed = 0;
   let lastTrackerBeepCycle = -1;
@@ -299,21 +441,21 @@
   let isPlaying = false;
   let isWon = false;
   let fallbackControls = false;
+  let toadDialogueOpen = false;
+  let toadDialogueAction = "shop";
+  let shopOpen = false;
+  let toadShopHadPointerLock = false;
+  let toadLastVisitEndedAt = null;
+  let energyDrinkShopStock = SHOP_ENERGY_DRINK_STOCK;
+  let bananaPeelShopStock = SHOP_BANANA_PEEL_STOCK;
+  let trackerShopStock = SHOP_TRACKER_STOCK;
   let doorOpen = false;
   let doorProgress = 0;
-  let malleoPath = [];
-  let nextMalleoPathTime = 0;
-  let malleoDistance = Infinity;
-  let malleoMode = "patrol";
-  let patrolTarget = null;
-  const recentPatrolTargets = [];
-  let lastKnownPlayerPosition = null;
-  let lastPlayerSightedAt = 0;
+  let exitSequence = null;
   let spatialAudioContext;
-  let voiceLineChannels = [];
   let jumpscareChannel;
+  let weegeeScreamChannel;
   let postKillChannel;
-  let nextVoiceLineTime = 0;
   let postKillLineTimer;
   const spatialChannels = [];
   const audioForward = new THREE.Vector3();
@@ -327,6 +469,7 @@
   camera.position.copy(playerPosition);
   camera.rotation.set(player.pitch, player.yaw, 0);
   updateObjective();
+  updateCoinDisplay();
   updateStaminaDisplay();
   updateHotbar();
 
@@ -523,6 +666,39 @@
     return chosen;
   }
 
+  function chooseToadDeadEndCell(grid, excludedCells) {
+    const excluded = new Set(excludedCells.map(cell => `${cell.x},${cell.z}`));
+    const candidates = [];
+    for (let z = 1; z < MAZE_SIZE - 1; z += 1) {
+      for (let x = 1; x < MAZE_SIZE - 1; x += 1) {
+        if (grid[z][x] !== 1 || excluded.has(`${x},${z}`)) continue;
+        const openNeighbors = [[0, -1], [1, 0], [0, 1], [-1, 0]]
+          .filter(([dx, dz]) => grid[z + dz]?.[x + dx] === 1).length;
+        if (openNeighbors === 1) candidates.push({ x, z });
+      }
+    }
+    if (!candidates.length) throw new Error("No available dead end for Toad.");
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+
+  function chooseCoinBagCells(grid, excludedCells, count) {
+    const excluded = new Set(excludedCells.map(cell => `${cell.x},${cell.z}`));
+    const candidates = [];
+    for (let z = 1; z < MAZE_SIZE - 1; z += 1) {
+      for (let x = 1; x < MAZE_SIZE - 1; x += 1) {
+        if (grid[z][x] === 1 && !excluded.has(`${x},${z}`)) candidates.push({ x, z });
+      }
+    }
+    for (let index = candidates.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [candidates[index], candidates[swapIndex]] = [candidates[swapIndex], candidates[index]];
+    }
+    if (candidates.length < count) {
+      throw new Error(`Not enough open maze cells for ${count} coin bags.`);
+    }
+    return candidates.slice(0, count);
+  }
+
   function getDoorDirection(grid, cell) {
     const directions = [[0, -1], [1, 0], [0, 1], [-1, 0]];
     const outwardWalls = directions.filter(([dx, dz]) => {
@@ -542,88 +718,83 @@
     return (index - (MAZE_SIZE - 1) / 2) * CELL;
   }
 
-  function addLamp(x, z, index) {
-    const fixture = new THREE.Mesh(
-      new THREE.BoxGeometry(0.82, 0.1, 0.38),
-      new THREE.MeshBasicMaterial({ color: index % 3 === 0 ? 0xf3cb8b : 0xe9d2a8 })
-    );
-    fixture.position.set(x, WALL_HEIGHT - 0.08, z);
-    scene.add(fixture);
-    const light = new THREE.PointLight(index % 3 === 0 ? 0xe5a65f : 0xcbb58e, 3.4, 12, 2);
-    light.position.set(x, WALL_HEIGHT - 0.4, z);
-    scene.add(light);
+  function createLitBillboard(map, alphaTest) {
+    const sprite = new THREE.Mesh(billboardGeometry, new THREE.MeshLambertMaterial({
+      map,
+      transparent: true,
+      alphaTest,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    }));
+    sprite.userData.roll = 0;
+    sprite.receiveShadow = true;
+    scene.add(sprite);
+    litBillboards.push(sprite);
+    return sprite;
   }
 
   function createFireflower(cell) {
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: textures.fireflower,
-      transparent: true,
-      alphaTest: 0.04,
-      depthWrite: false
-    }));
+    const sprite = createLitBillboard(textures.fireflower, 0.04);
     sprite.position.set(cellWorld(cell.x), 1.12, cellWorld(cell.z));
     sprite.scale.set(1.3, 1.3, 1);
-    scene.add(sprite);
     return { sprite, found: false, phase: Math.random() * Math.PI * 2 };
   }
 
   function createEnergyDrinkPickup(cell) {
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: textures.energyDrink,
-      transparent: true,
-      alphaTest: 0.03,
-      depthWrite: false
-    }));
+    const sprite = createLitBillboard(textures.energyDrink, 0.03);
     sprite.position.set(cellWorld(cell.x), 0.9, cellWorld(cell.z));
     sprite.scale.set(0.9, 0.9, 1);
-    scene.add(sprite);
     return { sprite, found: false, notifiedFull: false, phase: Math.random() * Math.PI * 2 };
   }
 
   function createBananaPeelPickup(cell) {
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: textures.bananaPeel,
-      transparent: true,
-      alphaTest: 0.03,
-      depthWrite: false
-    }));
+    const sprite = createLitBillboard(textures.bananaPeel, 0.03);
     sprite.position.set(cellWorld(cell.x), 0.56, cellWorld(cell.z));
     sprite.scale.set(0.82, 0.82, 1);
-    scene.add(sprite);
     return { sprite, found: false, notifiedFull: false, phase: Math.random() * Math.PI * 2 };
   }
 
   function createFireflowerTrackerPickup(cell) {
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: textures.fireflowerTracker,
-      transparent: true,
-      alphaTest: 0.03,
-      depthWrite: false
-    }));
+    const sprite = createLitBillboard(textures.fireflowerTracker, 0.03);
     sprite.position.set(cellWorld(cell.x), 0.9, cellWorld(cell.z));
     sprite.scale.set(0.75, 0.75, 1);
-    scene.add(sprite);
     return { sprite, found: false, notifiedFull: false, phase: Math.random() * Math.PI * 2 };
   }
 
-  function createMalleo(cell) {
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: textures.malleo,
-      transparent: true,
-      alphaTest: 0.025,
-      depthWrite: false
-    }));
+  function createCoinBagPickup(cell) {
+    const sprite = createLitBillboard(textures.coinBag, 0.04);
+    sprite.position.set(cellWorld(cell.x), 0.68, cellWorld(cell.z));
+    sprite.scale.set(0.72, 0.72, 1);
+    return { sprite, found: false, phase: Math.random() * Math.PI * 2 };
+  }
+
+  function createToad(cell) {
+    const sprite = createLitBillboard(textures.toad, 0.04);
+    sprite.position.set(cellWorld(cell.x), 1.15, cellWorld(cell.z));
+    sprite.scale.set(2.3, 2.3, 1);
+    sprite.castShadow = true;
+    sprite.receiveShadow = false;
+    sprite.customDepthMaterial = new THREE.MeshDepthMaterial({
+      map: textures.toad,
+      alphaTest: 0.04,
+      depthPacking: THREE.RGBADepthPacking,
+      side: THREE.DoubleSide
+    });
+    return { sprite, cell };
+  }
+
+  function createMalleo(cell, map = textures.malleo) {
+    const sprite = createLitBillboard(map, 0.025);
     const height = 3.65;
     sprite.position.set(cellWorld(cell.x), height / 2, cellWorld(cell.z));
     sprite.scale.set(height * (275 / 507), height, 1);
-    scene.add(sprite);
     return sprite;
   }
 
-  function createMalleoFlatMesh() {
+  function createMalleoFlatMesh(map = textures.malleo) {
     const height = 3.65;
-    const material = new THREE.MeshBasicMaterial({
-      map: textures.malleo,
+    const material = new THREE.MeshLambertMaterial({
+      map,
       transparent: true,
       alphaTest: 0.025,
       depthWrite: false,
@@ -636,8 +807,38 @@
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.y = 0.035;
     mesh.visible = false;
+    mesh.receiveShadow = true;
     scene.add(mesh);
     return mesh;
+  }
+
+  function updateLitBillboards() {
+    for (const billboard of litBillboards) {
+      billboard.quaternion.copy(camera.quaternion);
+      if (billboard.userData.roll) billboard.rotateZ(billboard.userData.roll);
+    }
+  }
+
+  function createEnemyState(name, sprite, flatMesh) {
+    return {
+      name,
+      sprite,
+      flatMesh,
+      spawned: true,
+      slipState: null,
+      path: [],
+      nextPathTime: 0,
+      distance: Infinity,
+      mode: "patrol",
+      patrolTarget: null,
+      recentPatrolTargets: [],
+      lastKnownPlayerPosition: null,
+      lastPlayerSightedAt: 0,
+      lastVisualSightedAt: null,
+      hasSeenPlayer: false,
+      voiceChannels: [],
+      nextVoiceLineTime: 0
+    };
   }
 
   function createExitDoor(cell, direction) {
@@ -647,70 +848,149 @@
       cellWorld(cell.z) + direction.z * CELL * 0.5
     );
     const acrossX = direction.z !== 0;
-    const width = 2.35;
     const panel = new THREE.Mesh(
-      new THREE.PlaneGeometry(width, EXIT_DOOR_OPENING_HEIGHT),
+      new THREE.PlaneGeometry(EXIT_DOOR_OPENING_WIDTH, EXIT_DOOR_OPENING_HEIGHT),
       new THREE.MeshStandardMaterial({ map: textures.door, roughness: 0.9, side: THREE.DoubleSide })
     );
-    panel.position.set(center.x, 1.57, center.z);
+    panel.position.set(center.x, EXIT_DOOR_OPENING_HEIGHT / 2, center.z);
     panel.rotation.y = acrossX ? 0 : Math.PI / 2;
+    panel.castShadow = true;
+    panel.receiveShadow = true;
     scene.add(panel);
 
-    const frameMaterial = new THREE.MeshStandardMaterial({ color: 0x493325, roughness: 0.95 });
-    const postGeometry = new THREE.BoxGeometry(0.22, 3.35, 0.22);
-    for (const side of [-1, 1]) {
-      const post = new THREE.Mesh(postGeometry, frameMaterial);
-      post.position.set(center.x + (acrossX ? side * 1.34 : 0), 1.68, center.z + (acrossX ? 0 : side * 1.34));
-      scene.add(post);
-    }
-    const lintel = new THREE.Mesh(new THREE.BoxGeometry(
-      acrossX ? EXIT_DOOR_OPENING_WIDTH : 0.22,
-      0.24,
-      acrossX ? 0.22 : EXIT_DOOR_OPENING_WIDTH
-    ), frameMaterial);
-    lintel.position.set(center.x, EXIT_DOOR_OPENING_HEIGHT + 0.19, center.z);
-    scene.add(lintel);
-
-    const sign = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.05, 0.28),
-      new THREE.MeshBasicMaterial({ color: 0xd8b37c, side: THREE.DoubleSide })
-    );
-    sign.position.set(center.x, 3.56, center.z);
-    sign.rotation.y = panel.rotation.y;
-    scene.add(sign);
-
-    return { center, panel, sign, normal: new THREE.Vector2(direction.x, direction.z), acrossX, width };
+    return {
+      center,
+      panel,
+      normal: new THREE.Vector2(direction.x, direction.z),
+      acrossX,
+      width: EXIT_DOOR_OPENING_WIDTH
+    };
   }
 
-  function addExitDoorwayWall(cellX, cellZ, acrossX, material) {
-    const centerX = cellWorld(cellX);
-    const centerZ = cellWorld(cellZ);
-    const sideWidth = (CELL - EXIT_DOOR_OPENING_WIDTH) / 2;
-    const headerHeight = WALL_HEIGHT - EXIT_DOOR_OPENING_HEIGHT;
-    const sideGeometry = acrossX
-      ? new THREE.BoxGeometry(sideWidth, WALL_HEIGHT, CELL)
-      : new THREE.BoxGeometry(CELL, WALL_HEIGHT, sideWidth);
-    for (const side of [-1, 1]) {
-      const segment = new THREE.Mesh(sideGeometry, material);
-      segment.position.set(
-        centerX + (acrossX ? side * (EXIT_DOOR_OPENING_WIDTH + sideWidth) / 2 : 0),
-        WALL_HEIGHT / 2,
-        centerZ + (acrossX ? 0 : side * (EXIT_DOOR_OPENING_WIDTH + sideWidth) / 2)
-      );
-      scene.add(segment);
-    }
+  function createExitTreeBillboards() {
+    const material = new THREE.MeshBasicMaterial({
+      map: textures.exitTree,
+      transparent: true,
+      alphaTest: 0.08,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      fog: false
+    });
+    const trees = [];
+    let attempts = 0;
+    while (trees.length < EXIT_TREE_COUNT && attempts < EXIT_TREE_COUNT * 100) {
+      attempts += 1;
+      const along = EXIT_TREE_MIN_DISTANCE + Math.random() * (EXIT_TREE_MAX_DISTANCE - EXIT_TREE_MIN_DISTANCE);
+      const lateral = (Math.random() * 2 - 1) * EXIT_TREE_LATERAL_RADIUS;
+      const width = 6 + Math.random() * 1.5;
+      const height = width * (1.4 + Math.random() * 0.12);
+      const x = door.center.x - door.normal.y * lateral + door.normal.x * along;
+      const z = door.center.z + door.normal.x * lateral + door.normal.y * along;
+      const overlaps = trees.some(tree => {
+        const minimumDistance = (width + tree.userData.footprint) / 2 + 0.8;
+        return Math.hypot(x - tree.position.x, z - tree.position.z) < minimumDistance;
+      });
+      if (overlaps) continue;
 
-    const headerGeometry = acrossX
-      ? new THREE.BoxGeometry(EXIT_DOOR_OPENING_WIDTH, headerHeight, CELL)
-      : new THREE.BoxGeometry(CELL, headerHeight, EXIT_DOOR_OPENING_WIDTH);
-    const header = new THREE.Mesh(headerGeometry, material);
-    header.position.set(centerX, EXIT_DOOR_OPENING_HEIGHT + headerHeight / 2, centerZ);
-    scene.add(header);
+      const tree = new THREE.Mesh(billboardGeometry, material);
+      tree.position.set(x, height / 2 - 0.03, z);
+      tree.scale.set(width, height, 1);
+      tree.visible = false;
+      tree.userData.footprint = width;
+      scene.add(tree);
+      trees.push(tree);
+    }
+    return trees;
+  }
+
+  function updateExitTreeBillboards() {
+    const visible = doorOpen && doorProgress >= 1;
+    for (const tree of exitTrees) {
+      tree.visible = visible;
+      if (!visible) continue;
+      tree.rotation.y = Math.atan2(
+        camera.position.x - tree.position.x,
+        camera.position.z - tree.position.z
+      );
+    }
   }
 
   function updateObjective() {
     itemCount.textContent = `${flowersFound} / ${FLOWER_COUNT}`;
     itemProgress.style.width = `${(flowersFound / FLOWER_COUNT) * 100}%`;
+  }
+
+  function updateCoinDisplay() {
+    coinCountElement.textContent = String(coins);
+    toadShopCoins.textContent = `${coins} COINS`;
+    if (shopOpen) updateToadShop();
+  }
+
+  function getShopStock(item) {
+    if (item === "energy-drink") return energyDrinkShopStock;
+    if (item === "banana-peel") return bananaPeelShopStock;
+    if (item === "fireflower-tracker") return trackerShopStock;
+    return 0;
+  }
+
+  function getAvailableTrackerTarget() {
+    const assignedTargets = new Set(fireflowerTrackerTargets.filter(Boolean));
+    const targets = fireflowers.filter(flower => !flower.found && !assignedTargets.has(flower));
+    return targets[Math.floor(Math.random() * targets.length)] || null;
+  }
+
+  function updateToadShop() {
+    const hasEmptySlot = hotbar.includes(null);
+    toadShopButtons.forEach(button => {
+      const item = button.dataset.shopItem;
+      const offer = SHOP_CATALOG[item];
+      if (!offer) {
+        button.disabled = true;
+        return;
+      }
+      const stock = getShopStock(item);
+      button.querySelector("[data-shop-stock]").textContent = String(stock);
+      const unaffordable = coins < offer.price;
+      button.classList.toggle("unaffordable", unaffordable);
+      button.setAttribute("aria-disabled", String(unaffordable));
+      button.disabled = stock < 1
+        || !hasEmptySlot
+        || (item === "fireflower-tracker" && !getAvailableTrackerTarget());
+    });
+  }
+
+  function purchaseShopItem(item) {
+    if (!shopOpen) return;
+    const offer = SHOP_CATALOG[item];
+    if (!offer || getShopStock(item) < 1) return;
+    if (coins < offer.price) {
+      showToadDialogue(TOAD_CREDIT_MESSAGE, "leave");
+      return;
+    }
+    const slot = hotbar.indexOf(null);
+    if (slot < 0) return;
+    const trackerTarget = item === "fireflower-tracker" ? getAvailableTrackerTarget() : null;
+    if (item === "fireflower-tracker" && !trackerTarget) return;
+
+    coins -= offer.price;
+    if (item === "energy-drink") energyDrinkShopStock -= 1;
+    if (item === "banana-peel") bananaPeelShopStock -= 1;
+    if (item === "fireflower-tracker") trackerShopStock -= 1;
+    hotbar[slot] = item;
+    fireflowerTrackerTargets[slot] = trackerTarget;
+    updateHotbar();
+    updateCoinDisplay();
+    if (hasNoToadStock()) {
+      showToadDialogue(TOAD_SOLD_OUT_MESSAGE, "leave");
+      return;
+    }
+    toadShopStatus.textContent = `${offer.label.toUpperCase()} ADDED TO SLOT ${slot + 1}.`;
+  }
+
+  function hasNoToadStock() {
+    return energyDrinkShopStock === 0
+      && bananaPeelShopStock === 0
+      && trackerShopStock === 0;
   }
 
   function updateLoadingProgress() {
@@ -813,6 +1093,7 @@
 
   function showToast(message) {
     pickupToast.textContent = message;
+    pickupToast.classList.toggle("weegee-message", /weegee/i.test(message));
     pickupToast.classList.add("visible");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => pickupToast.classList.remove("visible"), 2300);
@@ -825,11 +1106,13 @@
     if (type === "pause") {
       isPlaying = false;
       menuTitle.innerHTML = "PAUSE<br><span>YOUR PANIC!</span>";
-      menuDescription.innerHTML = "Malleo is still out there. He has not learned patience.<br>Catch your breath, then keep moving.";
+      menuDescription.innerHTML = weegeeEnemy.spawned
+        ? "Malleo and Weegee are still out there. They have not learned patience.<br>Catch your breath, then keep moving."
+        : "Malleo is still out there. He has not learned patience.<br>Catch your breath, then keep moving.";
       menuButton.querySelector("span").textContent = "BACK TO THE MAZE";
     } else {
       menuTitle.innerHTML = "MALLEO'S<br><span>MAZE!</span>";
-      menuDescription.innerHTML = "Six fireflowers. One extremely suspicious plumber.<br>Find the flowers, find the exit, do NOT get bonked.";
+      menuDescription.innerHTML = "Six fireflowers. Two extremely suspicious plumbers.<br>Find the flowers, find the exit, do NOT get bonked.";
       menuButton.querySelector("span").textContent = "OKAY, I'M GOING IN";
     }
     menu.classList.remove("hidden");
@@ -999,7 +1282,7 @@
     energyDrinkAudioFinished = true;
   });
 
-  function createSpatialChannel(context, audio, stereoVoice = false) {
+  function createSpatialChannel(context, audio, stereoVoice = false, position = malleo.position, gainLevel = 0.9) {
     const source = context.createMediaElementSource(audio);
     const panner = context.createPanner();
     panner.panningModel = "HRTF";
@@ -1009,7 +1292,7 @@
     panner.rolloffFactor = 1.25;
     const stereoPanner = stereoVoice ? context.createStereoPanner() : null;
     const gain = context.createGain();
-    gain.gain.value = 0.9;
+    gain.gain.value = gainLevel;
     source.connect(panner);
     if (stereoPanner) {
       panner.connect(stereoPanner);
@@ -1018,7 +1301,7 @@
       panner.connect(gain);
     }
     gain.connect(context.destination);
-    return { audio, panner, stereoPanner };
+    return { audio, panner, stereoPanner, position };
   }
 
   function startSpatialAudio() {
@@ -1032,13 +1315,19 @@
       if (!spatialAudioContext) {
         const context = new AudioContextConstructor();
         const channels = malleoVoiceLines.map(audio => createSpatialChannel(context, audio, true));
+        const weegeeChannels = weegeeVoiceLines.map(audio =>
+          createSpatialChannel(context, audio, true, weegee.position, 0.38)
+        );
         const jumpscare = createSpatialChannel(context, jumpscareAudio);
+        const weegeeScream = createSpatialChannel(context, weegeeScreamAudio, true, weegee.position, 0.38);
         const postKillLine = createSpatialChannel(context, postKillAudio, true);
         spatialAudioContext = context;
-        voiceLineChannels = channels;
+        malleoEnemy.voiceChannels = channels;
+        weegeeEnemy.voiceChannels = weegeeChannels;
         jumpscareChannel = jumpscare;
+        weegeeScreamChannel = weegeeScream;
         postKillChannel = postKillLine;
-        spatialChannels.push(...channels, jumpscare, postKillLine);
+        spatialChannels.push(...channels, ...weegeeChannels, jumpscare, weegeeScream, postKillLine);
       }
       spatialAudioContext.resume().catch(error => {
         console.error("Could not resume Malleo's spatial audio.", error);
@@ -1086,6 +1375,42 @@
     }
   }
 
+  function playCoinBagJingle() {
+    if (!spatialAudioContext || spatialAudioContext.state === "closed") return;
+    const play = () => {
+      const notes = [987.77, 1174.66, 1567.98];
+      let noteStart = spatialAudioContext.currentTime;
+      notes.forEach((frequency, index) => {
+        const duration = index === notes.length - 1 ? 0.14 : 0.075;
+        const oscillator = spatialAudioContext.createOscillator();
+        const gain = spatialAudioContext.createGain();
+        oscillator.type = "triangle";
+        oscillator.frequency.setValueAtTime(frequency, noteStart);
+        gain.gain.setValueAtTime(0.0001, noteStart);
+        gain.gain.exponentialRampToValueAtTime(0.075, noteStart + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, noteStart + duration);
+        oscillator.connect(gain);
+        gain.connect(spatialAudioContext.destination);
+        oscillator.addEventListener("ended", () => {
+          oscillator.disconnect();
+          gain.disconnect();
+        }, { once: true });
+        oscillator.start(noteStart);
+        oscillator.stop(noteStart + duration);
+        noteStart += duration + 0.012;
+      });
+    };
+
+    if (spatialAudioContext.state === "running") {
+      play();
+    } else {
+      spatialAudioContext.resume().then(play).catch(error => {
+        console.error("Could not play the coin bag pickup jingle.", error);
+        showToast("The coin bag jingle couldn't play.");
+      });
+    }
+  }
+
   function playExitHintBeep() {
     if (exitHintAudioFailed) return;
     playMapHintBeep("Exit hint beep", () => {
@@ -1097,6 +1422,13 @@
     if (fireflowerTrackerAudioFailed) return;
     playMapHintBeep("Fireflower tracker beep", () => {
       fireflowerTrackerAudioFailed = true;
+    });
+  }
+
+  function playToadHintBeep() {
+    if (toadHintAudioFailed) return;
+    playMapHintBeep("Toad hint beep", () => {
+      toadHintAudioFailed = true;
     });
   }
 
@@ -1159,11 +1491,11 @@
     setAudioCoordinates(listener, "forward", audioForward);
     setAudioCoordinates(listener, "up", audioUp);
     for (const channel of spatialChannels) {
-      setAudioCoordinates(channel.panner, "position", malleo.position);
+      setAudioCoordinates(channel.panner, "position", channel.position);
       if (channel.stereoPanner) {
-        const relativeX = malleo.position.x - camera.position.x;
-        const relativeY = malleo.position.y - camera.position.y;
-        const relativeZ = malleo.position.z - camera.position.z;
+        const relativeX = channel.position.x - camera.position.x;
+        const relativeY = channel.position.y - camera.position.y;
+        const relativeZ = channel.position.z - camera.position.z;
         const horizontalDistance = Math.hypot(relativeX, relativeZ);
         channel.stereoPanner.pan.value = horizontalDistance > 0
           ? THREE.MathUtils.clamp((relativeX * audioRight.x + relativeY * audioRight.y + relativeZ * audioRight.z) / horizontalDistance, -1, 1)
@@ -1195,34 +1527,46 @@
     }
   }
 
-  function updateMalleoVoice(time) {
+  function updateEnemyVoice(enemy, time) {
     if (!spatialAudioContext || spatialAudioContext.state !== "running") return;
-    if (malleoDistance > 32 || time < nextVoiceLineTime) return;
-    if (voiceLineChannels.some(channel => !channel.audio.paused)) return;
-    const channel = voiceLineChannels[Math.floor(Math.random() * voiceLineChannels.length)];
-    nextVoiceLineTime = time + 12000 + Math.random() * 4000;
-    playSpatialChannel(channel, "Malleo voice");
+    if (!enemy.spawned || enemy.distance > 32 || time < enemy.nextVoiceLineTime) return;
+    if (enemy.voiceChannels.some(channel => !channel.audio.paused)) return;
+    const channel = enemy.voiceChannels[Math.floor(Math.random() * enemy.voiceChannels.length)];
+    enemy.nextVoiceLineTime = time + 12000 + Math.random() * 4000;
+    playSpatialChannel(channel, `${enemy.name} voice`);
   }
 
-  function stopMalleoVoiceLines() {
-    for (const channel of voiceLineChannels) {
+  function stopEnemyVoiceLines(enemy) {
+    for (const channel of enemy.voiceChannels) {
       if (channel.audio.paused) continue;
       channel.audio.pause();
       channel.audio.currentTime = 0;
     }
   }
 
-  function triggerMalleoDeathAudio() {
+  function playRandomEnemyVoice(enemy, label) {
+    if (!enemy.voiceChannels.length) return;
+    const channel = enemy.voiceChannels[Math.floor(Math.random() * enemy.voiceChannels.length)];
+    playSpatialChannel(channel, label);
+  }
+
+  function triggerEnemyDeathAudio(enemy) {
     cancelItemUse();
     updateFootsteps(0);
     gameElement.classList.add("jumpscare-shake");
     jumpscareEffect.classList.add("active");
-    stopMalleoVoiceLines();
+    stopEnemyVoiceLines(malleoEnemy);
+    stopEnemyVoiceLines(weegeeEnemy);
     updateSpatialAudio();
-    playSpatialChannel(jumpscareChannel, "Jumpscare");
+    const isWeegee = enemy === weegeeEnemy;
+    playSpatialChannel(isWeegee ? weegeeScreamChannel : jumpscareChannel, "Jumpscare");
     clearTimeout(postKillLineTimer);
     postKillLineTimer = setTimeout(() => {
-      playSpatialChannel(postKillChannel, "Malleo post-kill voice");
+      if (isWeegee) {
+        playRandomEnemyVoice(enemy, "Weegee post-kill voice");
+      } else {
+        playSpatialChannel(postKillChannel, "Malleo post-kill voice");
+      }
     }, 2000);
   }
 
@@ -1239,9 +1583,16 @@
   loadingRetry.addEventListener("click", () => window.location.reload());
   document.getElementById("restart-button").addEventListener("click", () => window.location.reload());
   document.getElementById("caught-button").addEventListener("click", () => window.location.reload());
+  toadShopButtons.forEach(button => {
+    button.addEventListener("click", () => purchaseShopItem(button.dataset.shopItem));
+  });
 
   document.addEventListener("pointerlockchange", () => {
     if (!isPlaying || isWon) return;
+    if (toadDialogueOpen || shopOpen) {
+      if (document.pointerLockElement !== renderer.domElement) fallbackControls = true;
+      return;
+    }
     if (document.pointerLockElement === renderer.domElement) {
       fallbackControls = false;
       menu.classList.add("hidden");
@@ -1253,22 +1604,40 @@
 
   document.addEventListener("mousemove", event => {
     const locked = document.pointerLockElement === renderer.domElement;
-    if (!isPlaying || playerSlipState || (!locked && !(fallbackControls && event.buttons === 1))) return;
+    if (!isPlaying || toadDialogueOpen || shopOpen || playerSlipState || (!locked && !(fallbackControls && event.buttons === 1))) return;
     player.yaw -= event.movementX * 0.0025;
     player.pitch = THREE.MathUtils.clamp(player.pitch - event.movementY * 0.0022, -1.35, 1.35);
   });
 
   document.addEventListener("keydown", event => {
     const key = event.key.toLowerCase();
+    if (toadDialogueOpen || shopOpen) {
+      const focusedShopButton = shopOpen
+        && event.target instanceof Element
+        && event.target.matches(".toad-shop-item");
+      if (
+        ["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)
+        && !(key === " " && focusedShopButton)
+      ) {
+        event.preventDefault();
+      }
+      if (key === "e" && !event.repeat && isPlaying) interact();
+      return;
+    }
     if (key === "shift" || event.code === "ShiftLeft" || event.code === "ShiftRight") sprintHeld = true;
     if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) event.preventDefault();
+    if (key === "f" && !event.repeat && isPlaying && (document.pointerLockElement === renderer.domElement || fallbackControls)) {
+      flashlight.visible = !flashlight.visible;
+      showToast(`FLASHLIGHT ${flashlight.visible ? "ON" : "OFF"}.`);
+      event.preventDefault();
+    }
     if (/^[1-6]$/.test(key) && isPlaying && (document.pointerLockElement === renderer.domElement || fallbackControls)) {
       selectHotbarSlot(Number(key) - 1);
       event.preventDefault();
     }
     pressed.add(key);
-    if (key === "e" && isPlaying && (document.pointerLockElement === renderer.domElement || fallbackControls)) interact();
-    if (key === "escape" && fallbackControls && isPlaying) {
+    if (key === "e" && !event.repeat && isPlaying && (document.pointerLockElement === renderer.domElement || fallbackControls)) interact();
+    if (key === "escape" && fallbackControls && isPlaying && !shopOpen && !toadDialogueOpen) {
       isPlaying = false;
       showMenu("pause");
     }
@@ -1284,13 +1653,14 @@
   });
 
   document.addEventListener("wheel", event => {
-    if (!isPlaying || (document.pointerLockElement !== renderer.domElement && !fallbackControls) || event.deltaY === 0) return;
+    if (!isPlaying || toadDialogueOpen || shopOpen || (document.pointerLockElement !== renderer.domElement && !fallbackControls) || event.deltaY === 0) return;
     event.preventDefault();
     selectHotbarSlot((selectedHotbarSlot + (event.deltaY > 0 ? 1 : -1) + HOTBAR_SLOT_COUNT) % HOTBAR_SLOT_COUNT);
   }, { passive: false });
 
   document.addEventListener("mousedown", event => {
     if (event.button !== 0 || !isPlaying || (document.pointerLockElement !== renderer.domElement && !fallbackControls)) return;
+    if (toadDialogueOpen || shopOpen) return;
     useSelectedItem();
   });
 
@@ -1375,15 +1745,9 @@
 
   function placeBananaPeel(time) {
     if (!bananaDropPosition) return false;
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: textures.bananaPeel,
-      transparent: true,
-      alphaTest: 0.03,
-      depthWrite: false
-    }));
+    const sprite = createLitBillboard(textures.bananaPeel, 0.03);
     sprite.position.set(bananaDropPosition.x, 0.34, bananaDropPosition.z);
     sprite.scale.set(0.78, 0.78, 1);
-    scene.add(sprite);
     placedBananaPeels.push({
       sprite,
       x: bananaDropPosition.x,
@@ -1395,6 +1759,31 @@
   }
 
   function interact() {
+    if (shopOpen) {
+      endToadInteraction();
+      return;
+    }
+    if (toadDialogueOpen) {
+      if (toadDialogueAction === "shop") openToadShop();
+      else endToadInteraction();
+      return;
+    }
+    if (isAimingAtToad()) {
+      toadFound = true;
+      toadShopHadPointerLock = document.pointerLockElement === renderer.domElement;
+      if (hasNoToadStock()) {
+        showToadDialogue(TOAD_SOLD_OUT_MESSAGE, "leave");
+      } else if (
+        toadLastVisitEndedAt !== null
+        && performance.now() - toadLastVisitEndedAt >= TOAD_RETURN_INTERVAL_MS
+      ) {
+        showToadDialogue(TOAD_RETURN_GREETING, "shop");
+      } else {
+        showToadDialogue(TOAD_GREETING, "shop");
+      }
+      return;
+    }
+
     const dx = playerPosition.x - door.center.x;
     const dz = playerPosition.z - door.center.z;
     if (Math.hypot(dx, dz) > 2.7) return;
@@ -1406,8 +1795,85 @@
       showToast("The way is open. Keep going.");
       return;
     }
+    if (!isAimingAtExitDoor()) {
+      showToast("Aim at the garage door to open it.");
+      return;
+    }
     doorOpen = true;
-    showToast("The old door groans open...");
+    showToast("The garage door rumbles open...");
+  }
+
+  function isAimingAtToad() {
+    const dx = toad.sprite.position.x - playerPosition.x;
+    const dz = toad.sprite.position.z - playerPosition.z;
+    const distance = Math.hypot(dx, dz);
+    if (
+      distance > 5
+      || !hasClearMazeLineOfSight(
+        playerPosition.x,
+        playerPosition.z,
+        toad.sprite.position.x,
+        toad.sprite.position.z,
+        distance
+      )
+    ) return false;
+    exitDoorRaycaster.setFromCamera(reticlePosition, camera);
+    const intersections = exitDoorRaycaster.intersectObject(toad.sprite, false);
+    return intersections.length > 0 && intersections[0].distance <= 5;
+  }
+
+  function showToadDialogue(message, nextAction) {
+    if (shopOpen) {
+      shopOpen = false;
+      toadShop.classList.add("hidden");
+    }
+    toadDialogueText.textContent = message;
+    toadDialogueAction = nextAction;
+    toadDialogueHint.textContent = nextAction === "shop" ? "PRESS E TO CONTINUE" : "PRESS E TO LEAVE";
+    toadDialogueOpen = true;
+    pressed.clear();
+    sprintHeld = false;
+    cancelItemUse();
+    toadDialogue.classList.remove("hidden");
+  }
+
+  function openToadShop() {
+    toadDialogueOpen = false;
+    toadDialogue.classList.add("hidden");
+    shopOpen = true;
+    toadShop.classList.remove("hidden");
+    toadShopHadPointerLock = document.pointerLockElement === renderer.domElement;
+    fallbackControls = true;
+    toadShopStatus.textContent = hotbar.includes(null)
+      ? "Purchases go into an empty hotbar slot."
+      : "HOTBAR FULL. USE AN ITEM BEFORE BUYING.";
+    updateToadShop();
+    if (document.pointerLockElement === renderer.domElement) {
+      toadShopHadPointerLock = true;
+      document.exitPointerLock?.();
+    }
+  }
+
+  function endToadInteraction() {
+    shopOpen = false;
+    toadDialogueOpen = false;
+    toadShop.classList.add("hidden");
+    toadDialogue.classList.add("hidden");
+    toadLastVisitEndedAt = performance.now();
+    pressed.clear();
+    sprintHeld = false;
+    cancelItemUse();
+    if (toadShopHadPointerLock) {
+      toadShopHadPointerLock = false;
+      fallbackControls = false;
+      requestPlayerPointerLock();
+    }
+  }
+
+  function isAimingAtExitDoor() {
+    exitDoorRaycaster.setFromCamera(reticlePosition, camera);
+    const intersections = exitDoorRaycaster.intersectObject(door.panel, false);
+    return intersections.length > 0 && intersections[0].distance <= 5;
   }
 
   function worldToCell(value) {
@@ -1444,7 +1910,7 @@
     return path.reverse();
   }
 
-  function choosePatrolWaypoint(currentCell) {
+  function choosePatrolWaypoint(currentCell, recentPatrolTargets) {
     const distances = getDistances(maze, currentCell.x, currentCell.z);
     const currentKey = `${currentCell.x},${currentCell.z}`;
     const recent = new Set(recentPatrolTargets);
@@ -1470,57 +1936,67 @@
     return { x: target.x, z: target.z };
   }
 
-  function canMalleoSeePlayer(distance) {
-    if (distance > MALLEO_SIGHT_RANGE) return false;
-    const dx = playerPosition.x - malleo.position.x;
-    const dz = playerPosition.z - malleo.position.z;
+  function canEnemySeePlayer(enemy, distance) {
+    return distance <= MALLEO_SIGHT_RANGE && hasClearMazeLineOfSight(
+      enemy.sprite.position.x,
+      enemy.sprite.position.z,
+      playerPosition.x,
+      playerPosition.z,
+      distance
+    );
+  }
+
+  function hasClearMazeLineOfSight(startX, startZ, endX, endZ, distance) {
+    const dx = endX - startX;
+    const dz = endZ - startZ;
     const steps = Math.ceil(distance / 0.45);
     for (let step = 1; step < steps; step += 1) {
       const progress = step / steps;
-      const x = worldToCell(malleo.position.x + dx * progress);
-      const z = worldToCell(malleo.position.z + dz * progress);
+      const x = worldToCell(startX + dx * progress);
+      const z = worldToCell(startZ + dz * progress);
       if (maze[z]?.[x] !== 1) return false;
     }
     return true;
   }
 
-  function triggerMalleoSlip() {
+  function triggerEnemySlip(enemy) {
     const peel = placedBananaPeels.find(item =>
-      !item.used && Math.hypot(malleo.position.x - item.x, malleo.position.z - item.z) < 1.05
+      !item.used && Math.hypot(enemy.sprite.position.x - item.x, enemy.sprite.position.z - item.z) < 1.05
     );
     if (!peel) return false;
 
     peel.used = true;
     scene.remove(peel.sprite);
-    malleoSlipState = { phase: "falling", elapsed: 0, roll: (Math.random() - 0.5) * 1.2 };
+    enemy.slipState = { phase: "falling", elapsed: 0, roll: (Math.random() - 0.5) * 1.2 };
     playSoundEffect(bananaPeelSlipAudio, "Banana slip sound");
-    showToast("MALLEO HIT A BANANA PEEL!");
+    showToast(`${enemy.name.toUpperCase()} HIT A BANANA PEEL!`);
     return true;
   }
 
-  function updateMalleoSlip(delta) {
-    const state = malleoSlipState;
+  function updateEnemySlip(enemy, delta) {
+    const state = enemy.slipState;
     if (!state) return;
     state.elapsed += delta;
-    lastPlayerSightedAt += delta * 1000;
-    nextMalleoPathTime += delta * 1000;
+    enemy.lastPlayerSightedAt += delta * 1000;
+    enemy.nextPathTime += delta * 1000;
     const height = 3.65;
     const width = height * (275 / 507);
 
     if (state.phase === "falling") {
       const progress = THREE.MathUtils.clamp(state.elapsed / BANANA_MALLEO_FALL_TIME, 0, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      malleo.position.y = 1.825 - eased * 1.65 + Math.sin(progress * Math.PI * 4) * 0.12 * (1 - progress);
-      malleo.material.rotation = state.roll * eased + Math.sin(progress * Math.PI * 3) * 0.72;
-      malleo.scale.set(width * (1 + Math.sin(progress * Math.PI * 5) * 0.13), height * (1 - eased * 0.68), 1);
+      enemy.sprite.position.y = 1.825 - eased * 1.65 + Math.sin(progress * Math.PI * 4) * 0.12 * (1 - progress);
+      enemy.sprite.userData.roll = state.roll * eased + Math.sin(progress * Math.PI * 3) * 0.72;
+      enemy.sprite.scale.set(width * (1 + Math.sin(progress * Math.PI * 5) * 0.13), height * (1 - eased * 0.68), 1);
       if (progress >= 1) {
-        malleo.visible = false;
-        malleoFlatMesh.position.set(malleo.position.x, 0.035, malleo.position.z);
-        malleoFlatMesh.material.opacity = 1;
-        malleoFlatMesh.visible = true;
+        enemy.sprite.visible = false;
+        enemy.flatMesh.position.set(enemy.sprite.position.x, 0.035, enemy.sprite.position.z);
+        enemy.flatMesh.material.opacity = 1;
+        enemy.flatMesh.visible = true;
         state.phase = "down";
         playSoundEffect(bananaPeelFallAudio, "Banana fall sound");
-        playSoundEffect(malleoOofAudio, "Malleo impact sound");
+        if (enemy === weegeeEnemy) playRandomEnemyVoice(enemy, "Weegee impact voice");
+        else playSoundEffect(malleoOofAudio, "Malleo impact sound");
       }
       return;
     }
@@ -1529,9 +2005,9 @@
       if (state.elapsed >= BANANA_MALLEO_DOWN_TIME / 1000) {
         state.phase = "recovering";
         state.elapsed = 0;
-        malleo.visible = true;
-        malleo.position.y = 0.08;
-        malleo.material.opacity = 0;
+        enemy.sprite.visible = true;
+        enemy.sprite.position.y = 0.08;
+        enemy.sprite.material.opacity = 0;
       }
       return;
     }
@@ -1539,118 +2015,213 @@
     const progress = THREE.MathUtils.clamp(state.elapsed / BANANA_MALLEO_RECOVER_TIME, 0, 1);
     const eased = progress * progress * (3 - 2 * progress);
     const flatOpacity = 1 - THREE.MathUtils.clamp(progress * 2.2, 0, 1);
-    malleoFlatMesh.position.set(malleo.position.x, 0.035, malleo.position.z);
-    malleoFlatMesh.material.opacity = flatOpacity;
-    malleoFlatMesh.visible = flatOpacity > 0.02;
-    malleo.visible = progress > 0.05;
-    malleo.material.opacity = THREE.MathUtils.clamp(progress * 2, 0, 1);
-    malleo.position.y = 0.08 + eased * 1.745;
-    malleo.material.rotation = state.roll * (1 - eased);
-    malleo.scale.set(width, height * (0.32 + eased * 0.68), 1);
+    enemy.flatMesh.position.set(enemy.sprite.position.x, 0.035, enemy.sprite.position.z);
+    enemy.flatMesh.material.opacity = flatOpacity;
+    enemy.flatMesh.visible = flatOpacity > 0.02;
+    enemy.sprite.visible = progress > 0.05;
+    enemy.sprite.material.opacity = THREE.MathUtils.clamp(progress * 2, 0, 1);
+    enemy.sprite.position.y = 0.08 + eased * 1.745;
+    enemy.sprite.userData.roll = state.roll * (1 - eased);
+    enemy.sprite.scale.set(width, height * (0.32 + eased * 0.68), 1);
     if (progress >= 1) {
-      malleo.position.y = 1.825;
-      malleo.material.rotation = 0;
-      malleo.material.opacity = 1;
-      malleo.scale.set(width, height, 1);
-      malleo.visible = true;
-      malleoFlatMesh.visible = false;
-      malleoFlatMesh.material.opacity = 1;
-      playSoundEffect(malleoMammaMiaAudio, "Malleo recovery sound");
-      malleoSlipState = null;
+      enemy.sprite.position.y = 1.825;
+      enemy.sprite.userData.roll = 0;
+      enemy.sprite.material.opacity = 1;
+      enemy.sprite.scale.set(width, height, 1);
+      enemy.sprite.visible = true;
+      enemy.flatMesh.visible = false;
+      enemy.flatMesh.material.opacity = 1;
+      if (enemy === weegeeEnemy) playRandomEnemyVoice(enemy, "Weegee recovery voice");
+      else playSoundEffect(malleoMammaMiaAudio, "Malleo recovery sound");
+      enemy.slipState = null;
     }
   }
 
-  function updateMalleo(time, delta) {
-    if (malleoSlipState) {
-      updateMalleoSlip(delta);
+  function updateEnemy(enemy, time, delta) {
+    if (!enemy.spawned) return;
+    if (enemy.slipState) {
+      updateEnemySlip(enemy, delta);
       return;
     }
-    const currentCell = { x: worldToCell(malleo.position.x), z: worldToCell(malleo.position.z) };
+    const position = enemy.sprite.position;
+    const currentCell = { x: worldToCell(position.x), z: worldToCell(position.z) };
     const playerCell = { x: worldToCell(playerPosition.x), z: worldToCell(playerPosition.z) };
-    const directDistance = Math.hypot(playerPosition.x - malleo.position.x, playerPosition.z - malleo.position.z);
-    const spotted = directDistance <= MALLEO_HEARING_RADIUS || canMalleoSeePlayer(directDistance);
+    const directDistance = Math.hypot(playerPosition.x - position.x, playerPosition.z - position.z);
+    const hasLineOfSight = canEnemySeePlayer(enemy, directDistance);
+    const withinHearingRange = directDistance <= MALLEO_HEARING_RADIUS;
+    const spotted = withinHearingRange || hasLineOfSight;
 
     if (spotted) {
-      if (malleoMode !== "chase") {
-        malleoMode = "chase";
-        patrolTarget = null;
-        nextMalleoPathTime = 0;
-        showToast("MALLEO SPOTTED YOU! RUN!");
+      if (enemy.mode !== "chase") {
+        enemy.mode = "chase";
+        enemy.patrolTarget = null;
+        enemy.nextPathTime = 0;
+        showToast(`${enemy.name.toUpperCase()} ${hasLineOfSight ? "SPOTTED" : "HEARD"} YOU! RUN!`);
       }
-      if (!lastKnownPlayerPosition) lastKnownPlayerPosition = new THREE.Vector3();
-      lastKnownPlayerPosition.set(playerPosition.x, 0, playerPosition.z);
-      lastPlayerSightedAt = time;
-    } else if (malleoMode === "chase" && time - lastPlayerSightedAt > MALLEO_CHASE_MEMORY) {
-      malleoMode = "patrol";
-      lastKnownPlayerPosition = null;
-      patrolTarget = null;
-      nextMalleoPathTime = 0;
-      showToast("Malleo lost your trail. Keep moving!");
+      if (!enemy.lastKnownPlayerPosition) enemy.lastKnownPlayerPosition = new THREE.Vector3();
+      enemy.lastKnownPlayerPosition.set(playerPosition.x, 0, playerPosition.z);
+      enemy.lastPlayerSightedAt = time;
+    } else if (enemy.mode === "chase" && time - enemy.lastPlayerSightedAt > MALLEO_CHASE_MEMORY) {
+      enemy.mode = "patrol";
+      enemy.lastKnownPlayerPosition = null;
+      enemy.patrolTarget = null;
+      enemy.nextPathTime = 0;
+      showToast(`${enemy.name} lost your trail. Keep moving!`);
     }
 
-    if (malleoMode === "patrol") {
-      const patrolX = patrolTarget ? cellWorld(patrolTarget.x) : 0;
-      const patrolZ = patrolTarget ? cellWorld(patrolTarget.z) : 0;
-      if (!patrolTarget || Math.hypot(patrolX - malleo.position.x, patrolZ - malleo.position.z) < 0.65) {
-        patrolTarget = choosePatrolWaypoint(currentCell);
-        nextMalleoPathTime = 0;
+    if (hasLineOfSight) {
+      enemy.hasSeenPlayer = true;
+      enemy.lastVisualSightedAt = time;
+    }
+
+    if (enemy.mode === "patrol") {
+      const patrolX = enemy.patrolTarget ? cellWorld(enemy.patrolTarget.x) : 0;
+      const patrolZ = enemy.patrolTarget ? cellWorld(enemy.patrolTarget.z) : 0;
+      if (!enemy.patrolTarget || Math.hypot(patrolX - position.x, patrolZ - position.z) < 0.65) {
+        enemy.patrolTarget = choosePatrolWaypoint(currentCell, enemy.recentPatrolTargets);
+        enemy.nextPathTime = 0;
       }
     }
 
-    const targetX = malleoMode === "chase"
-      ? lastKnownPlayerPosition.x
-      : cellWorld(patrolTarget.x);
-    const targetZ = malleoMode === "chase"
-      ? lastKnownPlayerPosition.z
-      : cellWorld(patrolTarget.z);
+    const targetX = enemy.mode === "chase"
+      ? enemy.lastKnownPlayerPosition.x
+      : cellWorld(enemy.patrolTarget.x);
+    const targetZ = enemy.mode === "chase"
+      ? enemy.lastKnownPlayerPosition.z
+      : cellWorld(enemy.patrolTarget.z);
     const targetCell = { x: worldToCell(targetX), z: worldToCell(targetZ) };
-    if (time >= nextMalleoPathTime) {
-      malleoPath = findMazePath(currentCell, targetCell);
+    if (time >= enemy.nextPathTime) {
+      enemy.path = findMazePath(currentCell, targetCell);
       const playerDistances = getDistances(maze, currentCell.x, currentCell.z);
       const playerSteps = playerDistances[playerCell.z][playerCell.x];
       if (playerSteps === 0) {
-        malleoDistance = directDistance;
+        enemy.distance = directDistance;
       } else if (playerSteps > 0) {
-        const startOffset = Math.hypot(malleo.position.x - cellWorld(currentCell.x), malleo.position.z - cellWorld(currentCell.z));
+        const startOffset = Math.hypot(position.x - cellWorld(currentCell.x), position.z - cellWorld(currentCell.z));
         const endOffset = Math.hypot(playerPosition.x - cellWorld(playerCell.x), playerPosition.z - cellWorld(playerCell.z));
-        malleoDistance = playerSteps * CELL + startOffset + endOffset;
+        enemy.distance = playerSteps * CELL + startOffset + endOffset;
       } else {
-        malleoDistance = Infinity;
+        enemy.distance = Infinity;
       }
-      nextMalleoPathTime = time + 420;
+      enemy.nextPathTime = time + 420;
     }
 
-    const nextCell = malleoPath.length > 1 ? malleoPath[1] : targetCell;
-    const waypointX = malleoMode === "chase" && malleoPath.length === 1 ? targetX : cellWorld(nextCell.x);
-    const waypointZ = malleoMode === "chase" && malleoPath.length === 1 ? targetZ : cellWorld(nextCell.z);
-    const dx = waypointX - malleo.position.x;
-    const dz = waypointZ - malleo.position.z;
+    const nextCell = enemy.path.length > 1 ? enemy.path[1] : targetCell;
+    const waypointX = enemy.mode === "chase" && enemy.path.length === 1 ? targetX : cellWorld(nextCell.x);
+    const waypointZ = enemy.mode === "chase" && enemy.path.length === 1 ? targetZ : cellWorld(nextCell.z);
+    const dx = waypointX - position.x;
+    const dz = waypointZ - position.z;
     const distanceToWaypoint = Math.hypot(dx, dz);
-    const speed = malleoMode === "chase" ? 4.5 : 2.4;
+    const speed = enemy.mode === "chase" ? 4.5 : 2.4;
     const step = Math.min(distanceToWaypoint, speed * delta);
     if (distanceToWaypoint > 0) {
-      malleo.position.x += (dx / distanceToWaypoint) * step;
-      malleo.position.z += (dz / distanceToWaypoint) * step;
+      position.x += (dx / distanceToWaypoint) * step;
+      position.z += (dz / distanceToWaypoint) * step;
     }
-    malleo.position.y = 1.825 + Math.sin(time * 0.006) * 0.055;
-    if (triggerMalleoSlip()) return;
+    position.y = 1.825 + Math.sin(time * 0.006) * 0.055;
+    if (triggerEnemySlip(enemy)) return;
 
-    const close = malleoDistance < 34;
-    const veryClose = malleoDistance < 20;
-    const modeLabel = malleoMode === "chase"
-      ? (veryClose ? "CHASE · VERY CLOSE" : "CHASE MODE")
+    const close = enemy.distance < 34;
+    const modeLabel = enemy.mode === "chase"
+      ? (enemy.distance < 20 ? "CHASE · VERY CLOSE" : "CHASE MODE")
       : (close ? "PATROL · NEARBY" : "PATROL MODE");
-    malleoStatus.innerHTML = `<span class="signal-dot"></span>MALLEO <b>${modeLabel}</b>`;
-    malleoWarning.classList.toggle("visible", malleoMode === "chase" && veryClose);
-    hud.classList.toggle("hud-danger", malleoMode === "chase" && close);
+    const status = enemy === weegeeEnemy ? weegeeStatus : malleoStatus;
+    status.innerHTML = `<span class="signal-dot"></span>${enemy.name.toUpperCase()} <b>${modeLabel}</b>`;
 
-    if (Math.hypot(playerPosition.x - malleo.position.x, playerPosition.z - malleo.position.z) < 1.45) {
+    if (Math.hypot(playerPosition.x - position.x, playerPosition.z - position.z) < 1.45) {
       isPlaying = false;
       stopMusic();
-      triggerMalleoDeathAudio();
+      caughtEnemyImage.src = enemy === weegeeEnemy ? "./assets/weegee/Weegee.png" : "./assets/malleo/Malleo.png";
+      caughtEnemyImage.alt = `${enemy.name} caught you`;
+      caughtTitle.innerHTML = `${enemy.name.toUpperCase()}<br><span>GOT YOU!</span>`;
+      caughtDescription.textContent = enemy === weegeeEnemy
+        ? "Malleo called in backup. That did not go well."
+        : "Skill issue? Maybe. Maze issue? Also maybe.";
+      triggerEnemyDeathAudio(enemy);
       document.exitPointerLock?.();
       setTimeout(() => caughtScreen.classList.remove("hidden"), 500);
     }
+  }
+
+  function chooseWeegeeSpawnCell() {
+    const playerCell = { x: worldToCell(playerPosition.x), z: worldToCell(playerPosition.z) };
+    const distances = getDistances(maze, playerCell.x, playerCell.z);
+    const reachableCells = [];
+    for (let z = 1; z < MAZE_SIZE - 1; z += 1) {
+      for (let x = 1; x < MAZE_SIZE - 1; x += 1) {
+        if (maze[z][x] !== 1 || distances[z][x] < 1) continue;
+        const worldX = cellWorld(x);
+        const worldZ = cellWorld(z);
+        reachableCells.push({
+          x,
+          z,
+          pathDistance: distances[z][x],
+          playerDistance: Math.hypot(worldX - playerPosition.x, worldZ - playerPosition.z),
+          malleoDistance: Math.hypot(worldX - malleo.position.x, worldZ - malleo.position.z)
+        });
+      }
+    }
+    const goodDistance = reachableCells.filter(cell =>
+      cell.pathDistance >= 12
+      && cell.pathDistance <= 20
+      && cell.playerDistance >= 24
+      && cell.malleoDistance >= 12
+    );
+    if (goodDistance.length) return goodDistance[Math.floor(Math.random() * goodDistance.length)];
+
+    const furtherAway = reachableCells.filter(cell =>
+      cell.pathDistance >= 12 && cell.playerDistance >= 24 && cell.malleoDistance >= 8
+    );
+    const candidates = furtherAway.length
+      ? furtherAway
+      : reachableCells.filter(cell => cell.pathDistance >= 8 && cell.playerDistance >= 20);
+    const fallback = candidates.length ? candidates : reachableCells;
+    fallback.sort((a, b) => b.pathDistance - a.pathDistance);
+    const farthestChoices = fallback.slice(0, Math.min(5, fallback.length));
+    return farthestChoices[Math.floor(Math.random() * farthestChoices.length)] || playerCell;
+  }
+
+  function spawnWeegee(time) {
+    const cell = chooseWeegeeSpawnCell();
+    weegee.position.set(cellWorld(cell.x), 1.825, cellWorld(cell.z));
+    weegee.visible = true;
+    weegeeFlatMesh.visible = false;
+    weegeeEnemy.spawned = true;
+    weegeeEnemy.nextPathTime = 0;
+    weegeeEnemy.nextVoiceLineTime = time + 6000;
+    playSoundEffect(weegeeAnnouncementAudio, "Weegee spawn announcement");
+    showToast("MALLEO LOST YOUR TRAIL. WEEGEE JOINED THE HUNT!");
+  }
+
+  function updateMalleo(time, delta) {
+    updateEnemy(malleoEnemy, time, delta);
+    if (!isPlaying) return;
+    if (malleoEnemy.hasSeenPlayer
+      && !weegeeEnemy.spawned
+      && weegeeSpawnDelay === null) {
+      weegeeSpawnDelay = WEEGEE_SPAWN_MIN_DELAY
+        + Math.random() * (WEEGEE_SPAWN_MAX_DELAY - WEEGEE_SPAWN_MIN_DELAY);
+    }
+    if (malleoEnemy.lastVisualSightedAt !== null
+      && !weegeeEnemy.spawned
+      && time - malleoEnemy.lastVisualSightedAt >= weegeeSpawnDelay) {
+      spawnWeegee(time);
+    }
+    if (weegeeEnemy.spawned) updateEnemy(weegeeEnemy, time, delta);
+    updateEnemyHud();
+  }
+
+  function updateEnemyHud() {
+    weegeeStatus.classList.toggle("inactive", !weegeeEnemy.spawned);
+    weegeeStatus.setAttribute("aria-hidden", String(!weegeeEnemy.spawned));
+    const threateningEnemies = [malleoEnemy, weegeeEnemy]
+      .filter(enemy => enemy.spawned && enemy.mode === "chase");
+    const closestEnemy = threateningEnemies
+      .filter(enemy => enemy.distance < 20)
+      .sort((a, b) => a.distance - b.distance)[0];
+    malleoWarning.innerHTML = `<span>!!!</span> ${closestEnemy?.name.toUpperCase() || "MALLEO"} IS CLOSE <span>!!!</span>`;
+    malleoWarning.classList.toggle("visible", Boolean(closestEnemy));
+    hud.classList.toggle("hud-danger", threateningEnemies.some(enemy => enemy.distance < 34));
   }
 
   function canStandAt(x, z) {
@@ -1669,18 +2240,18 @@
   }
 
   function isOpenExitDoorway(x, z) {
-    if (!doorOpen) return false;
+    if (!doorOpen || doorProgress < 1) return false;
     const dx = x - door.center.x;
     const dz = z - door.center.z;
     const outwardDistance = dx * door.normal.x + dz * door.normal.y;
     const lateralDistance = door.acrossX ? dx : dz;
     return outwardDistance >= 0
-      && outwardDistance <= CELL
+      && outwardDistance <= CELL + PLAYER_RADIUS * 2
       && Math.abs(lateralDistance) < door.width / 2;
   }
 
   function isDoorwayBlocked(x, z) {
-    if (doorOpen) return false;
+    if (doorOpen && doorProgress >= 1) return false;
     const dx = x - door.center.x;
     const dz = z - door.center.z;
     const distance = dx * door.normal.x + dz * door.normal.y;
@@ -1910,14 +2481,15 @@
 
     const mapX = worldX => padding + ((worldX + worldSize / 2) / CELL) * cellSize;
     const mapZ = worldZ => padding + ((worldZ + worldSize / 2) / CELL) * cellSize;
-    if (malleoDistance <= MALLEO_SIGHT_RANGE) {
+    for (const enemy of [malleoEnemy, weegeeEnemy]) {
+      if (!enemy.spawned || enemy.distance > MALLEO_SIGHT_RANGE) continue;
       const pulse = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(time * 0.02));
       context.globalAlpha = pulse;
-      context.fillStyle = "#ff344f";
-      context.shadowColor = "#ff163e";
+      context.fillStyle = enemy === weegeeEnemy ? "#35ff4e" : "#ff344f";
+      context.shadowColor = enemy === weegeeEnemy ? "#20ff38" : "#ff163e";
       context.shadowBlur = 9;
       context.beginPath();
-      context.arc(mapX(malleo.position.x), mapZ(malleo.position.z), 5, 0, Math.PI * 2);
+      context.arc(mapX(enemy.sprite.position.x), mapZ(enemy.sprite.position.z), 5, 0, Math.PI * 2);
       context.fill();
       context.shadowBlur = 0;
       context.globalAlpha = 1;
@@ -1958,6 +2530,19 @@
         context.shadowBlur = 0;
         context.globalAlpha = 1;
       }
+    }
+
+    if (!toadFound && toadHintElapsed >= TOAD_HINT_INITIAL_DELAY_MS) {
+      const pulse = 0.2 + 0.8 * (0.5 + 0.5 * Math.sin(toadHintElapsed * 0.012));
+      context.globalAlpha = pulse;
+      context.fillStyle = "#50baff";
+      context.shadowColor = "#1598ff";
+      context.shadowBlur = 10;
+      context.beginPath();
+      context.arc(mapX(toad.sprite.position.x), mapZ(toad.sprite.position.z), 5.5, 0, Math.PI * 2);
+      context.fill();
+      context.shadowBlur = 0;
+      context.globalAlpha = 1;
     }
 
     context.save();
@@ -2016,6 +2601,14 @@
     exitHintStartedAt = time;
     nextExitHintTime = time + EXIT_HINT_INTERVAL;
     playExitHintBeep();
+  }
+
+  function updateToadHint(delta) {
+    if (toadFound) return;
+    toadHintElapsed += delta * 1000;
+    if (toadHintElapsed < nextToadHintTime) return;
+    nextToadHintTime += TOAD_HINT_INTERVAL_MS;
+    playToadHintBeep();
   }
 
   function updateFireflowerTracker(delta) {
@@ -2140,6 +2733,27 @@
     }
   }
 
+  function checkCoinBagPickups(time) {
+    for (const pickup of coinBagPickups) {
+      if (pickup.found) continue;
+      const bob = Math.sin(time * 0.003 + pickup.phase) * 0.08;
+      pickup.sprite.position.y = 0.68 + bob;
+      const scale = 0.72 + Math.sin(time * 0.004 + pickup.phase) * 0.04;
+      pickup.sprite.scale.set(scale, scale, 1);
+      if (Math.hypot(
+        pickup.sprite.position.x - playerPosition.x,
+        pickup.sprite.position.z - playerPosition.z
+      ) > 1.25) continue;
+
+      pickup.found = true;
+      scene.remove(pickup.sprite);
+      coins += COINS_PER_BAG;
+      updateCoinDisplay();
+      playCoinBagJingle();
+      showToast(`+${COINS_PER_BAG} COINS · ${coins} TOTAL.`);
+    }
+  }
+
   function checkPlayerBananaPeelSlip(time) {
     if (playerSlipState) return;
     const peel = placedBananaPeels.find(item =>
@@ -2207,17 +2821,62 @@
   }
 
   function checkExit() {
-    if (!doorOpen || isWon) return;
-    const distance = (playerPosition.x - door.center.x) * door.normal.x + (playerPosition.z - door.center.z) * door.normal.y;
-    if (distance > 0.72) {
-      isWon = true;
-      isPlaying = false;
-      stopMusic();
-      cancelItemUse();
-      updateFootsteps(0);
-      stopMalleoVoiceLines();
+    if (!doorOpen || doorProgress < 1 || isWon || playerSlipState) return;
+    const dx = playerPosition.x - door.center.x;
+    const dz = playerPosition.z - door.center.z;
+    const outwardDistance = dx * door.normal.x + dz * door.normal.y;
+    const lateralDistance = door.acrossX ? dx : dz;
+    if (
+      outwardDistance >= EXIT_SEQUENCE_TRIGGER_DISTANCE
+      && Math.abs(lateralDistance) < door.width / 2 - PLAYER_RADIUS
+    ) {
+      startExitSequence();
+    }
+  }
+
+  function startExitSequence() {
+    isWon = true;
+    isPlaying = false;
+    pressed.clear();
+    sprintHeld = false;
+    fallbackControls = false;
+    exitSequence = {
+      elapsed: 0,
+      startYaw: player.yaw,
+      targetYaw: Math.atan2(-door.normal.x, -door.normal.y),
+      startPitch: player.pitch
+    };
+    endingDescription.textContent = weegeeEnemy.spawned
+      ? "Six fireflowers collected. Malleo and Weegee are both absolutely fuming."
+      : "Six fireflowers collected. One Malleo absolutely fuming.";
+    stopMusic();
+    cancelItemUse();
+    updateFootsteps(0);
+    stopEnemyVoiceLines(malleoEnemy);
+    stopEnemyVoiceLines(weegeeEnemy);
+    clearTimeout(winTimer);
+  }
+
+  function updateExitSequence(delta) {
+    if (!exitSequence) return;
+    const step = Math.min(delta, EXIT_WALK_DURATION - exitSequence.elapsed);
+    exitSequence.elapsed += step;
+    const turnProgress = THREE.MathUtils.clamp(exitSequence.elapsed / EXIT_TURN_DURATION, 0, 1);
+    const easedTurn = turnProgress * turnProgress * (3 - 2 * turnProgress);
+    const yawDelta = Math.atan2(
+      Math.sin(exitSequence.targetYaw - exitSequence.startYaw),
+      Math.cos(exitSequence.targetYaw - exitSequence.startYaw)
+    );
+    player.yaw = exitSequence.startYaw + yawDelta * easedTurn;
+    player.pitch = exitSequence.startPitch * (1 - easedTurn);
+    playerPosition.x += door.normal.x * EXIT_WALK_SPEED * step;
+    playerPosition.z += door.normal.y * EXIT_WALK_SPEED * step;
+    camera.position.x = playerPosition.x;
+    camera.position.z = playerPosition.z;
+
+    if (exitSequence.elapsed >= EXIT_WALK_DURATION) {
+      exitSequence = null;
       document.exitPointerLock?.();
-      clearTimeout(winTimer);
       transitionFade.classList.remove("reveal");
       transitionFade.classList.add("active");
       winTimer = setTimeout(() => {
@@ -2238,7 +2897,7 @@
     const delta = Math.min((time - lastTime) / 1000, 0.05);
     lastTime = time;
     const controlsActive = isPlaying && (document.pointerLockElement === renderer.domElement || fallbackControls);
-    const movementAllowed = controlsActive && !playerSlipState;
+    const movementAllowed = controlsActive && !playerSlipState && !toadDialogueOpen && !shopOpen;
     let movementRequested = false;
     let movementSpeed = 0;
     if (controlsActive) {
@@ -2257,33 +2916,44 @@
       }
       updateMalleo(time, delta);
       if (isPlaying) {
+        updateToadHint(delta);
         checkFireflowers(time);
         updateExitHint(time);
         checkEnergyDrinkPickups(time);
         checkBananaPeelPickups(time);
         checkFireflowerTrackerPickups(time);
+        checkCoinBagPickups(time);
         checkPlayerBananaPeelSlip(time);
         checkExit();
+        if (shopOpen) updateToadShop();
       }
     } else {
       updateItemUse(delta, false, time);
     }
+    updateExitSequence(delta);
     if (doorOpen && doorProgress < 1) {
-      doorProgress = Math.min(1, doorProgress + delta * 0.72);
+      doorProgress = Math.min(1, doorProgress + delta / EXIT_DOOR_OPEN_DURATION);
       const eased = doorProgress * doorProgress * (3 - 2 * doorProgress);
-      door.panel.position.y = 1.57 + eased * 3.2;
-      if (doorProgress > 0.5) door.sign.visible = false;
+      door.panel.position.y = EXIT_DOOR_OPENING_HEIGHT / 2 + eased * EXIT_DOOR_OPENING_HEIGHT;
     }
     updateFireflowerTracker(delta);
     updateViewBob(delta, movementRequested, movementAllowed && isPlaying);
-    if (playerSlipState && isPlaying) updatePlayerSlip(delta);
+    if (playerSlipState && isPlaying && !toadDialogueOpen && !shopOpen) updatePlayerSlip(delta);
     updateHeldItemAnimation(movementAllowed && isPlaying && !playerSlipState);
     updateFootsteps(isPlaying ? movementSpeed : 0);
     drawMinimap(time);
     updateSpatialAudio();
-    if (isPlaying && !malleoSlipState) updateMalleoVoice(time);
+    if (isPlaying) {
+      if (!malleoEnemy.slipState) updateEnemyVoice(malleoEnemy, time);
+      if (!weegeeEnemy.slipState) updateEnemyVoice(weegeeEnemy, time);
+    }
     const nearDoor = Math.hypot(playerPosition.x - door.center.x, playerPosition.z - door.center.z) < 3.2;
-    hint.innerHTML = nearDoor ? (flowersFound === FLOWER_COUNT ? "E <span>OPEN EXIT</span>" : `E <span>${FLOWER_COUNT - flowersFound} FLOWERS LEFT</span>`) : "WASD <span>MOVE</span><b>·</b> MOUSE <span>LOOK</span>";
+    const flashlightHint = `F <span class="flashlight-state">LIGHT ${flashlight.visible ? "ON" : "OFF"}</span>`;
+    hint.innerHTML = nearDoor
+      ? `${flowersFound === FLOWER_COUNT ? "E <span>OPEN EXIT</span>" : `E <span>${FLOWER_COUNT - flowersFound} FLOWERS LEFT</span>`}<b>·</b>${flashlightHint}`
+      : `WASD <span>MOVE</span><b>·</b> MOUSE <span>LOOK</span><b>·</b>${flashlightHint}`;
+    updateLitBillboards();
+    updateExitTreeBillboards();
     renderer.render(scene, camera);
   }
 

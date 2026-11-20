@@ -66,6 +66,7 @@
 * Meme MIDI Player (Beta / WIP)
 * Memes VS Zombies (Finished, unless I come up with some big brain additions)
 * Malleo's Maze (Finished, unless I come up with some big brain additions)
+* Flappy Gwonam (Finished, unless I come up with some big brain additions)
 
 ---
 
@@ -180,26 +181,15 @@ Another fun fact: The font used is the actual fucking CD-i Zelda map font! 🤯
 
 ---
 
-<p><strong><font size="5">🚨 HUGE GRAND MEME PRIX UPDATE!</font></strong></p>
+<p><strong><font size="5">🚨 MALLEO'S MAZE UPDATE!</font></strong></p>
 
-<p><strong><font size="4">Grand Meme Prix 3D got a big fucking update man! 🏎️</font></strong></p>
+<p><strong><font size="4">Malleo's Maze got a big ass update! 🪠</font></strong></p>
 
-* The game now has FOUR tracks instead of one! We still got the old track, now named Forest Stadium, but the highlights are Beach Getaway, Twisty Tunnels, and Jungle Tour! 🏟️🏖️🚇🌳
-* You can now race with max SEVEN CPU drivers in singleplayer! 🤖🏎️
-* I.M. Meen, Duke Onkled, and Hotel Mario Mario have been added to the character roster! 😎
-* Added a leaderboard screen after the podium screen! 🥇
-* And so many other changes and improvements, I can't write them all here! 🤯
-* GO CHECK IT OUT NOW! 🔫
-
----
-
-<p><strong><font size="5">🚨 PHILIPS CD-i SOUNDBOARD UPDATE!</font></strong></p>
-
-<p><strong><font size="4">Philips CD-i Soundboard got a big ass update! 💿️</font></strong></p>
-
-* The entire site's CSS has been redesigned with a new fucking CRT filter overlay! 📺️
-* Each character now has their own unique gradient ring around their buttons! 💍
-* Added several new sounds as well! 📣
+* Brand new textures! 🖼️
+* It's now really fucking dark in the maze and you got a flashlight now! 🌑🔦
+* Weegee will now sometimes come to help out Malleo! 😱
+* Coin bags are scattered around the maze now! 💰️🪙
+* You can spend the new coins at Toad's Shop in the maze for items! 🍄
 * GO CHECK IT OUT NOW! 🔫
 
 ---

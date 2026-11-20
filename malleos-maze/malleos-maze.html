@@ -21,18 +21,22 @@
           <div class="objective-line"><img class="objective-icon" src="./assets/collectibles/fireflower.png" alt=""><span id="item-count">0 / 6</span><span class="objective-label">fireflowers</span></div>
           <div class="item-track"><span id="item-progress"></span></div>
           <div class="objective-footer">THEN RUN TO THE EXIT, GENIUS</div>
+          <div class="coin-counter"><img src="./assets/collectibles/coin-bag.png" alt=""><span>COINS</span><strong id="coin-count">0</strong></div>
         </div>
-        <div id="malleo-status" class="level-tag"><span class="signal-dot"></span>MALLEO <b>AT LARGE</b></div>
+        <div class="enemy-statuses">
+          <div id="malleo-status" class="level-tag"><span class="signal-dot"></span>MALLEO <b>AT LARGE</b></div>
+          <div id="weegee-status" class="level-tag inactive" aria-hidden="true"><span class="signal-dot"></span>WEEGEE <b>AT LARGE</b></div>
+        </div>
       </div>
       <div id="pickup-toast" role="status"></div>
       <div id="malleo-warning" aria-live="assertive"><span>!!!</span> MALLEO IS CLOSE <span>!!!</span></div>
       <div id="crosshair" aria-hidden="true"><i></i><b></b></div>
-      <div id="minimap-panel" role="img" aria-label="Maze map. Your position and direction are shown by a yellow arrow. Malleo appears as a flashing red dot when nearby.">
+      <div id="minimap-panel" role="img" aria-label="Maze map. Your position and direction are shown by a yellow arrow. Malleo and Weegee appear as flashing colored dots when nearby. A blue pulsing dot marks Toad after two minutes if he has not been found.">
         <span class="minimap-title">MAZE MAP</span>
         <canvas id="minimap" width="248" height="248" aria-hidden="true"></canvas>
       </div>
       <div class="hud-bottom">
-        <div id="hint">WASD <span>MOVE</span><b>·</b> MOUSE <span>LOOK</span></div>
+        <div id="hint">WASD <span>MOVE</span><b>·</b> MOUSE <span>LOOK</span><b>·</b> F <span class="flashlight-state">LIGHT ON</span></div>
         <div id="stamina-panel" class="stamina-panel">
           <div class="stamina-heading"><span>SPRINT JUICE</span><strong id="stamina-state">FULL</strong></div>
           <div class="stamina-track" role="meter" aria-label="Sprint stamina" aria-valuemin="0" aria-valuemax="20" aria-valuenow="20">
@@ -52,17 +56,51 @@
       </div>
     </section>
 
+    <section id="toad-dialogue" class="toad-dialogue hidden" role="dialog" aria-modal="false" aria-labelledby="toad-dialogue-title">
+      <div class="toad-dialogue-card">
+        <div id="toad-dialogue-title" class="toad-card-title">TOAD SAYS</div>
+        <p>Hey dude! Welcome to my little shop! I will sell you some shit to get you through this place, but only if you got some of those nice coins on ya!</p>
+        <div class="toad-card-hint">PRESS E TO CONTINUE</div>
+      </div>
+    </section>
+
+    <section id="toad-shop" class="toad-shop hidden" role="dialog" aria-modal="false" aria-labelledby="toad-shop-title">
+      <div class="toad-shop-card">
+        <div class="toad-shop-heading">
+          <div id="toad-shop-title" class="toad-card-title">TOAD'S LITTLE SHOP</div>
+          <div class="toad-shop-balance"><img src="./assets/collectibles/coin-bag.png" alt=""><strong id="toad-shop-coins">0 COINS</strong></div>
+        </div>
+        <div class="toad-shop-items">
+          <button class="toad-shop-item" type="button" data-shop-item="energy-drink">
+            <img class="toad-shop-icon" src="./assets/items/energy-drink-can.png" alt="">
+            <span>ENERGY DRINK</span><strong>10 COINS</strong><small><b data-shop-stock>5</b> LEFT THIS GAME</small>
+          </button>
+          <button class="toad-shop-item" type="button" data-shop-item="banana-peel">
+            <img class="toad-shop-icon" src="./assets/items/banana-peel.png" alt="">
+            <span>BANANA PEEL</span><strong>25 COINS</strong><small><b data-shop-stock>3</b> IN STOCK</small>
+          </button>
+          <button class="toad-shop-item" type="button" data-shop-item="fireflower-tracker">
+            <img class="toad-shop-icon" src="./assets/items/fireflower-tracker.png" alt="">
+            <span>FIREFLOWER TRACKER</span><strong>50 COINS</strong><small><b data-shop-stock>1</b> IN STOCK</small>
+          </button>
+        </div>
+        <p id="toad-shop-status" role="status">Purchases go into an empty hotbar slot.</p>
+        <div class="toad-card-hint">PRESS E TO LEAVE</div>
+      </div>
+    </section>
+
     <section id="menu" class="menu-screen">
       <div class="menu-card">
         <div class="menu-kicker"><span class="kicker-line"></span>ONE MAZE. ONE WEIRD GUY.<span class="kicker-line"></span></div>
         <h1 id="menu-title">MALLEO'S<br><span>MAZE!</span></h1>
-        <p id="menu-description">Six fireflowers. One extremely suspicious plumber.<br>Find the flowers, find the exit, do NOT get bonked.</p>
+        <p id="menu-description">Six fireflowers. Two extremely suspicious plumbers.<br>Find the flowers, find the exit, do NOT get bonked.</p>
         <button id="menu-button" type="button"><span>OKAY, I'M GOING IN</span><b>▶</b></button>
         <button id="main-menu-button" type="button">BACK TO MAIN MENU</button>
         <div class="menu-controls">
           <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> MOVE</span>
           <span><kbd>MOUSE</kbd> LOOK</span>
           <span><kbd>SHIFT</kbd> SPRINT</span>
+          <span><kbd>F</kbd> TOGGLE FLASHLIGHT</span>
           <span><kbd>E</kbd> OPEN EXIT</span>
           <span><kbd>ESC</kbd> PAUSE</span>
           <span><kbd>1-6</kbd><kbd>WHEEL</kbd> SELECT ITEM</span>
@@ -74,6 +112,8 @@
       <a href="https://youtube.com/@that1dutchguy" id="creator-link" target="_blank" rel="noopener noreferrer">Created by That One Dutch Guy</a>
       <div class="menu-sticker" aria-hidden="true">HE'S<br>RIGHT<br>THERE!!</div>
       <img class="menu-malleo" src="./assets/malleo/Malleo.png" alt="">
+      <div class="weegee-sticker" aria-hidden="true">WHEN MALLEO<br>LOSES YOUR TRAIL,<br>WEEGEE PICKS IT UP.</div>
+      <img class="menu-weegee" src="./assets/weegee/Weegee.png" alt="">
       <div class="menu-grain" aria-hidden="true"></div>
     </section>
 
@@ -93,7 +133,7 @@
         <div class="ending-mark">🌼</div>
         <div class="eyebrow">SOMEHOW, YOU SURVIVED</div>
         <h2>YOU BEAT<br><span>MALLEO'S MAZE!</span></h2>
-        <p>Six fireflowers collected. One Malleo absolutely fuming.</p>
+        <p id="ending-description">Six fireflowers collected. One Malleo absolutely fuming.</p>
         <button id="restart-button" type="button">RUN IT BACK <b>▶</b></button>
       </div>
     </div>
@@ -101,9 +141,9 @@
     <div id="caught" class="ending-screen hidden" aria-live="assertive">
       <div class="ending-card caught-card">
         <div class="eyebrow">BONKED. ABSOLUTELY BONKED.</div>
-        <img class="caught-malleo" src="./assets/malleo/Malleo.png" alt="Malleo caught you">
-        <h2>MALLEO<br><span>GOT YOU!</span></h2>
-        <p>Skill issue? Maybe. Maze issue? Also maybe.</p>
+        <img id="caught-enemy-image" class="caught-malleo" src="./assets/malleo/Malleo.png" alt="Malleo caught you">
+        <h2 id="caught-title">MALLEO<br><span>GOT YOU!</span></h2>
+        <p id="caught-description">Skill issue? Maybe. Maze issue? Also maybe.</p>
         <button id="caught-button" type="button">ONE MORE TRY <b>▶</b></button>
       </div>
     </div>
