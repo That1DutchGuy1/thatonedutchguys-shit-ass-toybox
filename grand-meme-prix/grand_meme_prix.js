@@ -24,17 +24,19 @@ const CHARACTERS = [
   { name: "Zelda",         img: "./assets/characters/Zelda.png",          color: 0xFF00AA, lightbarColor: 0xFF00CC, voicelines: ['assets/voicelines/zelda-hit.mp3', 'assets/voicelines/zelda-win.mp3', 'assets/voicelines/zelda-lose.mp3'] }, // hot pink
   { name: "Longcat",       img: "./assets/characters/Longcat.png",        color: 0xDEDEDE, lightbarColor: 0xDEDEDE, voicelines: ['assets/voicelines/longcat-hit.mp3', 'assets/voicelines/longcat-win.mp3', 'assets/voicelines/longcat-lose.mp3'] }, // creamy white
   { name: "Rick Astley",   img: "./assets/characters/Rick-Astley.png",    color: 0x363030, lightbarColor: 0x363030, voicelines: ['assets/voicelines/rick-astley-hit.mp3', 'assets/voicelines/rick-astley-win.mp3', 'assets/voicelines/rick-astley-lose.mp3'] }, // almost black
-  { name: "Weegee",        img: "./assets/characters/Weegee.png",         color: 0x4c7e66, lightbarColor: 0x33cc66, voicelines: ['assets/voicelines/weegee-hit.mp3', 'assets/voicelines/weegee-win.mp3', 'assets/voicelines/weegee-lose.mp3'] }, // emerald green (distinct from Mama Luigi green)
+  { name: "Weegee",        img: "./assets/characters/Weegee.png",         color: 0x4c7e66, lightbarColor: 0x33cc66, voicelines: ['assets/voicelines/weegee-hit.mp3', 'assets/voicelines/weegee-win.mp3', 'assets/voicelines/weegee-lose.mp3'] }, // emerald green
   { name: "Morshu",        img: "./assets/characters/Morshu.png",         color: 0xFF8000, lightbarColor: 0xFFA500, voicelines: ['assets/voicelines/morshu-hit.mp3', 'assets/voicelines/morshu-win.mp3', 'assets/voicelines/morshu-lose.mp3'] }, // orange
   { name: "Malleo",        img: "./assets/characters/Malleo.png",         color: 0xb30c0c, lightbarColor: 0xFF0000, voicelines: ['assets/voicelines/malleo-hit.mp3', 'assets/voicelines/malleo-win.mp3', 'assets/voicelines/malleo-lose.mp3'] }, // red
   { name: "Mayor Cravendish", img: "./assets/characters/Mayor-Cravendish.png", color: 0x0fa4c8, lightbarColor: 0x0000FF, voicelines: ['assets/voicelines/mayor-cravendish-hit.mp3', 'assets/voicelines/mayor-cravendish-win.mp3', 'assets/voicelines/mayor-cravendish-lose.mp3'] }, // blue
   { name: "Ganon",          img: "./assets/characters/Ganon.png",           color: 0x3C0008, lightbarColor: 0x5D100A, voicelines: ['assets/voicelines/ganon-hit.mp3', 'assets/voicelines/ganon-win.mp3', 'assets/voicelines/ganon-lose.mp3'] }, // maroon
   { name: "Michael Rosen",     img: "./assets/characters/Michael-Rosen.png",    color: 0x708090, lightbarColor: 0xC0C0C0, voicelines: ['assets/voicelines/michael-rosen-hit.mp3', 'assets/voicelines/michael-rosen-win.mp3', 'assets/voicelines/michael-rosen-lose.mp3'] }, // grey
   { name: "Link",         img: "./assets/characters/Link.png",          color: 0x00FF00, lightbarColor: 0x00FF00, voicelines: ['assets/voicelines/link-hit.mp3', 'assets/voicelines/link-win.mp3', 'assets/voicelines/link-lose.mp3'] }, // bright green
-  { name: "Dr. Robotnik" , img: "./assets/characters/Dr-Robotnik.png", color: 0xfc5a03, lightbarColor: 0xff5900, voicelines: ['assets/voicelines/dr-robotnik-hit.mp3', 'assets/voicelines/dr-robotnik-win.mp3', 'assets/voicelines/dr-robotnik-lose.mp3'] }, // red
+  { name: "Dr. Robotnik" , img: "./assets/characters/Dr-Robotnik.png", color: 0xfc5a03, lightbarColor: 0xff5900, voicelines: ['assets/voicelines/dr-robotnik-hit.mp3', 'assets/voicelines/dr-robotnik-win.mp3', 'assets/voicelines/dr-robotnik-lose.mp3'] }, // bright orange
   { name: "I.M. Meen", img: "./assets/characters/I-M-Meen.png", color: 0x9000ff, lightbarColor: 0x9716fa, voicelines: ['assets/voicelines/im-meen-hit.mp3', 'assets/voicelines/im-meen-win.mp3', 'assets/voicelines/im-meen-lose.mp3'] }, // purple
   { name: "Duke Onkled", img: "./assets/characters/Duke-Onkled.png", color: 0xfcbe4c, lightbarColor: 0xf7ac20, voicelines: ['assets/voicelines/duke-onkled-hit.mp3', 'assets/voicelines/duke-onkled-win.mp3', 'assets/voicelines/duke-onkled-lose.mp3'] }, // golden
   { name: "Hotel Mario", img: "./assets/characters/Hotel-Mario.png", color: 0xFF0000, lightbarColor: 0xFF0000, voicelines: ['assets/voicelines/hotel-mario-hit.mp3', 'assets/voicelines/hotel-mario-win.mp3', 'assets/voicelines/hotel-mario-lose.mp3'] }, // red
+  { name: "Impa", img: "./assets/characters/Impa.png", color: 0x1830d0, lightbarColor: 0x141478, voicelines: ['assets/voicelines/impa-hit.mp3', 'assets/voicelines/impa-win.mp3', 'assets/voicelines/impa-lose.mp3'] }, // blue
+  { name: "Lord Kiro", img: "./assets/characters/Lord-Kiro.png", color: 0x98511d, lightbarColor: 0x593314, voicelines: ['assets/voicelines/lord-kiro-hit.mp3', 'assets/voicelines/lord-kiro-win.mp3', 'assets/voicelines/lord-kiro-lose.mp3'] }, // brown
 ];
 
 // =============================================
@@ -68,6 +70,8 @@ const HALL_OF_MEMES = [
   { img: "../meme-claw-machine/memes/Bad-Luck-Brian.png"},
   { img: "./assets/characters/Duke-Onkled.png" },
   { img: "./assets/characters/I-M-Meen.png" },
+  { img: "./assets/characters/Impa.png" },
+  { img: "./assets/characters/Lord-Kiro.png" }
 ];
 
 // =============================================
@@ -1589,6 +1593,7 @@ function initKartBumpPhysics() {
       allowSleep: false,
     });
     body.position.set(player.kart.position.x, 0, player.kart.position.z);
+    body._kartBumpCollisionFilterMask = body.collisionFilterMask;
     body._inputVelocity = new CannonVec3();
     kartBumpWorld.addBody(body);
     return body;
@@ -1596,14 +1601,74 @@ function initKartBumpPhysics() {
 }
 
 function getKartCollisionScale(player) {
+  if (isBulletBillActive(player)) return BULLET_BILL_COLLISION_SCALE;
   return player.lightningTimer > 0 ? TINY_KART_COLLISION_SCALE : 1;
+}
+
+const HIT_INVINCIBILITY_DURATION = 2;
+
+function isHitInvincible(player) {
+  return player.hitInvincibilityTimer > 0;
+}
+
+function markHitInvincibilityPending(player) {
+  player.hitInvincibilityPending = true;
+}
+
+function updateHitInvincibilityTimers(delta) {
+  for (const player of players) {
+    if (player.hitInvincibilityTimer > 0) {
+      player.hitInvincibilityTimer = Math.max(0, player.hitInvincibilityTimer - delta);
+    }
+    if (player.hitInvincibilityPending
+      && player.spinoutTimer <= 0
+      && player.stunTimer <= 0
+      && player.bombAirborneTimer <= 0) {
+      player.hitInvincibilityPending = false;
+      player.hitInvincibilityTimer = HIT_INVINCIBILITY_DURATION;
+    }
+  }
 }
 
 function getKartBumpRadius(player) {
   return KART_BUMP_RADIUS * getKartCollisionScale(player);
 }
 
+function updateBulletBillCollisions() {
+  for (let i = 0; i < players.length; i++) {
+    for (let j = i + 1; j < players.length; j++) {
+      const first = players[i];
+      const second = players[j];
+      const bill = isBulletBillActive(first) ? first : isBulletBillActive(second) ? second : null;
+      const target = bill === first ? second : bill === second ? first : null;
+      if (!bill || !target || isBulletBillActive(target)
+        || target.finishTime !== null || target.starTimer > 0) continue;
+      if (target.spinoutTimer > 0 || target.bombAirborneTimer > 0 || isHitInvincible(target)) continue;
+
+      const dx = target.kart.position.x - bill.kart.position.x;
+      const dz = target.kart.position.z - bill.kart.position.z;
+      const distance = Math.hypot(dx, dz);
+      if (distance >= getKartBumpRadius(bill) + getKartBumpRadius(target)) continue;
+
+      const directionX = distance > 0.001 ? dx / distance : Math.sin(bill.angle);
+      const directionZ = distance > 0.001 ? dz / distance : Math.cos(bill.angle);
+      target.kart.position.x += directionX * 1.4;
+      target.kart.position.z += directionZ * 1.4;
+      target.angle = Math.atan2(directionX, directionZ);
+      target.kart.rotation.y = target.angle;
+      target.spinoutTimer = 1.65;
+      target.spinoutAngle = 0;
+      target.stunTimer = 1.65;
+      markHitInvincibilityPending(target);
+      target.speed *= 0.3;
+      playSlipSound();
+      playHitVoicelineForPlayer(target);
+    }
+  }
+}
+
 function updateKartBumpPhysics(delta) {
+  updateBulletBillCollisions();
   if (!kartBumpWorld || kartBumpBodies.length !== players.length) return;
 
   players.forEach((player, index) => {
@@ -1622,6 +1687,7 @@ function updateKartBumpPhysics(delta) {
       body.velocity.set(0, 0, 0);
       return;
     }
+    body.collisionFilterMask = isBulletBillActive(player) ? 0 : body._kartBumpCollisionFilterMask;
     const velocity = body._inputVelocity;
     velocity.set(
       Math.sin(player.angle) * player.speed,
@@ -1642,6 +1708,7 @@ function updateKartBumpPhysics(delta) {
     for (let j = i + 1; j < players.length; j++) {
       const dx = players[i].kart.position.x - players[j].kart.position.x;
       const dz = players[i].kart.position.z - players[j].kart.position.z;
+      if (isBulletBillActive(players[i]) || isBulletBillActive(players[j])) continue;
       const contactDistance = (getKartBumpRadius(players[i]) + getKartBumpRadius(players[j])) * 1.025;
       if (dx * dx + dz * dz < contactDistance * contactDistance) {
         contactPossible = true;
@@ -1675,6 +1742,7 @@ function updateKartBumpPhysics(delta) {
     for (let j = i + 1; j < players.length; j++) {
       const first = players[i];
       const second = players[j];
+      if (isBulletBillActive(first) || isBulletBillActive(second)) continue;
       const contactDistance = getKartBumpRadius(first) + getKartBumpRadius(second);
       if (first.kart.position.distanceTo(second.kart.position) >= contactDistance) continue;
 
@@ -1682,11 +1750,12 @@ function updateKartBumpPhysics(delta) {
         : second.starTimer > 0 && first.starTimer <= 0 ? second
         : null;
       const target = starPlayer === first ? second : starPlayer === second ? first : null;
-      if (!target || target.spinoutTimer > 0) continue;
+      if (!target || target.spinoutTimer > 0 || isHitInvincible(target)) continue;
 
       target.spinoutTimer = 3.0;
       target.spinoutAngle = 0;
       target.stunTimer = 3.0;
+      markHitInvincibilityPending(target);
       target.speed *= 0.4;
       starPlayer.speed *= 0.92;
       playSlipSound();
@@ -2756,6 +2825,103 @@ function makeItemBox() {
   return group;
 }
 
+function makeBulletBillModel() {
+  const group = new THREE.Group();
+  group.position.y = -0.7;
+  group.scale.setScalar(1.55);
+  const lowPolySphere = (radius, widthSegments, heightSegments) => {
+    const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments).toNonIndexed();
+    geometry.computeVertexNormals();
+    return geometry;
+  };
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0x17191b });
+  const whiteMat = new THREE.MeshLambertMaterial({ color: 0xf2f2ed });
+  const pupilMat = new THREE.MeshLambertMaterial({ color: 0x090a0b });
+
+  const body = new THREE.Mesh(lowPolySphere(1, 10, 7), bodyMat);
+  body.scale.set(0.78, 0.7, 1.38);
+  body.position.y = 0.65;
+  group.add(body);
+
+  for (const side of [-1, 1]) {
+    const eye = new THREE.Mesh(lowPolySphere(1, 8, 6), whiteMat);
+    eye.scale.set(0.14, 0.17, 0.09);
+    eye.position.set(side * 0.69, 0.86, 0.54);
+    group.add(eye);
+
+    const pupil = new THREE.Mesh(lowPolySphere(1, 7, 5), pupilMat);
+    pupil.scale.set(0.055, 0.07, 0.05);
+    pupil.position.set(side * 0.79, 0.85, 0.59);
+    group.add(pupil);
+
+    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.07, 0.1), bodyMat);
+    brow.position.set(side * 0.69, 1.01, 0.53);
+    brow.rotation.z = side * -0.18;
+    group.add(brow);
+
+    const cuff = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.13, 0.16, 0.26, 6),
+      whiteMat
+    );
+    cuff.rotation.z = Math.PI / 2;
+    cuff.position.set(side * 0.7, 0.43, 0.75);
+    group.add(cuff);
+
+    const fist = new THREE.Mesh(lowPolySphere(0.32, 7, 5), whiteMat);
+    fist.scale.set(0.92, 0.82, 0.8);
+    fist.position.set(side * 0.82, 0.4, 0.84);
+    group.add(fist);
+
+    for (let knuckle = 0; knuckle < 3; knuckle++) {
+      const finger = new THREE.Mesh(lowPolySphere(0.1, 6, 4), whiteMat);
+      finger.position.set(side * (0.82 + (knuckle - 1) * 0.13), 0.47, 0.99);
+      group.add(finger);
+    }
+  }
+
+  const nozzle = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.38, 0.48, 10),
+    new THREE.MeshLambertMaterial({ color: 0x3c3e40 })
+  );
+  nozzle.rotation.x = -Math.PI / 2;
+  nozzle.position.set(0, 0.65, -1.48);
+  group.add(nozzle);
+
+  const nozzleRim = new THREE.Mesh(
+    new THREE.TorusGeometry(0.3, 0.08, 6, 10),
+    new THREE.MeshLambertMaterial({ color: 0x777777 })
+  );
+  nozzleRim.position.set(0, 0.65, -1.73);
+  group.add(nozzleRim);
+
+  const nozzleOpening = new THREE.Mesh(
+    new THREE.CircleGeometry(0.26, 10),
+    new THREE.MeshBasicMaterial({ color: 0x080808, side: THREE.DoubleSide })
+  );
+  nozzleOpening.position.set(0, 0.65, -1.74);
+  group.add(nozzleOpening);
+
+  const flameOuter = new THREE.Mesh(
+    new THREE.ConeGeometry(0.34, 1.1, 8),
+    new THREE.MeshBasicMaterial({ color: 0xff4a08 })
+  );
+  flameOuter.rotation.x = -Math.PI / 2;
+  flameOuter.position.set(0, 0.65, -2.03);
+  group.add(flameOuter);
+
+  const flameCore = new THREE.Mesh(
+    new THREE.ConeGeometry(0.2, 0.82, 8),
+    new THREE.MeshBasicMaterial({ color: 0xffdf45 })
+  );
+  flameCore.rotation.x = -Math.PI / 2;
+  flameCore.position.set(0, 0.65, -1.92);
+  group.add(flameCore);
+  group.userData.flameOuter = flameOuter;
+  group.userData.flameCore = flameCore;
+
+  return group;
+}
+
 // =============================================
 // KART BUILDER
 // =============================================
@@ -2871,9 +3037,7 @@ function buildKart(charIndex, scene) {
   cwFloor.position.set(0, 0.34, 0.25);
   group.add(cwFloor);
 
-  // ── Character initial on tub nose ────────────────────────────────────────
-  // Small Comic Sans letter on a flat canvas plane, sits on top of the tub
-  // near the nose cone.
+  // Comic Sans initials for the front wing.
   const initialCanvas = document.createElement('canvas');
   initialCanvas.width  = 128;
   initialCanvas.height = 128;
@@ -2886,10 +3050,36 @@ function buildKart(charIndex, scene) {
   ictx.fillText(char.name.charAt(0).toUpperCase(), 64, 64);
   const initialTex = new THREE.CanvasTexture(initialCanvas);
   const initialMat = new THREE.MeshBasicMaterial({ map: initialTex, transparent: true, depthWrite: false });
-  const initialPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.55), initialMat);
-  initialPlane.rotation.x = -Math.PI / 2; // lay flat on top of tub
-  initialPlane.position.set(0, 0.43, 1.3); // near the nose, on top of tub
-  group.add(initialPlane);
+  function makeInitialPlane(size) {
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(size, size), initialMat);
+    plane.rotation.x = -Math.PI / 2;
+    return plane;
+  }
+  for (const side of [-1, 1]) {
+    const frontWingInitial = makeInitialPlane(0.32);
+    frontWingInitial.position.set(side * 0.65, 0.032, 0);
+    fwMain.add(frontWingInitial);
+  }
+
+  const nameCanvas = document.createElement('canvas');
+  nameCanvas.width = 512;
+  nameCanvas.height = 128;
+  const nameCtx = nameCanvas.getContext('2d');
+  nameCtx.clearRect(0, 0, nameCanvas.width, nameCanvas.height);
+  const nameFontFamily = '"Comic Sans MS", "Comic Sans", cursive';
+  let nameFontSize = 88;
+  nameCtx.font = `bold ${nameFontSize}px ${nameFontFamily}`;
+  const nameWidth = nameCtx.measureText(char.name).width;
+  if (nameWidth > 480) {
+    nameFontSize *= 480 / nameWidth;
+    nameCtx.font = `bold ${nameFontSize}px ${nameFontFamily}`;
+  }
+  nameCtx.fillStyle = '#111111';
+  nameCtx.textAlign = 'center';
+  nameCtx.textBaseline = 'middle';
+  nameCtx.fillText(char.name, nameCanvas.width / 2, nameCanvas.height / 2);
+  const nameTex = new THREE.CanvasTexture(nameCanvas);
+  const nameMat = new THREE.MeshBasicMaterial({ map: nameTex, transparent: true, depthWrite: false });
 
   // Front fairing — slopes up from nose to cockpit (purely visual wedge)
   const fairingGeo = new THREE.CylinderGeometry(0.25, 0.55, 0.6, 8, 1, false, Math.PI * 0.1, Math.PI * 0.8);
@@ -3014,6 +3204,45 @@ function buildKart(charIndex, scene) {
   bolsterR.position.set( 0.56, 0.62, 0.2);
   group.add(bolsterR);
 
+  // Steering column and wheel, mounted just ahead of the seat.
+  const steeringColumnMat = new THREE.MeshLambertMaterial({ color: 0x444444 });
+  const steeringColumn = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.045, 0.06, 0.62, 10),
+    steeringColumnMat
+  );
+  steeringColumn.position.set(0, 0.614, 1.387);
+  steeringColumn.rotation.x = -0.65;
+  group.add(steeringColumn);
+
+  const steeringWheel = new THREE.Group();
+  steeringWheel.position.set(0, 0.86, 1.2);
+  steeringWheel.rotation.y = Math.PI;
+  steeringWheel.rotation.z = Math.PI;
+  const steeringWheelMat = new THREE.MeshLambertMaterial({ color: 0x181818 });
+  const steeringSpokeMat = new THREE.MeshLambertMaterial({ color: 0x888888 });
+  const steeringRim = new THREE.Mesh(
+    new THREE.TorusGeometry(0.27, 0.035, 8, 24),
+    steeringWheelMat
+  );
+  steeringWheel.add(steeringRim);
+  for (const angle of [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3]) {
+    const spoke = new THREE.Mesh(
+      new THREE.BoxGeometry(0.035, 0.23, 0.045),
+      steeringSpokeMat
+    );
+    spoke.position.set(Math.sin(angle) * 0.115, Math.cos(angle) * 0.115, 0);
+    spoke.rotation.z = -angle;
+    steeringWheel.add(spoke);
+  }
+  const steeringHub = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.065, 0.065, 0.08, 12),
+    steeringSpokeMat
+  );
+  steeringHub.rotation.x = Math.PI / 2;
+  steeringWheel.add(steeringHub);
+  group.add(steeringWheel);
+  group.userData.steeringWheel = steeringWheel;
+
   // 3D Spoiler — two uprights + horizontal wing blade at the rear
   const spoilerMat  = new THREE.MeshLambertMaterial({ color: char.color });
   const spoilerDark = new THREE.MeshLambertMaterial({ color: 0x111111 });
@@ -3035,6 +3264,10 @@ function buildKart(charIndex, scene) {
   wing.position.set(0, 1.02, -1.55);
   wing.rotation.x = Math.PI * 0.18; // ~32° tilt so it reads as a raised wing
   group.add(wing);
+  const rearWingName = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.45), nameMat);
+  rearWingName.rotation.x = -Math.PI / 2;
+  rearWingName.position.set(0, 0.052, 0);
+  wing.add(rearWingName);
 
   // Thin end plates on each tip of the blade
   const endPlateGeo = new THREE.BoxGeometry(0.08, 0.28, 0.55);
@@ -3151,6 +3384,18 @@ function buildKart(charIndex, scene) {
   blobShadow.renderOrder = 2;
   group.add(blobShadow);
 
+  const bulletBillModel = makeBulletBillModel();
+  bulletBillModel.visible = false;
+  bulletBillModel.traverse(obj => {
+    if (obj.isMesh) {
+      obj.castShadow = settings.shadows;
+      obj.receiveShadow = settings.shadows;
+    }
+  });
+  group.add(bulletBillModel);
+  group.userData.bulletBillModel = bulletBillModel;
+  group.userData.regularParts = group.children.filter(child => child !== bulletBillModel);
+
   scene.add(group);
   return group;
 }
@@ -3177,8 +3422,13 @@ function createPlayer(charIndex, startPos, startAngle, scene) {
     stunTimer: 0,
     spinoutTimer: 0,   // > 0 while spinning from a banana
     spinoutAngle: 0,   // accumulated extra rotation during spinout
+    hitInvincibilityTimer: 0,
+    hitInvincibilityPending: false,
     bananaImmune: 0,   // > 0 = immune to banana peels (just threw one)
     starTimer: 0,      // > 0 while star power-up is active (10s)
+    bulletBillTimer: 0,
+    bulletBillRecoveryTimer: 0,
+    bulletBillRecoverySpeed: 0,
     boostTimer: 0,     // > 0 while boost is active (3s)
     charIndex,
     camDist: 14,
@@ -3351,8 +3601,31 @@ const ITEMS_WEIGHTED = [
   '💣 Bomb',   '💣 Bomb',
   '⚡ Lightning', '⚡ Lightning',
   '🔵 Blue Shell',
+  '🚀 Bullet Bill',
 ];
 const ITEMS = ITEMS_WEIGHTED; // kept for any external references
+
+const BULLET_BILL_SPEED_MULTIPLIER = { 50: 1.68, 100: 1.58, 150: 1.5 };
+const BULLET_BILL_COLLISION_SCALE = 1.8;
+
+function getBulletBillDuration(place) {
+  if (place <= 1) return 5;
+  if (place === 2) return 7;
+  if (place === 3) return 9;
+  if (place === 4) return 11;
+  return 13;
+}
+
+function isBulletBillActive(player) {
+  return player.bulletBillTimer > 0;
+}
+
+function setKartBulletBillForm(kart, active) {
+  const { bulletBillModel, regularParts } = kart.userData;
+  if (!bulletBillModel || !regularParts) return;
+  regularParts.forEach(part => { part.visible = !active; });
+  bulletBillModel.visible = active;
+}
 
 // =============================================
 // BANANA PEELS — live 3D objects in world space
@@ -3454,7 +3727,7 @@ function updateBananaPeels(delta, playersArr) {
     // no other player can also trigger off it in the same frame.
     for (const player of playersArr) {
       if (!peel.active) break; // already consumed this frame — stop immediately
-      if (player.bananaImmune > 0) continue;
+      if (player.bananaImmune > 0 || isBulletBillActive(player)) continue;
       if (player.stunTimer > 0) continue;
 
       const dist = player.kart.position.distanceTo(peel.position);
@@ -3465,12 +3738,13 @@ function updateBananaPeels(delta, playersArr) {
         if (peel.mesh2) scenes[1].remove(peel.mesh2);
 
         // Star-powered player destroys the peel — no damage, no spinout!
-        if (player.starTimer > 0) break;
+        if (player.starTimer > 0 || isHitInvincible(player)) break;
 
         // Now apply spinout to the player who hit it
         player.spinoutTimer = 3.0;
         player.spinoutAngle = 0;
         player.stunTimer    = 3.0;
+        markHitInvincibilityPending(player);
         player.speed       *= 0.4;
         showSlipEffect(player);
         playSlipSound();
@@ -3834,7 +4108,7 @@ function resolveTinyKartSquishes() {
       if (!target || !target.kart || target.finishTime !== null) continue;
 
       if (target.lightningTimer <= 0) continue;
-      if (target.squishTimer > 0 || target.flatTimer > 0) continue;
+      if (target.squishTimer > 0 || target.flatTimer > 0 || isHitInvincible(target)) continue;
 
       const dx = runner.kart.position.x - target.kart.position.x;
       const dz = runner.kart.position.z - target.kart.position.z;
@@ -3872,8 +4146,8 @@ function restoreFromLightning(player) {
 
 // Apply lightning shrink + spinout to one target player
 function applyLightningToPlayer(target) {
-  if (target.finishTime !== null) return;
-  if (target.starTimer > 0) return; // star power blocks lightning
+  if (target.finishTime !== null || isHitInvincible(target)) return;
+  if (target.starTimer > 0 || isBulletBillActive(target)) return;
 
   const wasAlreadyTiny = target.lightningTimer > 0;
   target.lightningTimer = 13;
@@ -3882,6 +4156,7 @@ function applyLightningToPlayer(target) {
   target.spinoutTimer = 2.5;
   target.spinoutAngle = 0;
   target.stunTimer    = 2.5;
+  markHitInvincibilityPending(target);
   target.speed       *= 0.25;
 
   // Animated shrink — from current scale down to 0.5
@@ -3920,7 +4195,7 @@ function triggerLightningStrike(thrower) {
   targets.forEach((target, idx) => {
     // Stagger bolts slightly for dramatic effect (50ms apart)
     setTimeout(() => {
-      if (!raceRunning) return;
+      if (!raceRunning || isHitInvincible(target)) return;
       spawnLightningVFX(target);
       playLightningStrikeSound();
       applyLightningToPlayer(target);
@@ -4037,7 +4312,8 @@ function playBombExplosionSound() {
 }
 
 function launchPlayerFromBlast(player, origin, blastRadius, playHitVoice = true) {
-  if (player.finishTime !== null || player.bombAirborneTimer > 0) return false;
+  if (player.finishTime !== null || player.bombAirborneTimer > 0
+    || isBulletBillActive(player) || isHitInvincible(player)) return false;
   const dx = player.kart.position.x - origin.x;
   const dz = player.kart.position.z - origin.z;
   const distance = Math.hypot(dx, dz) || 1;
@@ -4052,6 +4328,7 @@ function launchPlayerFromBlast(player, origin, blastRadius, playHitVoice = true)
   player.speed = 0;
   player.stunTimer = BOMB_AIRBORNE_DURATION;
   player.spinoutTimer = 0;
+  markHitInvincibilityPending(player);
   player.kart.rotation.z = 0;
   if (playHitVoice) playHitVoicelineForPlayer(player);
   return true;
@@ -4072,7 +4349,7 @@ function explodeBomb(bomb) {
   playBombExplosionSound();
 
   for (const player of players) {
-    if (player.starTimer > 0) continue;
+    if (player.starTimer > 0 || isBulletBillActive(player) || isHitInvincible(player)) continue;
     const dx = player.kart.position.x - bomb.position.x;
     const dz = player.kart.position.z - bomb.position.z;
     if (dx * dx + dz * dz <= BOMB_BLAST_RADIUS * BOMB_BLAST_RADIUS) {
@@ -4507,8 +4784,12 @@ function updateRedShells(delta) {
     // ── HIT CHECK ──
     const hitDist = shell.mesh1.position.distanceTo(targetPos);
     if (hitDist < 2.4 * getKartCollisionScale(shell.target) && shell.target.stunTimer <= 0) {
+      if (isHitInvincible(shell.target)) {
+        destroyRedShell(shell);
+        return;
+      }
       // Star-powered target smashes through the shell — destroyed, no damage!
-      if (shell.target.starTimer > 0) {
+      if (shell.target.starTimer > 0 || isBulletBillActive(shell.target)) {
         destroyRedShell(shell);
         return;
       }
@@ -4516,6 +4797,7 @@ function updateRedShells(delta) {
       shell.target.spinoutTimer = 3.0;
       shell.target.spinoutAngle = 0;
       shell.target.stunTimer    = 3.0;
+      markHitInvincibilityPending(shell.target);
       shell.target.speed       *= 0.3;
       playShellHitSound();
       playHitVoicelineForPlayer(shell.target);
@@ -4632,10 +4914,11 @@ function updateGreenShells(delta) {
         const dz = target.kart.position.z - shell.mesh1.position.z;
         const hitRadius = shellRadius * getKartCollisionScale(target);
         if (dx * dx + dz * dz >= hitRadius * hitRadius) continue;
-        if (target.starTimer <= 0) {
+        if (target.starTimer <= 0 && !isBulletBillActive(target) && !isHitInvincible(target)) {
           target.spinoutTimer = 3;
           target.spinoutAngle = 0;
           target.stunTimer = 3;
+          markHitInvincibilityPending(target);
           target.speed *= 0.3;
           playShellHitSound();
           playHitVoicelineForPlayer(target);
@@ -4814,7 +5097,7 @@ function explodeBlueShell(shell, targetPosition) {
   shell.effect = { mesh1, mesh2, elapsed: 0 };
 
   for (const player of players) {
-    if (player.starTimer > 0) continue;
+    if (player.starTimer > 0 || isBulletBillActive(player)) continue;
     const dx = player.kart.position.x - origin.x;
     const dz = player.kart.position.z - origin.z;
     if (dx * dx + dz * dz <= BLUE_SHELL_BLAST_RADIUS * BLUE_SHELL_BLAST_RADIUS) {
@@ -5021,7 +5304,19 @@ function playLaunchStallSound() {
   groan.stop(audioCtx.currentTime + 1.25);
 }
 
-function getPlayerPlacements() {
+let playerPlacementsCache = null;
+let playerPlacementsCachePlayers = null;
+let playerPlacementsCacheTime = 0;
+
+function getPlayerPlacements(forceRefresh = false) {
+  const now = performance.now();
+  if (!forceRefresh
+    && playerPlacementsCache
+    && playerPlacementsCachePlayers === players
+    && now - playerPlacementsCacheTime < 100) {
+    return playerPlacementsCache;
+  }
+
   const progress = players.map(getPlayerRaceProgress);
   const ranked = players.map((_, index) => index).sort((a, b) => {
     const pa = players[a], pb = players[b];
@@ -5032,7 +5327,10 @@ function getPlayerPlacements() {
   });
   const placeOf = new Array(players.length).fill(0);
   ranked.forEach((playerIdx, rank) => { placeOf[playerIdx] = rank + 1; });
-  return { ranked, placeOf };
+  playerPlacementsCache = { ranked, placeOf };
+  playerPlacementsCachePlayers = players;
+  playerPlacementsCacheTime = now;
+  return playerPlacementsCache;
 }
 
 function getPlayerRaceProgress(player) {
@@ -5080,10 +5378,13 @@ function getPlayerRaceProgress(player) {
 
 function collectItem(player, idx) {
   if (!player.item && itemBoxes[idx].active) {
-    const playerPlace = getPlayerPlacements().placeOf[players.indexOf(player)];
-    const itemPool = playerPlace >= 2 && playerPlace <= 4
-      ? ITEMS
-      : ITEMS.filter(item => !item.includes('Blue Shell'));
+    const playerPlace = getPlayerPlacements(true).placeOf[players.indexOf(player)];
+    const itemPool = ITEMS.filter(item => {
+      if (item.includes('Bullet Bill') && playerPlace < 3) return false;
+      if (item.includes('Blue Shell') && (playerPlace < 2 || playerPlace > 4)) return false;
+      if (item.includes('Lightning') && (playerPlace < 6 || playerPlace > 8)) return false;
+      return true;
+    });
     player.item = itemPool[Math.floor(Math.random() * itemPool.length)];
     const playerIndex = players.indexOf(player);
     const isCpu = gameMode === 'solo' ? playerIndex > 0 : playerIndex >= 2;
@@ -5097,7 +5398,7 @@ function collectItem(player, idx) {
 }
 
 function findBlueShellTarget(thrower) {
-  const { ranked } = getPlayerPlacements();
+  const { ranked } = getPlayerPlacements(true);
   const targetIndex = ranked.find(index =>
     players[index] !== thrower && players[index].finishTime === null
   );
@@ -5131,7 +5432,15 @@ function findShellTarget(thrower) {
 function useItem(player, otherPlayer) {
   if (!player.item || player.itemCooldown > 0) return;
 
-  if (player.item.includes('Boost')) {
+  if (player.item.includes('Bullet Bill')) {
+    const playerPlace = getPlayerPlacements(true).placeOf[players.indexOf(player)];
+    player.bulletBillTimer = getBulletBillDuration(playerPlace);
+    player.spinoutTimer = 0;
+    player.stunTimer = 0;
+    player.launchStallTimer = 0;
+    setKartBulletBillForm(player.kart, true);
+
+  } else if (player.item.includes('Boost')) {
     player.boostTimer = 3.0; // 3 seconds of fire 🔥
     player.speed = Math.max(player.speed, MAX_SPEED * 1.3); // immediate kick
 
@@ -5166,6 +5475,62 @@ function useItem(player, otherPlayer) {
 
   player.item = null;
   player.itemCooldown = 1;
+}
+
+function updateBulletBill(player, delta) {
+  if (!isBulletBillActive(player)) return false;
+
+  player.spinoutTimer = 0;
+  player.stunTimer = 0;
+  player.bulletBillTimer = Math.max(0, player.bulletBillTimer - delta);
+
+  const trackT = closestTrackT(player.kart.position);
+  const lookaheadT = (trackT + Math.max(0.008, Math.min(0.014,
+    Math.abs(player.speed) / MAX_SPEED * 0.014))) % 1;
+  const target = ACTIVE_TRACK.curve.getPoint(lookaheadT);
+  const desiredAngle = Math.atan2(
+    target.x - player.kart.position.x,
+    target.z - player.kart.position.z
+  );
+  let angleDiff = desiredAngle - player.angle;
+  while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+  while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+  const steeringLimit = 2.55 * CC_STEERING_MULTIPLIER * delta;
+  player.angle += Math.max(-steeringLimit, Math.min(steeringLimit, angleDiff));
+
+  const speedMultiplier = BULLET_BILL_SPEED_MULTIPLIER[selectedCC] || 1.58;
+  const speedTarget = MAX_SPEED * speedMultiplier;
+  player.speed = Math.min(speedTarget, Math.max(0, player.speed) + ACCEL * 3 * delta);
+  player.kart.position.x += Math.sin(player.angle) * player.speed * delta;
+  player.kart.position.z += Math.cos(player.angle) * player.speed * delta;
+  player.kart.rotation.y = player.angle;
+  player.kart.rotation.z = 0;
+  resolveStadiumWallCollision(player);
+  updateKartTrackElevation(player, delta);
+  updateLaps(player);
+
+  const model = player.kart.userData.bulletBillModel;
+  if (model) {
+    const flamePulse = 0.9 + Math.sin(Date.now() * 0.035) * 0.16;
+    model.rotation.z = Math.sin(Date.now() * 0.018) * 0.025;
+    model.userData.flameOuter.scale.y = flamePulse;
+    model.userData.flameCore.scale.y = 1.1 - flamePulse * 0.2;
+  }
+
+  if (player.bulletBillTimer === 0) {
+    setKartBulletBillForm(player.kart, false);
+    player.bulletBillRecoveryTimer = 2;
+    player.bulletBillRecoverySpeed = Math.max(player.speed, MAX_SPEED);
+  }
+  return true;
+}
+
+function getSpeedCapWithBulletBillRecovery(player, normalSpeedCap) {
+  if (player.bulletBillRecoveryTimer <= 0) return normalSpeedCap;
+  const recoveryFraction = player.bulletBillRecoveryTimer / 2;
+  const recoverySpeedCap = MAX_SPEED
+    + Math.max(0, player.bulletBillRecoverySpeed - MAX_SPEED) * recoveryFraction;
+  return Math.max(normalSpeedCap, recoverySpeedCap);
 }
 
 function showHitEffect(player) {
@@ -5276,6 +5641,8 @@ function updatePlayer(player, binds, delta, otherPlayer) {
     player.speed        = 0;
   }
 
+  if (updateBulletBill(player, delta)) return;
+
   // ── Spinout from banana peel ──
   const spinning = player.spinoutTimer > 0;
   if (spinning) {
@@ -5366,11 +5733,12 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   // Lightning halves the extra speed from active Star and Boost items while the
   // racer is small; the multiplier returns to 1 when the kart grows back.
   const lightningBoostMultiplier = player.lightningTimer > 0 ? 0.5 : 1;
-  const speedCap = player.starTimer > 0 ? MAX_SPEED * 1.55 * lightningBoostMultiplier * squashPenalty
+  const normalSpeedCap = player.starTimer > 0 ? MAX_SPEED * 1.55 * lightningBoostMultiplier * squashPenalty
                  : player.launchBoostTimer > 0 ? MAX_SPEED * 1.38 * squashPenalty
                  : player.boostTimer > 0 ? MAX_SPEED * 1.4 * lightningBoostMultiplier * squashPenalty
                  : player.lightningTimer > 0 ? MAX_SPEED * 0.5 * squashPenalty
                  : MAX_SPEED * squashPenalty;
+  const speedCap = getSpeedCapWithBulletBillRecovery(player, normalSpeedCap);
   player.speed = Math.max(-6, Math.min(speedCap * speedMult, player.speed));
 
   const turnRate = Math.abs(steerInput) * STEER * CC_STEERING_MULTIPLIER
@@ -5410,6 +5778,9 @@ function updatePlayer(player, binds, delta, otherPlayer) {
   player.kart.rotation.z = spinning ? 0 : -player.speed * 0.01 * _tiltAmount;
 
   if (player.itemCooldown > 0) player.itemCooldown -= delta;
+  if (player.bulletBillRecoveryTimer > 0) {
+    player.bulletBillRecoveryTimer = Math.max(0, player.bulletBillRecoveryTimer - delta);
+  }
 
   resolveStadiumWallCollision(player);
 
@@ -5472,6 +5843,7 @@ function updateSoloAI(delta, cpuIdx) {
       if (ai.lightningTimer === 0) restoreFromLightning(ai);
     }
 
+    if (updateBulletBill(ai, delta)) return;
     drivePostFinishAI(ai, aiState, delta);
     return;
   }
@@ -5512,6 +5884,8 @@ function updateSoloAI(delta, cpuIdx) {
     ai.speed        = 0;
   }
 
+  if (updateBulletBill(ai, delta)) return;
+
   if (ai.spinoutTimer > 0) {
     ai.spinoutTimer = Math.max(0, ai.spinoutTimer - delta);
     ai.stunTimer = ai.spinoutTimer;
@@ -5533,10 +5907,12 @@ function updateSoloAI(delta, cpuIdx) {
     if (
       distToOther < 2.5 * getKartCollisionScale(ai)
       && other.starTimer > 0 && ai.starTimer <= 0 && ai.spinoutTimer <= 0
+      && !isHitInvincible(ai)
     ) {
       ai.spinoutTimer = 3.0;
       ai.spinoutAngle = 0;
       ai.stunTimer    = 3.0;
+      markHitInvincibilityPending(ai);
       ai.speed       *= 0.4;
       playSlipSound();
       break;
@@ -5711,11 +6087,15 @@ function updateSoloAI(delta, cpuIdx) {
   // Match human driving: lightning halves active Star and item Boost speed.
   const squashPenalty = ai._squashSpeedMultiplier || 1;
   const lightningBoostMultiplier = ai.lightningTimer > 0 ? 0.5 : 1;
-  const speedCap = ai.starTimer > 0 ? MAX_SPEED * 1.55 * lightningBoostMultiplier * squashPenalty
+  const normalSpeedCap = ai.starTimer > 0 ? MAX_SPEED * 1.55 * lightningBoostMultiplier * squashPenalty
     : ai.launchBoostTimer > 0 ? MAX_SPEED * 1.38 * squashPenalty
     : ai.boostTimer > 0 ? MAX_SPEED * 1.4 * lightningBoostMultiplier * squashPenalty
     : ai.lightningTimer > 0 ? MAX_SPEED * 0.5 * squashPenalty
     : MAX_SPEED * squashPenalty;
+  if (ai.bulletBillRecoveryTimer > 0) {
+    ai.bulletBillRecoveryTimer = Math.max(0, ai.bulletBillRecoveryTimer - delta);
+  }
+  const speedCap = getSpeedCapWithBulletBillRecovery(ai, normalSpeedCap);
   const targetSpeed = speedCap * (onTrack ? 1 : OFFTRACK_MULT);
   if (ai.speed < targetSpeed) ai.speed += ACCEL * delta;
   ai.speed = Math.min(targetSpeed, ai.speed);
@@ -5806,7 +6186,9 @@ function updateSoloAI(delta, cpuIdx) {
 
     // Initialise a hesitation delay when the item was just collected
     if (aiState.itemHesitation === undefined || aiState.itemHesitation === null) {
-      aiState.itemHesitation = 0.5 + Math.random() * 2.0;
+      aiState.itemHesitation = item.includes('Bullet Bill')
+        ? 0.15 + Math.random() * 0.25
+        : 0.5 + Math.random() * 2.0;
     }
     aiState.itemHesitation -= delta;
     if (aiState.itemHesitation > 0) {
@@ -5868,6 +6250,9 @@ function updateSoloAI(delta, cpuIdx) {
         });
         // Bombs are primarily defensive: wait for a moving kart to be close behind.
         shouldUse = kartBehind ? Math.random() < 0.9 : Math.random() < 0.08;
+      } else if (item.includes('Bullet Bill')) {
+        const aiPlace = getPlayerPlacements().placeOf[cpuIdx];
+        shouldUse = aiPlace >= 4 || Math.random() < 0.85;
       }
 
       if (shouldUse) {
@@ -5916,6 +6301,11 @@ let AI_SPEED_TARGET = MAX_SPEED * 0.82; // a little slower than max so it feels 
 
 // Shared post-finish driver for CPUs and the cinematic-controlled racer.
 function drivePostFinishAI(player, state, delta) {
+  if (player.bulletBillRecoveryTimer > 0) {
+    player.bulletBillRecoveryTimer = Math.max(0, player.bulletBillRecoveryTimer - delta);
+  }
+  const postFinishSpeedTarget = getSpeedCapWithBulletBillRecovery(player, AI_SPEED_TARGET);
+
   if (state.postFinishEntry === undefined) {
     state.trackT = closestTrackTRefined(player.kart.position);
     state.postFinishTrackT = state.trackT;
@@ -5942,12 +6332,13 @@ function drivePostFinishAI(player, state, delta) {
     ) * delta;
     player.angle += Math.max(-maxTurn, Math.min(maxTurn, angleError));
 
-    const approachSpeed = AI_SPEED_TARGET * Math.max(
-      0.2,
-      Math.min(0.65, 1 - Math.abs(angleError) / 2.4)
-    );
+    const approachSpeed = player.bulletBillRecoveryTimer > 0
+      ? postFinishSpeedTarget
+      : AI_SPEED_TARGET * Math.max(0.2, Math.min(0.65, 1 - Math.abs(angleError) / 2.4));
     if (player.speed < approachSpeed) {
       player.speed = Math.min(approachSpeed, player.speed + ACCEL * 0.7 * delta);
+    } else if (player.bulletBillRecoveryTimer > 0) {
+      player.speed = Math.max(approachSpeed, player.speed - ACCEL * delta);
     } else {
       player.speed = Math.max(approachSpeed, player.speed - BRAKE * 0.7 * delta);
     }
@@ -5978,16 +6369,16 @@ function drivePostFinishAI(player, state, delta) {
   }
 
   if (ACTIVE_TRACK.driveCinematic) {
-    ACTIVE_TRACK.driveCinematic(player, state, delta, AI_SPEED_TARGET, ACCEL, FRICTION_PER_SEC);
+    ACTIVE_TRACK.driveCinematic(player, state, delta, postFinishSpeedTarget, ACCEL, FRICTION_PER_SEC);
     return;
   }
 
   if (typeof state.trackT !== 'number') state.trackT = closestTrackT(player.kart.position);
-  state.trackT = advanceTrackTByDistance(ACTIVE_TRACK.curve, state.trackT, AI_SPEED_TARGET * delta);
+  state.trackT = advanceTrackTByDistance(ACTIVE_TRACK.curve, state.trackT, postFinishSpeedTarget * delta);
   state.postFinishTrackT = state.trackT;
 
-  if (player.speed < AI_SPEED_TARGET) player.speed += ACCEL * 0.7 * delta;
-  player.speed = Math.min(player.speed, AI_SPEED_TARGET);
+  if (player.speed < postFinishSpeedTarget) player.speed += ACCEL * 0.7 * delta;
+  player.speed = Math.min(player.speed, postFinishSpeedTarget);
   player.speed *= Math.pow(1 - FRICTION_PER_SEC, delta);
   const point = ACTIVE_TRACK.curve.getPoint(state.trackT);
   const tangent = ACTIVE_TRACK.curve.getTangent(state.trackT).normalize();
@@ -6021,7 +6412,7 @@ function updateWinnerAI(delta) {
   if (!p || p.finishTime === null) return; // safety — shouldn't happen
 
   // ── 1. DRIVE ALONG THE TRACK ──
-  drivePostFinishAI(p, winnerAI, delta);
+  if (!updateBulletBill(p, delta)) drivePostFinishAI(p, winnerAI, delta);
 
   // Tick effect timers so fire/rainbow effects still expire during the cinematic.
   // (updatePlayer is skipped for the winner, so we must handle this here.)
@@ -6550,6 +6941,7 @@ async function startGame() {
 
   if (animId) cancelAnimationFrame(animId);
   let lastTime = performance.now();
+  const connectedPads = new Set();
 
   function loop() {
     animId = requestAnimationFrame(loop);
@@ -6560,10 +6952,11 @@ async function startGame() {
     // ── DS4 Options button → pause (poll every frame, outside raceRunning guard) ──
     {
       const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-      const connectedPads = new Set();
+      connectedPads.clear();
       let optionsPressedThisFrame = false;
-      Array.from(pads).forEach(gp => {
-        if (!gp || !gp.connected) return;
+      for (let padIndex = 0; padIndex < pads.length; padIndex++) {
+        const gp = pads[padIndex];
+        if (!gp || !gp.connected) continue;
         connectedPads.add(gp.index);
         const optBtn = gp.buttons[9];
         const pressed = optBtn ? (optBtn.pressed || optBtn.value > 0.5) : false;
@@ -6576,7 +6969,7 @@ async function startGame() {
           if (_menuHidden && _wsHidden) optionsPressedThisFrame = true;
         }
         _gpOptionsWasPressed.set(gp.index, pressed);
-      });
+      }
       for (const index of _gpOptionsWasPressed.keys()) {
         if (!connectedPads.has(index)) _gpOptionsWasPressed.set(index, false);
       }
@@ -6615,6 +7008,7 @@ async function startGame() {
       updateBombs(delta);
 
       updateKartBumpPhysics(delta);
+      updateHitInvincibilityTimers(delta);
 
       updateItemBoxes(delta);
       updateBananaPeels(delta, players);
@@ -6634,12 +7028,12 @@ async function startGame() {
         if (!isSolo && aiIdx !== 1) updateCamera(cameras[1], players[1], false, isLookBackHeld(p2Binds));
       }
 
-      if (!isSolo) updateMirrorKarts();
       updateStarEffects(delta);
       updateLightningEffects(delta);
       updateFireParticles(delta);
       updateSmokeParticles(delta);
       updateWheels(delta);
+      if (!isSolo) updateMirrorKarts();
       updateHUD();
       updateEngineAudio();
 
@@ -6870,6 +7264,7 @@ let ghostKarts = null;
 // Store original material colors so we can restore them when the star expires.
 // We also track the last known starTimer state per player to know when to restore.
 const _starOrigColors = [];
+const _starRainbowColors = [];
 
 function updateStarEffects(delta) {
   players.forEach((player, pi) => {
@@ -6889,12 +7284,10 @@ function updateStarEffects(delta) {
 
       // Shift hue over time — full rainbow cycle every ~0.6s, fast enough to look wild
       const hue = (Date.now() * 0.003 + pi * 0.5) % 1;
-      const rainbowColor = new THREE.Color().setHSL(hue, 1.0, 0.62);
-
-      player.kart.traverse(child => {
-        if ((child.isMesh || child.isSprite) && child.material && child.material.color) {
-          child.material.color.copy(rainbowColor);
-        }
+      const rainbowColor = _starRainbowColors[pi] || (_starRainbowColors[pi] = new THREE.Color());
+      rainbowColor.setHSL(hue, 1.0, 0.62);
+      _starOrigColors[pi].forEach(({ target }) => {
+        target.color.copy(rainbowColor);
       });
 
     } else if (_starOrigColors[pi]) {
@@ -6933,11 +7326,15 @@ function updateMirrorKarts() {
   ghostKarts[0].rotation.copy(players[1].kart.rotation);
   ghostKarts[0].scale.copy(players[1].kart.scale);
   ghostKarts[0].userData.charSprite.scale.copy(players[1].kart.userData.charSprite.scale);
+  syncKartWheelPose(ghostKarts[0], players[1].kart);
+  setKartBulletBillForm(ghostKarts[0], isBulletBillActive(players[1]));
 
   ghostKarts[1].position.copy(players[0].kart.position);
   ghostKarts[1].rotation.copy(players[0].kart.rotation);
   ghostKarts[1].scale.copy(players[0].kart.scale);
   ghostKarts[1].userData.charSprite.scale.copy(players[0].kart.userData.charSprite.scale);
+  syncKartWheelPose(ghostKarts[1], players[0].kart);
+  setKartBulletBillForm(ghostKarts[1], isBulletBillActive(players[0]));
 
   // Sync CPU mirror karts for P2's viewport
   for (let ci = 0; ci < coopNumCPUs; ci++) {
@@ -6948,6 +7345,18 @@ function updateMirrorKarts() {
     mirror.rotation.copy(players[cpuIdx].kart.rotation);
     mirror.scale.copy(players[cpuIdx].kart.scale);
     mirror.userData.charSprite.scale.copy(players[cpuIdx].kart.userData.charSprite.scale);
+    syncKartWheelPose(mirror, players[cpuIdx].kart);
+    setKartBulletBillForm(mirror, isBulletBillActive(players[cpuIdx]));
+  }
+}
+
+function syncKartWheelPose(targetKart, sourceKart) {
+  targetKart.userData.frontAxlePivot.rotation.copy(sourceKart.userData.frontAxlePivot.rotation);
+  targetKart.userData.steeringWheel.rotation.copy(sourceKart.userData.steeringWheel.rotation);
+  for (const wheelType of ['frontWheels', 'rearWheels']) {
+    sourceKart.userData[wheelType].forEach((wheel, index) => {
+      targetKart.userData[wheelType][index].rotation.copy(wheel.rotation);
+    });
   }
 }
 
@@ -6980,9 +7389,12 @@ function updateWheels(delta) {
     // Rotating wheelGroup.rotation.x therefore rolls the wheel forward/backward. ✅
     const rollRate  = player.speed / WHEEL_RADIUS;
     const rollDelta = rollRate * delta;
-    [...ud.frontWheels, ...ud.rearWheels].forEach(wheelGroup => {
+    for (const wheelGroup of ud.frontWheels) {
       wheelGroup.rotation.x += rollDelta;
-    });
+    }
+    for (const wheelGroup of ud.rearWheels) {
+      wheelGroup.rotation.x += rollDelta;
+    }
 
     // ── Steering: smooth the target steer angle and apply to front axle pivot ──
     // Determine raw steer input: check keys/gamepad for human players, or derive from angle delta for AI
@@ -7027,6 +7439,7 @@ function updateWheels(delta) {
 
     // Apply to front axle pivot (Y rotation = left/right steer)
     ud.frontAxlePivot.rotation.y = ud.steerAngle;
+    ud.steeringWheel.rotation.z = Math.PI - ud.steerAngle * 1.5;
   });
 }
 
@@ -7053,7 +7466,8 @@ function updateHUD() {
     const p = players[i];
     document.getElementById(`hud${i+1}lap`).textContent = Math.min(p.lap, ACTIVE_TRACK.totalLaps);
     document.getElementById(`hud${i+1}speed`).textContent = Math.abs(Math.round(p.speed * 3.6));
-    document.getElementById(`hud${i+1}item`).textContent = p.item || '';
+    document.getElementById(`hud${i+1}item`).textContent =
+      p.bulletBillTimer > 0 ? `🚀 ${Math.ceil(p.bulletBillTimer)}s` : (p.item || '');
     const place = placeOf[i];
     document.getElementById(`hud${i+1}place`).textContent =
       p.finishTime !== null ? placeFinish : (placeLabels[place - 1] || `${place}th`);

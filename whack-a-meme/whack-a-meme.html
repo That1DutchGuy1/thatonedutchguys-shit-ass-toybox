@@ -2,74 +2,81 @@
 <html lang="en">
 <head>
   <script src="../device-guard.js"></script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Just a stupid little whack-a-mole clone, but with memes!">
-  <title>Whack A Meme</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="The new 3D version of Whack A Meme! Now with more memes, a whole 3D cabinet, and more bonking!">
+  <title>Whack A Meme 3D</title>
   <link rel="icon" type="image/x-icon" href="./whack-a-meme.ico">
-  <link rel="stylesheet" href="whack-a-meme.css" />
+  <link rel="stylesheet" href="whack-a-meme.css">
 </head>
 <body>
-  <div id="hammer-cursor"></div>
+  <main class="game-shell">
+    <header class="top-bar">
+      <a href="../index.html" class="corner-link">← HUB</a>
+      <div id="scoreboard" class="visually-hidden" aria-live="polite">
+        <span>SCORE <strong id="score">0</strong></span>
+        <span>TIME <strong id="time">60</strong>s</span>
+      </div>
+      <a href="legacy/whack-a-meme-legacy.html" class="corner-link legacy-top-link">2D LEGACY</a>
+    </header>
 
-  <h1 id="main-title">Whack A Meme</h1>
+    <canvas id="game-canvas" aria-label="3D Whack A Meme arcade game"></canvas>
+    <p id="game-controls">WASD / DS4 LEFT STICK: MOVE<br>LEFT CLICK / L2: LEFT · RIGHT CLICK / R2: RIGHT</p>
 
-  <div id="start-screen">
-    <h2 class="random-color">WHACK A MEME</h2>
-    <p class="random-color">Watch out for Rick Astley! He steals your time!</p>
-    <div class="options">
-      <label class="random-color">
-        Select your playtime:
-        <select id="duration" style="font-size: 1.2rem; padding: 5px;">
-          <option value="30" selected>30s (Default)</option>
-          <option value="45">45s</option>
-          <option value="60">60s</option>
-        </select>
-      </label>
-    </div>
-    <button id="start-btn">LETS GOOOO</button>
-  </div>
+    <section id="pause-screen" class="screen-card hidden" aria-live="polite">
+      <p class="eyebrow">TAKE A BREATHER</p>
+      <h2>PAUSED!</h2>
+      <p class="pause-hint">Press ESC or choose an option.</p>
+      <div class="end-buttons">
+        <button id="resume-btn" class="main-button">RESUME</button>
+        <button id="pause-menu-btn" class="secondary-button">MAIN MENU</button>
+        <button id="pause-hub-btn" class="secondary-button">BACK TO HUB</button>
+      </div>
+    </section>
 
-  <div id="scoreboard">
-    Score: <span id="score">0</span> | Time: <span id="time">30</span>s
-  </div>
+    <section id="start-screen" class="screen-card">
+      <p class="eyebrow">THE MEME-TESTED, WOODEN-MALLET-APPROVED CLASSIC</p>
+      <h1>WHACK A MEME 3D!</h1>
+      <p class="intro">Point your mallet and bonk the memes.<br><strong>Watch out for Rick Astley!</strong> He steals 3 seconds.</p>
+      <label class="duration-label" for="duration">HOW LONG YOU WANNA BONK?</label>
+      <select id="duration">
+        <option value="60" selected>60 seconds</option>
+        <option value="80">80 seconds</option>
+        <option value="100">100 seconds</option>
+      </select>
+      <button id="start-btn" class="main-button">LET'S GOOOO</button>
+      <button id="endless-btn" class="secondary-button">ENDLESS MODE</button>
+      <a href="legacy/whack-a-meme-legacy.html" class="legacy-link">Prefer the old-school 2D game? Play the LEGACY version</a>
+      <p class="controls-hint">Move: W A S D or DualShock 4 left stick<br>Hit left: left-click / L2 · Hit right: right-click / R2<br>Pause: ESC</p>
+    </section>
 
-  <div class="grid">
-    <div class="hole"></div>
-    <div class="hole"></div>
-    <div class="hole"></div>
-    <div class="hole"></div>
-    <div class="hole"></div>
-    <div class="hole"></div>
-    <div class="hole"></div>
-    <div class="hole"></div>
-    <div class="hole"></div>
-  </div>
+    <section id="game-over" class="screen-card hidden" aria-live="polite">
+      <p class="eyebrow">THE BONKING HAS CONCLUDED</p>
+      <h2>GAME OVER!</h2>
+      <p class="final-score">FINAL SCORE: <strong id="final-score">0</strong></p>
+      <p id="score-message"></p>
+      <div class="end-buttons">
+        <button id="restart-btn" class="main-button">BONK AGAIN</button>
+        <button id="back-to-menu-btn" class="secondary-button">MAIN MENU</button>
+      </div>
+    </section>
 
-  <div id="game-over" class="hidden">
-    <h2 class="random-color">GAME OVER</h2>
-    <p style="font-size: 2.5rem; margin: 10px 0;" class="random-color">Final Score: <span id="final-score"></span></p>
-    <div style="display: flex; gap: 10px; justify-content: center;">
-      <button id="restart-btn">Play Again?</button>
-      <button id="back-to-menu-btn" style="background-color: #555;">Back to Menu</button>
-    </div>
-  </div>
+    <p id="error-message" class="error-message hidden" role="alert"></p>
+    <a class="creator-link" href="https://youtube.com/@that1dutchguy?si=64hwISFn48ZFbh9l" target="_blank" rel="noopener noreferrer">Made by YouTuber That One Dutch Guy</a>
+  </main>
 
-  <audio id="main-menu-theme" src="assets/sounds/main-menu-theme.mp3" loop></audio> <!-- Main menu background music -->
-  <audio id="hit-sound" src="assets/sounds/hit.mp3"></audio> <!-- Sound effect for hitting a meme -->
-  <audio id="rick-lol-sound" src="assets/sounds/rick-lol.mp3"></audio> <!-- Rick Astley stealing time sound, aka a sentence mixing that makes him say LOL! -->
-  <audio id="no-score-sound" src="assets/sounds/no-score.mp3"></audio> <!-- When the score is 0, an angry guy will be heard yelling GODDAMNIT and breaking something in the background -->
-  <audio id="bad-score-sound" src="assets/sounds/bad-score.mp3"></audio> <!-- Crowd booing sound effect for bad scores -->
-  <audio id="mediocre-score-sound" src="assets/sounds/mediocre-score.mp3"></audio> <!-- Nyeh, I guess that counts meme sound effect -->
-  <audio id="good-score-sound" src="assets/sounds/good-score.mp3"></audio> <!-- iDubbbz Hey that's pretty good meme sound effect -->
-  <audio id="nice-score-sound" src="assets/sounds/nice-score.mp3"></audio> <!-- Michael Rosen click Nice meme sound effect -->
-  <audio id="excellent-score-sound" src="assets/sounds/excellent-score.mp3"></audio> <!-- I DID IT! I DID IT! meme sound effect -->
+  <audio id="main-menu-theme" src="assets/music/main-menu-theme.mp3" loop></audio>
+  <audio id="game-theme" src="assets/music/whack-a-meme-3d-theme.mp3" loop></audio>
+  <audio id="hit-sound" src="assets/sounds/hit.mp3"></audio>
+  <audio id="rick-lol-sound" src="assets/sounds/rick-lol.mp3"></audio>
+  <audio id="no-score-sound" src="assets/sounds/no-score.mp3"></audio>
+  <audio id="bad-score-sound" src="assets/sounds/bad-score.mp3"></audio>
+  <audio id="mediocre-score-sound" src="assets/sounds/mediocre-score.mp3"></audio>
+  <audio id="good-score-sound" src="assets/sounds/good-score.mp3"></audio>
+  <audio id="nice-score-sound" src="assets/sounds/nice-score.mp3"></audio>
+  <audio id="excellent-score-sound" src="assets/sounds/excellent-score.mp3"></audio>
 
+  <script src="../three.min.js"></script>
   <script src="whack-a-meme.js"></script>
-
-  <a href="../index.html" id="hub-btn" class="button">← HUB</a>
-  <a href="https://youtube.com/@that1dutchguy?si=64hwISFn48ZFbh9l" id="creator-link" target="_blank">
-  Made by YouTuber That One Dutch Guy
-</a>
 </body>
 </html>

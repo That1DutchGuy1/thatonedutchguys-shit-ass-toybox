@@ -181,24 +181,26 @@ Another fun fact: The font used is the actual fucking CD-i Zelda map font! 🤯
 
 ---
 
-<p><strong><font size="5">🚨 MALLEO'S MAZE UPDATE!</font></strong></p>
+<p><strong><font size="5">🚨 WHACK A MEME UPDATE!</font></strong></p>
 
-<p><strong><font size="4">Malleo's Maze got a big ass update! 🪠</font></strong></p>
+<p><strong><font size="4">Whack A Meme got a BRAND NEW 3D VERSION! 🤯</font></strong></p>
 
-* Brand new textures! 🖼️
-* It's now really fucking dark in the maze and you got a flashlight now! 🌑🔦
-* Weegee will now sometimes come to help out Malleo! 😱
-* Coin bags are scattered around the maze now! 💰️🪙
-* You can spend the new coins at Toad's Shop in the maze for items! 🍄
-* GO CHECK IT OUT NOW! 🔫
+* You now BONK memes in a REAL 3D arcade cabinet with a real 3D MALLET! 🕹️
+* Various new memes have been added! 😂
+* New modes and settings! ⚙️
+* Memes now play voice lines when whacked! 🗣️
+* The old 2D version is also still playable on the same page! 🤯
 
 ---
 
-<p><strong><font size="5">☢️ SMALL HUB UPDATE!</font></strong></p>
+<p><strong><font size="5">🚨 GRAND MEME PRIX 3D UPDATE!</font></strong></p>
 
-* The big ass gamecards now get shuffled around randomly every time you enter the chaos lol! 🔀
-* The old font strokes have been replaced with CHONKY shadows around the glyphs! 🔤
-* Removed the anti-indexing tags from all the games their HTML files cuz I ain't afraid of no soulless copyright lawyers! 😎 
+<p><strong><font size="4">Grand Meme Prix 3D has been updated AGAIN! 🤯</font></strong></p>
+
+* Added Impa and Lord Kiro as playable drivers! 🛡️
+* Improved the 3D kart model a bit! 🏎️
+* Added the Bullet Bill item! 🚀
+* A few small fucking bug fixes and performance optimizations! 🖥️
 
 ---
 
