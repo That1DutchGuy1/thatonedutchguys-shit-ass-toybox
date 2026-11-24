@@ -1367,6 +1367,16 @@ const MEME_ARTWORKS = [
         title: "4K Meme Group Photo On Bliss",
         url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/Meme-Group-Photo.png",
         aspect: "landscape"
+    },
+    {
+        title: "4K Bliss Hills In Hell With Demon Weegee",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/Bliss-In-Hell-with-Demon-Weegee.png",
+        aspect: "landscape"
+    },
+    {
+        title: "2K Memes On Mountain Lake",
+        url: "https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/main/memes-on-mountain-lake.png",
+        aspect: "landscape"
     }
 ];
 

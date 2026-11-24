@@ -106,6 +106,8 @@
 * King Harkinian's Personal Chef Simulator Main Menu Background
 * 2K Hotel Mario Desktop Wallpaper
 * 4K Meme Group Photo On Bliss
+* 4K Bliss Hills In Hell With Demon Weegee
+* 2K Memes On Mountain Lake
 
 ---
 
