@@ -270,6 +270,7 @@ if (isPhone) {
     detectWindows11().then(isWindows11 => {
         document.body.classList.remove('platform-detection-pending');
         setupGameSearch();
+        setupProjectSearch();
 
         if (isWindows11 && sessionStorage.getItem('windows11WarningAccepted') !== 'true') {
             document.body.classList.add('windows11-warning-active');
@@ -523,11 +524,123 @@ const EXTERNAL_DOCS = [
 // The left/right arrows navigate through ALL of them in order.
 // =========================================
 const aboutToggleBtn   = document.getElementById('about-toggle');
+const myProjectsToggleBtn = document.getElementById('my-projects-toggle');
+const projectCardsEl   = document.getElementById('project-cards');
 const readmeContentEl  = document.getElementById('readme-content');
 const wikiContentEl    = document.getElementById('wiki-content');
 const docTitleLabel    = document.getElementById('doc-title-label');
 const arrowLeft        = document.getElementById('doc-arrow-left');
 const arrowRight       = document.getElementById('doc-arrow-right');
+
+const MY_PROJECTS = [
+    {
+        title: "ThatDutchGuy's DVD-R ISO Hangar",
+        description: "My YTP preservation project!",
+        url: 'https://github.com/That1DutchGuy1/That-One-Dutch-Guys-DVD-R-ISO-Hangar',
+        image: './projectcard-images/projectcard-bg-that-one-dutch-guys-dvd-r-iso-hangar.png',
+    },
+    {
+        title: "That1DutchGuy's Meme New Tab",
+        description: 'BE GONE CORPORATE ASS NEW TAB!',
+        url: 'https://github.com/That1DutchGuy1/that1dutchguys-meme-newtab',
+        image: './projectcard-images/projectcard-bg-meme-newtab.png',
+    },
+    {
+        title: 'King Harkinian Desktop Pet',
+        description: 'The ultimate Python Linux Mint desktop pet!',
+        url: 'https://github.com/That1DutchGuy1/King-Harkinian-Desktop-Pet',
+        image: './projectcard-images/projectcard-bg-king-harkinian-desktop-pet.png',
+    },
+    {
+        title: 'The Weegee Virus Prank',
+        description: 'Weegee infiltrates your Linux Mint system!',
+        url: 'https://github.com/That1DutchGuy1/The-Weegee-Virus-Prank',
+        image: './projectcard-images/projectcard-bg-the-weegee-virus-prank.png',
+    },
+    {
+        title: 'Funny CD-i WhatsApp Sticker Pack',
+        description: 'Send hilarious CD-i themed stickers on WhatsApp!',
+        url: 'https://github.com/That1DutchGuy1/Funny-CD-i-Themed-WhatsApp-Sticker-Pack',
+        image: './projectcard-images/projectcard-bg-funny-cd-i-whatsapp-sticker-pack.png',
+    },
+    {
+        title: 'Terminal Rickroll for Linux Mint 22',
+        description: 'Get rickrolled in your Linux terminal lol!',
+        url: 'https://github.com/That1DutchGuy1/Terminal-Rickroll-for-Linux-Mint-22',
+        image: './projectcard-images/projectcard-bg-terminal-rickroll-for-linux-mint-22.png',
+    },
+    {
+        title: 'Harkinitux Desktop Companion',
+        description: 'The King got fused together with Tux!',
+        url: 'https://github.com/That1DutchGuy1/Harkinitux-Desktop-Companion',
+        image: './projectcard-images/projectcard-bg-harkinitux-desktop-companion.png',
+    },
+    {
+        title: 'GTA 5 YTP T-Shirt Pack For Franklin',
+        description: 'Gives Franklin some YTP tees!',
+        url: 'https://github.com/That1DutchGuy1/Gta-5-YTP-themed-t-shirts-for-Franklin',
+        image: './projectcard-images/projectcard-bg-gta-5-ytp-t-shirt-pack.png',
+    },
+    {
+        title: "That1DutchGuy's Stupid Soundbuttons",
+        description: "Spam the fucking buttons!",
+        url: 'https://github.com/That1DutchGuy1/That-One-Dutch-Guys-Soundbuttons',
+        image: './projectcard-images/projectcard-bg-that-one-dutch-guys-stupid-soundbuttons.png',
+    },
+    {
+        title: "Funny Error Messages for Linux Mint 22",
+        description: 'BE GONE BORING ERROR MESSAGES!',
+        url: 'https://github.com/That1DutchGuy1/Funny-Error-Messages-for-Linux-Mint-22',
+        image: './projectcard-images/projectcard-bg-funny-error-messages-for-linux-mint-22.png',
+    },
+    {
+        title: "My Fucking Artwork",
+        description: 'All of this should be hanging in a museum!',
+        url: 'https://github.com/That1DutchGuy1/My-Fucking-Artwork',
+        image: './projectcard-images/projectcard-bg-my-fucking-artwork.png',
+    },
+    {
+        title: "My YTP Videos",
+        description: 'Stores all of my YTP videos, which are watchable in YTP TV!',
+        url: 'https://github.com/That1DutchGuy1/My-YTP-videos',
+        image: './projectcard-images/projectcard-bg-my-ytp-videos.png',
+    },
+    {
+        title: "Fight 'Em 'Til You Can't",
+        description: 'The only serious game I ever made lol!',
+        url: 'https://that1dutchguy1.itch.io/fight-em-til-you-cant',
+        image: './projectcard-images/projectcard-bg-fight-em-til-you-cant.png',
+        buttonLabel: 'Play on Itch.io',
+    }
+];
+
+function renderProjectCards() {
+    if (!projectCardsEl) return;
+
+    MY_PROJECTS.forEach((project) => {
+        const card = document.createElement('article');
+        card.className = 'game-card project-card';
+        card.style.setProperty('--project-card-image', `url("${project.image}")`);
+
+        const title = document.createElement('h3');
+        title.textContent = project.title;
+
+        const description = document.createElement('p');
+        description.textContent = project.description;
+
+        const link = document.createElement('a');
+        link.className = 'play-button';
+        link.href = project.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = project.buttonLabel || 'View on GitHub';
+
+        card.append(title, description, link);
+        projectCardsEl.appendChild(card);
+    });
+}
+
+renderProjectCards();
 
 // Build the full doc list: README (0), Wiki (1), then external docs (2+)
 const DOC_LIST = [
@@ -544,6 +657,14 @@ const DOC_LIST = [
 let aboutIsOpen  = false;
 let currentDocIndex = 0;
 
+function setMyProjectsOpen(open) {
+    document.body.classList.toggle('about-projects-active', open);
+    if (myProjectsToggleBtn) {
+        myProjectsToggleBtn.textContent = open ? '📖 BACK TO ABOUT' : '📁 MY PROJECTS';
+        myProjectsToggleBtn.setAttribute('aria-pressed', open ? 'true' : 'false');
+    }
+}
+
 // Per-doc load state: null = not loaded, 'loading', 'done', 'error'
 const docLoadState = {};
 // Cache for fetched external markdown HTML (keyed by doc id)
@@ -551,6 +672,7 @@ const docContentCache = {};
 
 function setAboutOpen(open) {
     aboutIsOpen = open;
+    setMyProjectsOpen(false);
     document.body.classList.toggle('about-active', open);
 
     if (aboutToggleBtn) {
@@ -720,6 +842,12 @@ if (aboutToggleBtn && !isPhone) {
     aboutToggleBtn.addEventListener('click', () => setAboutOpen(!aboutIsOpen));
 }
 
+if (myProjectsToggleBtn && !isPhone) {
+    myProjectsToggleBtn.addEventListener('click', () => {
+        setMyProjectsOpen(!document.body.classList.contains('about-projects-active'));
+    });
+}
+
 if (arrowRight && !isPhone) {
     arrowRight.addEventListener('click', () => {
         if (currentDocIndex < DOC_LIST.length - 1) navigateToDoc(currentDocIndex + 1);
@@ -881,6 +1009,7 @@ function initGamepadNav() {
     function getNavigableElements() {
         const ctx = getContext();
         const about = document.getElementById('about-toggle');
+        const myProjects = document.getElementById('my-projects-toggle');
         const music = document.getElementById('music-toggle');
         const beeg  = document.getElementById('beeg-toybox-toggle');
         const memeArt = document.getElementById('meme-art-toggle');
@@ -894,7 +1023,14 @@ function initGamepadNav() {
                 .filter(Boolean);
         }
         if (ctx === 'about') {
-            return [about, music].filter(Boolean);
+            const els = [about, myProjects].filter(Boolean);
+            if (document.body.classList.contains('about-projects-active')) {
+                const projectSearch = document.getElementById('project-search-input');
+                if (projectSearch) els.push(projectSearch);
+                document.querySelectorAll('#project-cards .project-card:not([hidden]) .play-button').forEach(el => els.push(el));
+            }
+            if (music) els.push(music);
+            return els;
         }
         if (ctx === 'beeg') {
             const els = [beeg, music].filter(Boolean);
@@ -1284,6 +1420,37 @@ function setupGameSearch() {
         status.textContent = query
             ? `${visibleCount} ${visibleCount === 1 ? 'game' : 'games'} found.`
             : `${visibleCount} games available.`;
+    });
+}
+
+function setupProjectSearch() {
+    const searchInput = document.getElementById('project-search-input');
+    const emptyMessage = document.getElementById('project-search-empty');
+    const status = document.getElementById('project-search-status');
+    if (!(searchInput instanceof HTMLInputElement) || !projectCardsEl || !emptyMessage || !status) return;
+
+    const cards = Array.from(projectCardsEl.querySelectorAll('.project-card'));
+    const searchableText = new Map(cards.map(card => [
+        card,
+        Array.from(card.querySelectorAll('h3, p'), element => element.textContent || '')
+            .join(' ')
+            .toLocaleLowerCase()
+    ]));
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLocaleLowerCase();
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const matches = !query || searchableText.get(card).includes(query);
+            card.hidden = !matches;
+            if (matches) visibleCount++;
+        });
+
+        emptyMessage.hidden = visibleCount !== 0;
+        status.textContent = query
+            ? `${visibleCount} ${visibleCount === 1 ? 'project' : 'projects'} found.`
+            : `${visibleCount} ${visibleCount === 1 ? 'project' : 'projects'} available.`;
     });
 }
 

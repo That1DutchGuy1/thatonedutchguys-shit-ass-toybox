@@ -121,9 +121,16 @@
 
 <p><strong><font size="4">📄 DOCUMENTATION RENDERER!</font></strong></p>
 
+* Bound to the ABOUT button! 📖
 * The thing fetches the files of my Markdown documents from my other projects on GitHub! 🤯
 * It also fetches the embedded images from that repo via a clever trick! 😎
 * All of course with custom styling to make it an absolute FEAST to READ! 🤪
+
+<p><strong><font size="4">📁 MY PROJECTS PAGE!</font></strong></p>
+
+* In the ABOUT documentation panel, you can click the MY PROJECTS button to see links to my other projects in card form! 🎴
+* Includes unique card art for each project card and a fucking rainbow button to each repo! 🌈
+* Also has a card to my itch.io first-person zombie game! 🧟
 
 **Currently linked documents:**
 
@@ -206,13 +213,13 @@ Another fun fact: The font used is the actual fucking CD-i Zelda map font! 🤯
 
 ---
 
-<p><strong><font size="5">📀 THE DVD-R ISO HANGAR!</font></strong></p>
+<p><strong><font size="5">📁 THE MY PROJECTS PAGE UPDATE!</font></strong></p>
 
-<p><strong><font size="4">AYO! I got a sideproject that's hosting ISO files for burning onto DVD-R discs! 🤯</font></strong></p>
+<p><strong><font size="4">AYO! You can now easily access all of my other GitHub projects via the new My Projects page! 🤯</font></strong></p>
 
-* It's still in development, but eventually you'll be able to SQUADALA some DVD ISO files from it! 😂
-* It's mainly a preservation project for old YTP! 😎
-* I added another fucking rainbow button to the Shit Ass Toybox that brings you to the fucking hangar! 🤯
+* In the ABOUT documentation panel, you can click the MY PROJECTS button to see links to my other projects in card form! 🎴
+* Includes unique card art for each project card and a fucking rainbow button to each repo! 🌈
+* Also has a card to my itch.io first-person zombie game! 🧟
 
 ---
 
