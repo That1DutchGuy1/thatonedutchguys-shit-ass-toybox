@@ -45,6 +45,7 @@
     </div>
 
     <button id="about-toggle" class="play-button about-toggle-btn" type="button" aria-pressed="false">📖 ABOUT</button>
+    <button id="settings-toggle" class="dvd-projects-btn settings-btn" type="button" aria-expanded="false" aria-controls="settings-overlay">⚙️ SETTINGS</button>
     <button id="my-projects-toggle" class="dvd-projects-btn my-projects-btn" type="button" aria-pressed="false">📁 MY PROJECTS</button>
 
     <a href="https://that1dutchguy1.github.io/That-One-Dutch-Guys-DVD-R-ISO-Hangar/index.html" class="dvd-projects-btn">📀 DVD-R PROJECTS</a>
@@ -171,19 +172,45 @@
 
     <!-- README / About view — hidden until the ABOUT button is clicked -->
     <div id="readme-view">
-        <button id="doc-arrow-left" class="doc-nav-arrow doc-arrow-left" aria-label="Go to README" title="README.md">◀</button>
+        <button id="doc-arrow-left" class="doc-nav-arrow doc-arrow-left" aria-label="Previous document" title="README.md">◀</button>
         <div id="readme-panel">
             <div id="doc-title-bar">
                 <span id="doc-title-label">📖 README.md</span>
             </div>
-            <div id="readme-content">
+            <div id="readme-content" class="local-doc-content markdown-content">
                 <p class="readme-loading">loading readme.md ...</p>
             </div>
-            <div id="wiki-content" style="display:none;">
+            <div id="wiki-content" class="markdown-content" style="display:none;">
                 <p class="readme-loading">loading wiki.md ...</p>
             </div>
+            <div id="privacy-policy-content" class="local-doc-content markdown-content" style="display:none;">
+                <p class="readme-loading">loading privacy policy ...</p>
+            </div>
         </div>
-        <button id="doc-arrow-right" class="doc-nav-arrow doc-arrow-right" aria-label="Go to Wiki" title="Wiki.md">▶</button>
+        <button id="doc-arrow-right" class="doc-nav-arrow doc-arrow-right" aria-label="Next document" title="Wiki.md">▶</button>
+    </div>
+    <div id="settings-overlay" class="settings-overlay" aria-hidden="true">
+        <section id="settings-panel" class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabindex="-1">
+            <button id="settings-close" class="settings-close" type="button" aria-label="Close settings">✖️ CLOSE</button>
+            <h2 id="settings-title">MORSHU'S SETTINGS</h2>
+            <img id="settings-morshu" class="settings-morshu" src="./king-harkinians-personal-chef-simulator/assets/GIFs/morshu-idle.gif" alt="Morshu from the CD-i soundboard">
+
+            <div class="settings-option settings-volume-option">
+                <label for="settings-music-volume">🎵 Music volume <output id="settings-music-volume-value" for="settings-music-volume">100%</output></label>
+                <input id="settings-music-volume" type="range" min="0" max="100" step="1" value="100">
+            </div>
+            <label class="settings-option settings-toggle-option" for="settings-music-enabled">
+                <span>🔊 Music toggle</span>
+                <input id="settings-music-enabled" type="checkbox" checked>
+            </label>
+            <label class="settings-option settings-toggle-option" for="settings-meme-peekers-enabled">
+                <span>👀 Meme peekers</span>
+                <input id="settings-meme-peekers-enabled" type="checkbox" checked>
+            </label>
+
+            <p id="settings-status" role="status" aria-live="polite"></p>
+            <button id="settings-reset" class="settings-action-btn" type="button">🔄 RESET TO DEFAULT</button>
+        </section>
     </div>
     <!-- My Projects View - featuring carcs with links to my GitHub projects -->
     <section id="my-projects-view" aria-label="My GitHub projects">

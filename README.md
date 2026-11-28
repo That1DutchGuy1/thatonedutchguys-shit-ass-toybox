@@ -74,7 +74,7 @@
 
 * MLG Airhorn Toy
 * Robotnik Pingas Toy
-* King Harkinian Dinner Toy
+* King Harkinian Mah Boi Toy
 * Mama Luigi Toy
 * Mario Toast Toy
 
@@ -85,7 +85,10 @@
 * Weegee Toy
 * Spaghetti Toy
 * Michael Rosen Toy
-* Morshu Lamp Oil Toy
+* Morshu Toy
+* I.M. Meen Toy
+* CD-i Ganon Toy
+* CD-i Zelda Toy
 
 ---
 
@@ -220,6 +223,16 @@ Another fun fact: The font used is the actual fucking CD-i Zelda map font! 🤯
 * In the ABOUT documentation panel, you can click the MY PROJECTS button to see links to my other projects in card form! 🎴
 * Includes unique card art for each project card and a fucking rainbow button to each repo! 🌈
 * Also has a card to my itch.io first-person zombie game! 🧟
+
+---
+
+<p><strong><font size="5">☢️ NEW HUB UPDATE!</font></strong></p>
+
+<p><strong><font size="4">AYO! The HUB site just got a small new update! 🤯</font></strong></p>
+
+* Added a funny fake privacy policy, just to inform y'all I don't even collect data lol! 😂
+* Added three new toys to the Beeg Toybox panel! 🧸
+* Added a small settings menu managed by Morshu! ⚙️
 
 ---
 

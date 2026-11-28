@@ -658,8 +658,11 @@ h1 {
 #toys-panel {
   position: fixed;
   left: 20px;
-  top: 50%;
+  top: calc(50% + 30px);
   transform: translateY(-50%);
+  box-sizing: border-box;
+  max-height: calc(100vh - 240px);
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -668,6 +671,18 @@ h1 {
   border: 4px solid #333;
   border-radius: 20px;
   padding: 14px 14px 20px;
+    /* Hiding the scrollbar */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+#toys-panel::-webkit-scrollbar {
+  display: none;
+}
+
+body.fullscreen-layout #toys-panel {
+  top: 50%;
+  max-height: calc(100vh - 300px);
 }
 
 #toys-panel-label {
@@ -747,6 +762,50 @@ h1 {
 }
 .toy-btn.toy-morshu img {
   animation: morshu-lamp-oil 0.8s ease-in-out infinite;
+}
+.toy-btn.toy-im-meen img {
+  animation: im-meen-book-rage 1.1s ease-in-out infinite;
+}
+.toy-btn.toy-ganon img {
+  animation: ganon-cdi-hover 1.8s ease-in-out infinite;
+  transform-origin: 50% 70%;
+}
+.toy-btn.toy-zelda img {
+  animation: zelda-cdi-sarcasm 3.2s ease-in-out infinite;
+  transform-origin: 50% 78%;
+}
+
+@keyframes im-meen-book-rage {
+  0%, 100% { transform: translate(0, 0) rotate(0) scale(1); }
+  8%       { transform: translate(-5px, 3px) rotate(-9deg) scale(1.05); }
+  17%      { transform: translate(6px, -4px) rotate(12deg) scale(0.96); }
+  27%      { transform: translate(-8px, -2px) rotate(-15deg) scale(1.08); }
+  39%      { transform: translate(4px, 6px) rotate(7deg) scale(0.95); }
+  51%      { transform: translate(-3px, -7px) rotate(-18deg) scale(1.1); }
+  63%      { transform: translate(7px, 2px) rotate(13deg) scale(0.98); }
+  75%      { transform: translate(-6px, 5px) rotate(-11deg) scale(1.04); }
+  88%      { transform: translate(3px, -5px) rotate(16deg) scale(0.97); }
+}
+
+@keyframes ganon-cdi-hover {
+  0%, 100% { transform: translate(0, 0) rotate(-2deg) scale(1); }
+  12.5%    { transform: translate(3px, -7px) rotate(1deg) scale(1.01); }
+  25%      { transform: translate(6px, -15px) rotate(3deg) scale(1.03); }
+  37.5%    { transform: translate(2px, -10px) rotate(1deg) scale(1.02); }
+  50%      { transform: translate(-1px, -20px) rotate(-2deg) scale(1.04); }
+  62.5%    { transform: translate(-5px, -13px) rotate(-3deg) scale(1.02); }
+  75%      { transform: translate(-4px, -7px) rotate(-1deg) scale(1.01); }
+  87.5%    { transform: translate(2px, -12px) rotate(2deg) scale(1.03); }
+}
+
+@keyframes zelda-cdi-sarcasm {
+  0%, 100% { transform: translate(0, 0) rotate(0) scale(1); }
+  12%      { transform: translate(1px, -3px) rotate(1deg) scale(1.01); }
+  26%      { transform: translate(5px, -5px) rotate(4deg) scale(1.02); }
+  38%, 48% { transform: translate(6px, -9px) rotate(5deg) scale(1.04); }
+  58%      { transform: translate(1px, -6px) rotate(0) scale(1.03); }
+  70%, 80% { transform: translate(-5px, -4px) rotate(-4deg) scale(1.02); }
+  92%      { transform: translate(-2px, -6px) rotate(1deg) scale(1.03); }
 }
 
 @keyframes airhorn-blast {
@@ -1223,6 +1282,22 @@ body.about-active .my-projects-btn {
   display: block;
 }
 
+.settings-btn {
+  display: block;
+  position: fixed;
+  top: 84px;
+  right: auto;
+  left: 20px;
+  cursor: pointer;
+}
+
+body.about-active .settings-btn,
+body.beeg-toybox-active .settings-btn,
+body.meme-art-active .settings-btn,
+body.ytp-tv-active .settings-btn {
+  display: none;
+}
+
 /* =========================================
    BEEG TOYBOX BUTTON (below DVD-R button)
    ========================================= */
@@ -1433,6 +1508,8 @@ body.beeg-toybox-active #beeg-toybox-view {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  padding-top: 370px;
 }
 
 /* Hide all main content when BEEG TOYBOX is open, keep logos + h1 */
@@ -1448,6 +1525,7 @@ body.beeg-toybox-active #readme-view {
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex-shrink: 0;
   gap: 40px;
   border: 4px solid #333;
   border-radius: 20px;
@@ -1482,16 +1560,21 @@ body.beeg-toybox-active #readme-view {
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 40px 50px;
+  gap: 100px 50px;
 }
 
 /* Beeg toys are bigger than mini toys */
 #beeg-toys-container .toy-btn {
+  box-sizing: border-box;
+  flex: 0 0 180px;
   width: 180px;
+  height: 180px;
 }
 
 #beeg-toys-container .toy-btn img {
   width: 160px;
+  height: 160px;
+  object-fit: contain;
 }
 
 /* =========================================
@@ -1520,6 +1603,161 @@ body.beeg-toybox-active #readme-view {
 /* Toggled on <body> by script.js when ABOUT is active */
 body.about-active #readme-view {
   display: flex;
+}
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.18);
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.7s ease,
+    -webkit-backdrop-filter 0.7s ease,
+    backdrop-filter 0.7s ease,
+    visibility 0s linear 0.7s;
+}
+
+body.settings-open .settings-overlay {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.settings-panel {
+  position: relative;
+  box-sizing: border-box;
+  width: 700px;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+  padding: 38px 44px 30px;
+  border: 6px solid #222;
+  border-radius: 26px;
+  background:
+    linear-gradient(rgba(18, 10, 16, 0.22), rgba(18, 10, 16, 0.22)),
+    url("./hub-assets/settings-background.png") center / cover no-repeat;
+  box-shadow: 12px 12px 0 rgba(0, 0, 0, 0.4);
+  text-align: center;
+  opacity: 0;
+  transform: translateY(calc(100vh + 150px)) rotate(8deg) scale(0.82);
+  transition:
+    transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.35s ease;
+}
+
+body.settings-open .settings-panel {
+  opacity: 1;
+  transform: translateY(0) rotate(0) scale(1);
+}
+
+.settings-panel h2 {
+  margin: 0 0 12px;
+  font-family: 'Comic Sans MS', sans-serif;
+  font-size: 2.4rem;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: var(--black-text-outline);
+  text-shadow: none;
+  animation: spin-text-rainbow 2s linear infinite;
+}
+
+.settings-morshu {
+  display: block;
+  width: 190px;
+  height: 150px;
+  object-fit: contain;
+  margin: 0 auto 20px;
+  filter: drop-shadow(4px 5px 0 rgba(0, 0, 0, 0.35));
+}
+
+.settings-close,
+.settings-action-btn {
+  border: 3px solid #222;
+  border-radius: 12px;
+  padding: 9px 14px;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  color: #111;
+  font: bold 0.95rem 'Comic Sans MS', sans-serif;
+  filter: var(--black-text-outline);
+  text-shadow: none;
+  cursor: pointer;
+  animation: spin-text-rainbow 2s linear infinite;
+}
+
+.settings-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.settings-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 12px 0;
+  padding: 14px 18px;
+  border: 3px solid #ffee00;
+  border-radius: 14px;
+  color: #fc9700;
+  font-size: 1.25rem;
+  font-weight: bold;
+  filter: var(--black-text-outline);
+}
+
+.settings-volume-option {
+  display: block;
+  text-align: left;
+}
+
+.settings-volume-option label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-volume-option input {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  accent-color: #fc4700;
+}
+
+.settings-toggle-option input {
+  width: 26px;
+  height: 26px;
+  accent-color: #fc4700;
+  cursor: pointer;
+}
+
+#settings-status {
+  min-height: 1.3em;
+  margin: 12px 0;
+  color: #fff;
+  font-weight: bold;
+  filter: var(--black-text-outline);
+}
+
+.settings-close:hover,
+.settings-action-btn:hover {
+  transform: scale(1.06);
 }
 
 /* =========================================
@@ -1610,108 +1848,191 @@ body.about-active #readme-view {
 }
 
 /* =========================================
-   WIKI CONTENT
-   Mirrors all the readme-content styles
+   MARKDOWN CONTENT
+   Shared by local and fetched documents
    ========================================= */
-#wiki-content h1,
-#wiki-content h2,
-#wiki-content h3 {
-  background: none;
-  color: #d6009a;
-  -webkit-text-stroke: 0px;
-  -webkit-background-clip: unset;
-  background-clip: unset;
-  text-transform: none;
+.markdown-content {
+  color: #7CFC00;
   text-shadow: none;
-  animation: none;
 }
 
-#wiki-content h1 {
+.markdown-content * {
+  color: #7CFC00 !important;
+  text-shadow: none;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6,
+.markdown-content p,
+.markdown-content li:not(:has(p)),
+.markdown-content blockquote:not(:has(p)),
+.markdown-content pre code,
+.markdown-content table th,
+.markdown-content table td,
+.markdown-content dt,
+.markdown-content dd {
+  filter: var(--black-text-outline);
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6,
+.markdown-content font[size="6"],
+.markdown-content font[size="7"] {
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  color: transparent !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: spin-text-rainbow 2s linear infinite;
+}
+
+.markdown-content h1 {
   font-size: 2.3rem;
   text-align: center;
   margin-top: 0;
 }
 
-#wiki-content h2 {
+.markdown-content h2 {
   font-size: 1.6rem;
-  color: #ff6f00;
-  border-bottom: 3px dashed #ff6f00;
+  border-bottom: 3px dashed #7CFC00;
   padding-bottom: 6px;
 }
 
-#wiki-content h3 {
+.markdown-content h3 {
   font-size: 1.25rem;
-  color: #0088aa;
 }
 
-#wiki-content p,
-#wiki-content li {
+.markdown-content h4 {
+  font-size: 1.1rem;
+}
+
+.markdown-content h5 {
+  font-size: 1rem;
+}
+
+.markdown-content h6 {
+  font-size: 0.9rem;
+}
+
+.markdown-content p,
+.markdown-content li {
   font-size: 1.05rem;
   font-weight: normal;
   line-height: 1.6;
-  color: #1a1a1a;
-  -webkit-text-stroke: 0px;
-  text-shadow: none;
 }
 
-#wiki-content a {
-  color: #d6009a;
+.markdown-content a {
+  color: #FF13F0 !important;
+  text-decoration: none;
   font-weight: bold;
-}
-#wiki-content a:hover {
-  color: #ff6f00;
+  cursor: pointer;
 }
 
-#wiki-content code {
+.markdown-content code {
   background: #111;
-  color: #7CFC00;
   padding: 2px 6px;
   border-radius: 4px;
-  font-family: monospace;
-  -webkit-text-stroke: 0px;
-  text-shadow: none;
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
 }
 
-#wiki-content pre {
+.markdown-content pre {
   background: #111;
-  color: #7CFC00;
-  padding: 15px;
+  margin: 0;
+  padding: 15px 15px 48px;
   border-radius: 10px;
   overflow-x: auto;
-  -webkit-text-stroke: 0px;
-  text-shadow: none;
+  font-family: 'Comic Sans MS', sans-serif;
+  font-weight: bold;
 }
-#wiki-content pre code {
+
+.markdown-code-block {
+  position: relative;
+  margin: 1em 0;
+}
+
+.markdown-content .markdown-copy-button {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 1;
+  padding: 5px 9px;
+  border: 2px solid #222;
+  border-radius: 8px;
+  background: conic-gradient(
+    from var(--spin-angle),
+    red, orange, yellow, green, cyan, blue, magenta, red
+  );
+  color: #111 !important;
+  font: bold 0.8rem 'Comic Sans MS', sans-serif;
+  text-shadow: none;
+  filter: var(--black-text-outline);
+  cursor: pointer;
+  animation: spin-text-rainbow 2s linear infinite;
+}
+
+.markdown-copy-button:hover {
+  transform: scale(1.05);
+}
+
+.markdown-copy-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.markdown-content pre code {
   background: none;
   padding: 0;
 }
 
-#wiki-content blockquote {
-  border-left: 5px solid #ff00ff;
+.markdown-content blockquote {
+  position: relative;
+  border-left: 0;
   margin: 15px 0;
   padding: 6px 18px;
   font-style: italic;
   background: rgba(255, 255, 255, 0.4);
-  color: #1a1a1a;
 }
 
-#wiki-content table {
+.markdown-content blockquote::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 5px;
+  background: linear-gradient(to bottom, red, orange, yellow, green, cyan, blue, magenta);
+}
+
+.markdown-content table {
   width: 100%;
   border-collapse: collapse;
   margin: 15px 0;
 }
-#wiki-content th,
-#wiki-content td {
+
+.markdown-content th,
+.markdown-content td {
   border: 2px solid #333;
   padding: 6px 10px;
-  color: #1a1a1a;
-}
-#wiki-content th {
-  background: #333;
-  color: #fff;
 }
 
-#wiki-content img {
+.markdown-content th {
+  background: #333;
+}
+
+.markdown-content img {
   max-width: 100%;
   border-radius: 10px;
 }
@@ -1801,111 +2122,6 @@ body.about-projects-active #my-projects-view {
   text-shadow: none;
 }
 
-/* Reset headings inside the README so they stay readable on the
-   translucent panel instead of inheriting the page's spinning
-   rainbow h1 / text-stroke treatment. */
-#readme-content h1,
-#readme-content h2,
-#readme-content h3 {
-  background: none;
-  color: #d6009a;
-  -webkit-text-stroke: 0px;
-  -webkit-background-clip: unset;
-  background-clip: unset;
-  text-transform: none;
-  text-shadow: none;
-  animation: none;
-}
-
-#readme-content h1 {
-  font-size: 2.3rem;
-  text-align: center;
-  margin-top: 0;
-}
-
-#readme-content h2 {
-  font-size: 1.6rem;
-  color: #ff6f00;
-  border-bottom: 3px dashed #ff6f00;
-  padding-bottom: 6px;
-}
-
-#readme-content h3 {
-  font-size: 1.25rem;
-  color: #0088aa;
-}
-
-#readme-content p,
-#readme-content li {
-  font-size: 1.05rem;
-  font-weight: normal;
-  line-height: 1.6;
-  color: #1a1a1a;
-  -webkit-text-stroke: 0px;
-  text-shadow: none;
-}
-
-#readme-content a {
-  color: #d6009a;
-  font-weight: bold;
-}
-#readme-content a:hover {
-  color: #ff6f00;
-}
-
-#readme-content code {
-  background: #111;
-  color: #7CFC00;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: monospace;
-  -webkit-text-stroke: 0px;
-  text-shadow: none;
-}
-
-#readme-content pre {
-  background: #111;
-  color: #7CFC00;
-  padding: 15px;
-  border-radius: 10px;
-  overflow-x: auto;
-  -webkit-text-stroke: 0px;
-  text-shadow: none;
-}
-#readme-content pre code {
-  background: none;
-  padding: 0;
-}
-
-#readme-content blockquote {
-  border-left: 5px solid #ff00ff;
-  margin: 15px 0;
-  padding: 6px 18px;
-  font-style: italic;
-  background: rgba(255, 255, 255, 0.4);
-  color: #1a1a1a;
-}
-
-#readme-content table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 15px 0;
-}
-#readme-content th,
-#readme-content td {
-  border: 2px solid #333;
-  padding: 6px 10px;
-  color: #1a1a1a;
-}
-#readme-content th {
-  background: #333;
-  color: #fff;
-}
-
-#readme-content img {
-  max-width: 100%;
-  border-radius: 10px;
-}
 /* =========================================
    GAMEPAD / CONTROLLER NAVIGATION
    Visual "focus ring" for whichever button/toy/card is currently

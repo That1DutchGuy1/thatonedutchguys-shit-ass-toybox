@@ -2,6 +2,69 @@ let isAudioInitialized = false;
 let hubTheme = null;
 let isMusicPlaying = false;
 
+const DEFAULT_TOYBOX_SETTINGS = Object.freeze({
+    musicVolume: 100,
+    musicEnabled: true,
+    memePeekersEnabled: true,
+});
+const TOYBOX_SETTINGS_STORAGE_KEY = 'shit-ass-toybox-settings';
+
+function loadToyboxSettings() {
+    try {
+        const storedSettings = localStorage.getItem(TOYBOX_SETTINGS_STORAGE_KEY);
+        if (!storedSettings) return { ...DEFAULT_TOYBOX_SETTINGS };
+
+        const parsedSettings = JSON.parse(storedSettings);
+        return {
+            musicVolume: Number.isFinite(parsedSettings.musicVolume)
+                ? Math.max(0, Math.min(100, Math.round(parsedSettings.musicVolume)))
+                : DEFAULT_TOYBOX_SETTINGS.musicVolume,
+            musicEnabled: typeof parsedSettings.musicEnabled === 'boolean'
+                ? parsedSettings.musicEnabled
+                : DEFAULT_TOYBOX_SETTINGS.musicEnabled,
+            memePeekersEnabled: typeof parsedSettings.memePeekersEnabled === 'boolean'
+                ? parsedSettings.memePeekersEnabled
+                : DEFAULT_TOYBOX_SETTINGS.memePeekersEnabled,
+        };
+    } catch (error) {
+        console.error('Could not load saved Toybox settings:', error);
+        return { ...DEFAULT_TOYBOX_SETTINGS };
+    }
+}
+
+const toyboxSettings = loadToyboxSettings();
+let settingsStatusTimeout = null;
+
+function showSettingsStatus(message) {
+    const status = document.getElementById('settings-status');
+    if (!status) return;
+
+    window.clearTimeout(settingsStatusTimeout);
+    status.textContent = message;
+    settingsStatusTimeout = window.setTimeout(() => {
+        status.textContent = '';
+        settingsStatusTimeout = null;
+    }, 3000);
+}
+
+function saveToyboxSettings(statusMessage = 'Settings saved.') {
+    const isDefault = toyboxSettings.musicVolume === DEFAULT_TOYBOX_SETTINGS.musicVolume
+        && toyboxSettings.musicEnabled === DEFAULT_TOYBOX_SETTINGS.musicEnabled
+        && toyboxSettings.memePeekersEnabled === DEFAULT_TOYBOX_SETTINGS.memePeekersEnabled;
+
+    try {
+        if (isDefault) {
+            localStorage.removeItem(TOYBOX_SETTINGS_STORAGE_KEY);
+        } else {
+            localStorage.setItem(TOYBOX_SETTINGS_STORAGE_KEY, JSON.stringify(toyboxSettings));
+        }
+        showSettingsStatus(statusMessage);
+    } catch (error) {
+        console.error('Could not save Toybox settings:', error);
+        showSettingsStatus('Could not save settings; changes last only for this visit.');
+    }
+}
+
 async function detectWindows11() {
     const userAgentData = navigator.userAgentData;
     if (userAgentData?.platform !== 'Windows' || typeof userAgentData.getHighEntropyValues !== 'function') {
@@ -241,6 +304,7 @@ if (isPhone) {
             splashScreen.classList.add('splash-hidden');
             document.body.classList.remove('splash-active');
             if (pageContent) pageContent.inert = false;
+            initMemePeeker();
             shuffleGameCards();
             startMusic();
             return;
@@ -255,6 +319,7 @@ if (isPhone) {
                 splashScreen.classList.add('splash-hidden');
                 document.body.classList.remove('splash-active');
                 if (pageContent) pageContent.inert = false;
+                initMemePeeker();
                 shuffleGameCards();
                 startMusic();
             });
@@ -294,25 +359,34 @@ function startMusic() {
 
     hubTheme = new Audio('./hub-assets/hub-theme.mp3');
     hubTheme.loop = true;
-    hubTheme.play().catch(() => {});
-    isMusicPlaying = true;
+    hubTheme.volume = toyboxSettings.musicVolume / 100;
+    isMusicPlaying = toyboxSettings.musicEnabled;
+    if (isMusicPlaying) hubTheme.play().catch(() => {});
 
     updateMusicToggleBtn();
 
     const btn = document.getElementById('music-toggle');
     if (btn) {
-        btn.addEventListener('click', () => {
-            if (!hubTheme) return;
-            if (isMusicPlaying) {
-                hubTheme.pause();
-                isMusicPlaying = false;
-            } else {
-                hubTheme.play().catch(() => {});
-                isMusicPlaying = true;
-            }
-            updateMusicToggleBtn();
-        });
+        btn.addEventListener('click', () => setMusicEnabled(!toyboxSettings.musicEnabled));
     }
+}
+
+function setMusicEnabled(enabled, shouldSave = true) {
+    toyboxSettings.musicEnabled = enabled;
+    isMusicPlaying = enabled;
+
+    if (hubTheme) {
+        if (enabled) {
+            hubTheme.play().catch(() => {});
+        } else {
+            hubTheme.pause();
+        }
+    }
+
+    const settingsToggle = document.getElementById('settings-music-enabled');
+    if (settingsToggle) settingsToggle.checked = enabled;
+    updateMusicToggleBtn();
+    if (shouldSave) saveToyboxSettings();
 }
 
 function updateMusicToggleBtn() {
@@ -328,6 +402,98 @@ function updateMusicToggleBtn() {
         btn.setAttribute('aria-label', 'Music is off — click to turn on');
     }
 }
+
+const settingsMusicVolumeInput = document.getElementById('settings-music-volume');
+const settingsMusicVolumeValue = document.getElementById('settings-music-volume-value');
+const settingsMusicEnabledInput = document.getElementById('settings-music-enabled');
+const settingsMemePeekersInput = document.getElementById('settings-meme-peekers-enabled');
+const settingsResetBtn = document.getElementById('settings-reset');
+
+function syncSettingsControls() {
+    if (settingsMusicVolumeInput) settingsMusicVolumeInput.value = String(toyboxSettings.musicVolume);
+    if (settingsMusicVolumeValue) settingsMusicVolumeValue.textContent = `${toyboxSettings.musicVolume}%`;
+    if (settingsMusicEnabledInput) settingsMusicEnabledInput.checked = toyboxSettings.musicEnabled;
+    if (settingsMemePeekersInput) settingsMemePeekersInput.checked = toyboxSettings.memePeekersEnabled;
+}
+
+syncSettingsControls();
+
+if (settingsMusicVolumeInput) {
+    settingsMusicVolumeInput.addEventListener('input', () => {
+        toyboxSettings.musicVolume = Number(settingsMusicVolumeInput.value);
+        if (hubTheme) hubTheme.volume = toyboxSettings.musicVolume / 100;
+        if (settingsMusicVolumeValue) settingsMusicVolumeValue.textContent = `${toyboxSettings.musicVolume}%`;
+    });
+    settingsMusicVolumeInput.addEventListener('change', () => saveToyboxSettings());
+}
+
+if (settingsMusicEnabledInput) {
+    settingsMusicEnabledInput.addEventListener('change', () => setMusicEnabled(settingsMusicEnabledInput.checked));
+}
+
+if (settingsMemePeekersInput) {
+    settingsMemePeekersInput.addEventListener('change', () => {
+        setMemePeekersEnabled(settingsMemePeekersInput.checked);
+    });
+}
+
+if (settingsResetBtn) {
+    settingsResetBtn.addEventListener('click', () => {
+        toyboxSettings.musicVolume = DEFAULT_TOYBOX_SETTINGS.musicVolume;
+        if (hubTheme) hubTheme.volume = 1;
+        setMusicEnabled(DEFAULT_TOYBOX_SETTINGS.musicEnabled, false);
+        setMemePeekersEnabled(DEFAULT_TOYBOX_SETTINGS.memePeekersEnabled, false);
+        syncSettingsControls();
+        saveToyboxSettings('Settings reset to defaults.');
+    });
+}
+
+const settingsToggleBtn = document.getElementById('settings-toggle');
+const settingsOverlay = document.getElementById('settings-overlay');
+const settingsCloseBtn = document.getElementById('settings-close');
+const settingsMorshuImage = document.getElementById('settings-morshu');
+const settingsMorshuImageSource = settingsMorshuImage?.getAttribute('src');
+let settingsMorshuReplayCount = 0;
+let settingsReturnFocus = null;
+
+function openSettingsPanel() {
+    if (!settingsOverlay) return;
+    settingsReturnFocus = document.activeElement;
+    if (settingsMorshuImage && settingsMorshuImageSource) {
+        const separator = settingsMorshuImageSource.includes('?') ? '&' : '?';
+        settingsMorshuReplayCount += 1;
+        settingsMorshuImage.src = `${settingsMorshuImageSource}${separator}replay=${settingsMorshuReplayCount}`;
+    }
+    document.body.classList.add('settings-open');
+    settingsOverlay.setAttribute('aria-hidden', 'false');
+    if (settingsToggleBtn) settingsToggleBtn.setAttribute('aria-expanded', 'true');
+    if (settingsCloseBtn) settingsCloseBtn.focus();
+}
+
+function closeSettingsPanel() {
+    if (!document.body.classList.contains('settings-open') || !settingsOverlay) return;
+    document.body.classList.remove('settings-open');
+    settingsOverlay.setAttribute('aria-hidden', 'true');
+    if (settingsToggleBtn) settingsToggleBtn.setAttribute('aria-expanded', 'false');
+    if (settingsReturnFocus instanceof HTMLElement && settingsReturnFocus.isConnected) {
+        settingsReturnFocus.focus();
+    }
+}
+
+if (settingsToggleBtn) settingsToggleBtn.addEventListener('click', openSettingsPanel);
+if (settingsCloseBtn) settingsCloseBtn.addEventListener('click', closeSettingsPanel);
+if (settingsOverlay) {
+    settingsOverlay.addEventListener('click', event => {
+        if (event.target === settingsOverlay) closeSettingsPanel();
+    });
+}
+
+document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || !document.body.classList.contains('settings-open')) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    closeSettingsPanel();
+});
 
 // =========================================
 // TOYS PANEL
@@ -387,6 +553,9 @@ const BEEG_TOYS = [
     { id: 'spaghetti', label: 'SPAGHETTI', img: './hub-assets/Spaghetti.png', sounds: ['./hub-assets/hotel-luigi-spaghetti.mp3'], overlap: true, cssClass: 'toy-spaghetti' },
     { id: 'michael-rosen', label: 'MICHAEL ROSEN', img: './big-meme-quiz/assets/memes/michael-rosen.png', sounds: ['./whack-a-meme/assets/sounds/nice-score.mp3'], overlap: true, cssClass: 'toy-michael-rosen' },
     { id: 'morshu', label: 'MORSHU', img: './cd-i-meme-soundboard/assets/images/Morshu-CD-i.png', sounds: ['./cd-i-meme-soundboard/assets/soundeffects/Lamp-Oil.mp3'], overlap: true, cssClass: 'toy-morshu' },
+    { id: 'i.m. meen', label: 'I.M. MEEN', img: './i-m-meens-book-shred-simulator/assets/images/i-m-meen.png', sounds: ['./i-m-meens-book-shred-simulator/assets/sounds/I-M-Meen-LAUGH.mp3'], overlap: true, cssClass: 'toy-im-meen' },
+    { id: 'ganon', label: 'GANON', img: './whack-a-meme/assets/memes/Ganon-CD-i.png', sounds: ['./grand-meme-prix/assets/voicelines/ganon-hit.mp3'], overlap: true, cssClass: 'toy-ganon' },
+    { id: 'zelda', label: 'ZELDA', img: './whack-a-meme/assets/memes/Zelda-CD-i.png', sounds: ['./grand-meme-prix/assets/voicelines/zelda-hit.mp3'], overlap: true, cssClass: 'toy-zelda' },
 ];
 
 function buildToysPanel() {
@@ -499,7 +668,7 @@ if (beegToyboxToggleBtn && !isPhone) {
 // =========================================
 // EXTERNAL DOCS
 // These are hosted externally on my other GitHub repos, and are loaded dynamically into the About viewer!
-// They'll show up as extra pages after README and Wiki in the About viewer,
+// They'll show up after the local README, Wiki, and privacy policy pages,
 // navigated with the same left/right arrows. Easy peasy! 🎉
 // =========================================
 const EXTERNAL_DOCS = [
@@ -515,12 +684,13 @@ const EXTERNAL_DOCS = [
 { label: '🖼️ My Fucking Artwork', url: 'https://raw.githubusercontent.com/That1DutchGuy1/My-Fucking-Artwork/refs/heads/main/README.md' },
 { label: '🔊 Soundbuttons', url: 'https://raw.githubusercontent.com/That1DutchGuy1/That-One-Dutch-Guys-Soundbuttons/refs/heads/main/README.md' },
 { label: '📼 My YTP Videos', url: 'https://raw.githubusercontent.com/That1DutchGuy1/My-YTP-videos/refs/heads/main/README.md' },
-{ label: '🕺🏻 Terminal Rickroll', url: 'https://raw.githubusercontent.com/That1DutchGuy1/Terminal-Rickroll-for-Linux-Mint-22/refs/heads/main/README.md'}
+{ label: '🕺🏻 Terminal Rickroll', url: 'https://raw.githubusercontent.com/That1DutchGuy1/Terminal-Rickroll-for-Linux-Mint-22/refs/heads/main/README.md'},
+{ label: "🌐 That1DutchGuy's Meme New Tab", url: 'https://raw.githubusercontent.com/That1DutchGuy1/that1dutchguys-meme-newtab/refs/heads/main/README.md' },
 ];
 
 // =========================================
-// DOC SYSTEM — README (index 0) + Wiki (index 1) are hardcoded local files.
-// Any entries in EXTERNAL_DOCS get appended after them as indices 2, 3, 4...
+// DOC SYSTEM — README, Wiki, and privacy policy are local files.
+// Any entries in EXTERNAL_DOCS get appended after them.
 // The left/right arrows navigate through ALL of them in order.
 // =========================================
 const aboutToggleBtn   = document.getElementById('about-toggle');
@@ -528,6 +698,12 @@ const myProjectsToggleBtn = document.getElementById('my-projects-toggle');
 const projectCardsEl   = document.getElementById('project-cards');
 const readmeContentEl  = document.getElementById('readme-content');
 const wikiContentEl    = document.getElementById('wiki-content');
+const privacyPolicyContentEl = document.getElementById('privacy-policy-content');
+const localDocContentEls = {
+    readme: readmeContentEl,
+    wiki: wikiContentEl,
+    privacy: privacyPolicyContentEl,
+};
 const docTitleLabel    = document.getElementById('doc-title-label');
 const arrowLeft        = document.getElementById('doc-arrow-left');
 const arrowRight       = document.getElementById('doc-arrow-right');
@@ -642,10 +818,11 @@ function renderProjectCards() {
 
 renderProjectCards();
 
-// Build the full doc list: README (0), Wiki (1), then external docs (2+)
+// Build the full doc list: local documents first, then external docs.
 const DOC_LIST = [
     { id: 'readme', label: '📖 README.md',  local: true  },
     { id: 'wiki',   label: '📚 Wiki.md',    local: true  },
+    { id: 'privacy', label: '🔒 privacy-policy.md', local: true },
     ...EXTERNAL_DOCS.map((d, i) => ({
         id:    'ext-' + i,
         label: d.label,
@@ -669,6 +846,65 @@ function setMyProjectsOpen(open) {
 const docLoadState = {};
 // Cache for fetched external markdown HTML (keyed by doc id)
 const docContentCache = {};
+
+function addMarkdownCodeCopyButtons(containerEl) {
+    containerEl.querySelectorAll('pre > code').forEach(code => {
+        const pre = code.parentElement;
+        const wrapper = document.createElement('div');
+        const button = document.createElement('button');
+
+        wrapper.className = 'markdown-code-block';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        button.type = 'button';
+        button.className = 'markdown-copy-button';
+        button.textContent = '📋 COPY';
+        button.setAttribute('aria-label', 'Copy code block');
+        button.title = 'Copy code to clipboard';
+        wrapper.appendChild(button);
+    });
+}
+
+document.addEventListener('click', event => {
+    if (!(event.target instanceof Element)) return;
+    const button = event.target.closest('.markdown-copy-button');
+    if (!(button instanceof HTMLButtonElement)) return;
+
+    const code = button.closest('.markdown-code-block')?.querySelector('pre > code');
+    if (!code) {
+        console.error('Markdown copy button has no associated code block.');
+        button.textContent = 'ERROR';
+        button.title = 'Could not find the code block.';
+        return;
+    }
+
+    if (!navigator.clipboard?.writeText) {
+        button.textContent = 'UNAVAILABLE';
+        button.title = 'Clipboard access is unavailable in this browser or context.';
+        return;
+    }
+
+    button.disabled = true;
+    navigator.clipboard.writeText(code.textContent || '')
+        .then(() => {
+            button.textContent = 'COPIED!';
+            button.title = 'Copied code to clipboard';
+            setTimeout(() => {
+                if (!button.isConnected) return;
+                button.textContent = '📋 COPY';
+                button.title = 'Copy code to clipboard';
+            }, 1800);
+        })
+        .catch(error => {
+            console.error('Could not copy Markdown code block:', error);
+            button.textContent = 'FAILED';
+            button.title = error instanceof Error ? error.message : 'Clipboard copy failed.';
+        })
+        .finally(() => {
+            button.disabled = false;
+        });
+});
 
 function setAboutOpen(open) {
     aboutIsOpen = open;
@@ -707,20 +943,17 @@ function navigateToDoc(index) {
     if (arrowRight) arrowRight.title = index < DOC_LIST.length - 1    ? DOC_LIST[index + 1].label : '';
 
     // Show/hide the right content container and load if needed
-    if (doc.id === 'readme') {
-        readmeContentEl.style.display = '';
-        wikiContentEl.style.display   = 'none';
-        hideAllExternalDocEls();
-        if (!docLoadState['readme']) loadLocalDoc('readme');
-    } else if (doc.id === 'wiki') {
-        readmeContentEl.style.display = 'none';
-        wikiContentEl.style.display   = '';
-        hideAllExternalDocEls();
-        if (!docLoadState['wiki']) loadLocalDoc('wiki');
+    Object.values(localDocContentEls).forEach(el => {
+        if (el) el.style.display = 'none';
+    });
+    hideAllExternalDocEls();
+
+    if (doc.local) {
+        const el = localDocContentEls[doc.id];
+        if (!el) return;
+        el.style.display = '';
+        if (!docLoadState[doc.id]) loadLocalDoc(doc.id);
     } else {
-        // External doc
-        readmeContentEl.style.display = 'none';
-        wikiContentEl.style.display   = 'none';
         showExternalDoc(doc);
     }
 }
@@ -730,12 +963,17 @@ function hideAllExternalDocEls() {
     document.querySelectorAll('.ext-doc-content').forEach(el => el.style.display = 'none');
 }
 
-// ── Local doc loader (README + Wiki stay exactly as before) ──────────────────
+// ── Local doc loader ─────────────────────────────────────────────────────────
 
 function loadLocalDoc(which) {
     docLoadState[which] = 'loading';
-    const el       = which === 'readme' ? readmeContentEl : wikiContentEl;
-    const filename = which === 'readme' ? 'README.md' : 'Wiki.md';
+    const el = localDocContentEls[which];
+    const filename = {
+        readme: 'README.md',
+        wiki: 'Wiki.md',
+        privacy: 'privacy-policy.md',
+    }[which];
+    if (!el || !filename) throw new Error('Unknown local document: ' + which);
 
     fetch(filename)
         .then(res => {
@@ -744,6 +982,7 @@ function loadLocalDoc(which) {
         })
         .then(markdown => {
             el.innerHTML = marked.parse(markdown);
+            addMarkdownCodeCopyButtons(el);
             docLoadState[which] = 'done';
         })
         .catch(err => {
@@ -804,7 +1043,7 @@ function showExternalDoc(doc) {
     if (!el) {
         el = document.createElement('div');
         el.id        = 'ext-doc-' + doc.id;
-        el.className = 'ext-doc-content';
+        el.className = 'ext-doc-content markdown-content';
         // Insert it after wiki-content inside readme-panel
         const panel = document.getElementById('readme-panel');
         if (panel) panel.appendChild(el);
@@ -826,6 +1065,7 @@ function showExternalDoc(doc) {
         })
         .then(markdown => {
             el.innerHTML = marked.parse(markdown);
+            addMarkdownCodeCopyButtons(el);
             rewriteRelativeUrls(el, doc.url);
             docLoadState[doc.id] = 'done';
         })
@@ -999,6 +1239,7 @@ function initGamepadNav() {
     function getContext() {
         if (document.body.classList.contains('windows11-warning-active')) return 'windows11-warning';
         if (document.body.classList.contains('splash-active'))       return 'splash';
+        if (document.body.classList.contains('settings-open'))       return 'settings';
         if (document.body.classList.contains('about-active'))        return 'about';
         if (document.body.classList.contains('beeg-toybox-active'))  return 'beeg';
         if (document.body.classList.contains('meme-art-active'))     return 'meme-art';
@@ -1010,6 +1251,7 @@ function initGamepadNav() {
         const ctx = getContext();
         const about = document.getElementById('about-toggle');
         const myProjects = document.getElementById('my-projects-toggle');
+        const settings = document.getElementById('settings-toggle');
         const music = document.getElementById('music-toggle');
         const beeg  = document.getElementById('beeg-toybox-toggle');
         const memeArt = document.getElementById('meme-art-toggle');
@@ -1021,6 +1263,15 @@ function initGamepadNav() {
         if (ctx === 'splash') {
             return [document.getElementById('splash-enter'), document.getElementById('splash-leave')]
                 .filter(Boolean);
+        }
+        if (ctx === 'settings') {
+            return [
+                document.getElementById('settings-close'),
+                document.getElementById('settings-music-volume'),
+                document.getElementById('settings-music-enabled'),
+                document.getElementById('settings-meme-peekers-enabled'),
+                document.getElementById('settings-reset'),
+            ].filter(Boolean);
         }
         if (ctx === 'about') {
             const els = [about, myProjects].filter(Boolean);
@@ -1062,6 +1313,7 @@ function initGamepadNav() {
         }
         const els = [];
         if (about) els.push(about);
+        if (settings) els.push(settings);
         if (beeg)  els.push(beeg);
         if (memeArt) els.push(memeArt);
         if (ytpTv) els.push(ytpTv);
@@ -1073,6 +1325,7 @@ function initGamepadNav() {
 
     function getScrollTarget() {
         const ctx = getContext();
+        if (ctx === 'settings') return document.getElementById('settings-panel');
         if (ctx === 'about')  return document.getElementById('readme-view');
         if (ctx === 'splash') return document.getElementById('warning-splash');
         if (ctx === 'meme-art') return document.getElementById('meme-art-view');
@@ -1103,6 +1356,18 @@ function initGamepadNav() {
         // convert into synthetic pointermove, immediately flipping back to pointer mode.
         const r = selectedEl.getBoundingClientRect();
         const margin = 20;
+        const panel = getContext() === 'settings'
+            ? document.getElementById('settings-panel')
+            : selectedEl.closest('#toys-panel');
+        if (panel) {
+            const panelRect = panel.getBoundingClientRect();
+            if (r.bottom > panelRect.bottom - margin) {
+                panel.scrollBy({ top: r.bottom - panelRect.bottom + margin, behavior: 'smooth' });
+            } else if (r.top < panelRect.top + margin) {
+                panel.scrollBy({ top: r.top - panelRect.top - margin, behavior: 'smooth' });
+            }
+            return;
+        }
         if (r.bottom > window.innerHeight - margin)
             window.scrollBy({ top: r.bottom - window.innerHeight + margin, behavior: 'smooth' });
         else if (r.top < margin)
@@ -1158,6 +1423,7 @@ function initGamepadNav() {
     function activateSelection() {
         enterGamepadMode();
         if (!selectedEl) return; // enterGamepadMode → refreshSelection already picked one; bail cleanly
+        if (selectedEl instanceof HTMLInputElement && selectedEl.type === 'range') return;
         if (selectedEl.classList.contains('game-card')) {
             const link = selectedEl.querySelector('.play-button');
             if (link) { link.click(); return; }
@@ -1167,7 +1433,10 @@ function initGamepadNav() {
 
     function goBack() {
         enterGamepadMode();
-        if (getContext() === 'about') {
+        if (getContext() === 'settings') {
+            const btn = document.getElementById('settings-close');
+            if (btn) btn.click();
+        } else if (getContext() === 'about') {
             const btn = document.getElementById('about-toggle');
             if (btn) btn.click();
         } else if (getContext() === 'beeg') {
@@ -1855,7 +2124,19 @@ ytpFullscreenBtn.addEventListener('click', () => {
 
 document.addEventListener('fullscreenchange', () => {
     ytpFullscreenBtn.textContent = document.fullscreenElement ? '⛶✖' : '⛶';
+    syncFullscreenLayout();
 });
+
+function syncFullscreenLayout() {
+    const screenWidth = window.screen.availWidth || window.screen.width;
+    const screenHeight = window.screen.availHeight || window.screen.height;
+    const browserFullscreen = window.innerWidth >= screenWidth - 1
+        && window.innerHeight >= screenHeight - 1;
+    document.body.classList.toggle('fullscreen-layout', Boolean(document.fullscreenElement) || browserFullscreen);
+}
+
+window.addEventListener('resize', syncFullscreenLayout);
+syncFullscreenLayout();
 
 // ---- Click on video area to toggle play ----
 ytpTvPlayerWrap.addEventListener('click', (e) => {
@@ -1925,9 +2206,39 @@ const PEEKER_PEEK_MIN     =  3 * 1000;
 const PEEKER_PEEK_MAX     =  8 * 1000;
 const PEEKER_LOOK_PAUSES  = [400, 700, 1000, 1300];
 
-(function initMemePeeker() {
+let memePeekerInitialized = false;
+let memePeekerGeneration = 0;
+
+function setMemePeekersEnabled(enabled, shouldSave = true) {
+    toyboxSettings.memePeekersEnabled = enabled;
+
+    if (enabled) {
+        const warningsCleared = !document.body.classList.contains('platform-detection-pending')
+            && !document.body.classList.contains('windows11-warning-active')
+            && !document.body.classList.contains('splash-active');
+        if (warningsCleared) initMemePeeker();
+    } else {
+        memePeekerGeneration++;
+        memePeekerInitialized = false;
+        document.getElementById('meme-peeker-container')?.remove();
+    }
+
+    if (settingsMemePeekersInput) settingsMemePeekersInput.checked = enabled;
+    if (shouldSave) saveToyboxSettings();
+}
+
+function initMemePeeker() {
+    if (memePeekerInitialized) return;
     if (typeof isPhone !== 'undefined' && isPhone) return;
+    if (!toyboxSettings.memePeekersEnabled) return;
     if (!PEEKER_MEMES || PEEKER_MEMES.length === 0) return;
+    memePeekerInitialized = true;
+    const generation = ++memePeekerGeneration;
+    const isCurrentGeneration = () => generation === memePeekerGeneration
+        && toyboxSettings.memePeekersEnabled;
+    const schedulePeekerTimeout = (callback, delay) => setTimeout(() => {
+        if (isCurrentGeneration()) callback();
+    }, delay);
 
     // Container: fixed, anchored to the bottom, zero height so images
     // overflow upward. Left/right bounds are set in JS dynamically.
@@ -2024,14 +2335,14 @@ const PEEKER_LOOK_PAUSES  = [400, 700, 1000, 1300];
         if (flipCount <= 0) {
             if (isFlipped) {
                 applyTransform(img, visiblePx, false, 'transform 0.35s ease-in-out');
-                setTimeout(done, 380);
+                schedulePeekerTimeout(done, 380);
             } else {
                 done();
             }
             return;
         }
         const pause = randItem(PEEKER_LOOK_PAUSES);
-        setTimeout(() => {
+        schedulePeekerTimeout(() => {
             const nowFlipped = !isFlipped;
             applyTransform(img, visiblePx, nowFlipped, 'transform 0.35s ease-in-out');
             doLookAround(img, visiblePx, flipCount - 1, nowFlipped, done);
@@ -2039,6 +2350,7 @@ const PEEKER_LOOK_PAUSES  = [400, 700, 1000, 1300];
     }
 
     function runPeeker() {
+        if (!isCurrentGeneration()) return;
         const meme    = weightedPickMeme();
         const img     = document.createElement('img');
         img.className = 'meme-peeker';
@@ -2048,6 +2360,7 @@ const PEEKER_LOOK_PAUSES  = [400, 700, 1000, 1300];
         activePeeker  = img;
 
         img.onload = function () {
+            if (!isCurrentGeneration()) return;
             const imgH      = img.offsetHeight || 120;
             const imgW      = img.offsetWidth  || 120;
             const visiblePx = getVisiblePx(imgH, img._peekAmt);
@@ -2060,31 +2373,36 @@ const PEEKER_LOOK_PAUSES  = [400, 700, 1000, 1300];
             img.style.transform  = `translateY(${imgH}px)`;
 
             // Double rAF so the browser paints the hidden start before animating.
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                // Slide up into peek position.
-                applyTransform(img, visiblePx, false,
-                    'transform 0.9s cubic-bezier(0.22, 1, 0.36, 1)');
+            requestAnimationFrame(() => {
+                if (!isCurrentGeneration()) return;
+                requestAnimationFrame(() => {
+                    if (!isCurrentGeneration()) return;
+                    // Slide up into peek position.
+                    applyTransform(img, visiblePx, false,
+                        'transform 0.9s cubic-bezier(0.22, 1, 0.36, 1)');
 
-                // After slide-in settles, do the look-around then auto-hide.
-                setTimeout(() => {
-                    const flipCount = randInt(1, 4);
-                    doLookAround(img, visiblePx, flipCount, false, () => {
-                        const peekDuration = randBetween(PEEKER_PEEK_MIN, PEEKER_PEEK_MAX);
-                        setTimeout(() => {
-                            hiddenTransform(img);
-                            setTimeout(() => {
-                                if (img.parentNode) img.remove();
-                                activePeeker = null;
-                                scheduleNext();
-                            }, 1200);
-                        }, peekDuration);
-                    });
-                }, 950);
-            }));
+                    // After slide-in settles, do the look-around then auto-hide.
+                    schedulePeekerTimeout(() => {
+                        const flipCount = randInt(1, 4);
+                        doLookAround(img, visiblePx, flipCount, false, () => {
+                            const peekDuration = randBetween(PEEKER_PEEK_MIN, PEEKER_PEEK_MAX);
+                            schedulePeekerTimeout(() => {
+                                hiddenTransform(img);
+                                schedulePeekerTimeout(() => {
+                                    if (img.parentNode) img.remove();
+                                    activePeeker = null;
+                                    scheduleNext();
+                                }, 1200);
+                            }, peekDuration);
+                        });
+                    }, 950);
+                });
+            });
         };
 
         img.onerror = function () {
             img.remove();
+            if (!isCurrentGeneration()) return;
             activePeeker = null;
             scheduleNext();
         };
@@ -2101,15 +2419,16 @@ const PEEKER_LOOK_PAUSES  = [400, 700, 1000, 1300];
     }
 
     function scheduleNext() {
+        if (!isCurrentGeneration()) return;
         const delay = randBetween(PEEKER_INTERVAL_MIN, PEEKER_INTERVAL_MAX);
-        setTimeout(() => {
+        schedulePeekerTimeout(() => {
             if (!isPanelOpen() && !activePeeker) {
                 runPeeker();
             } else {
-                setTimeout(() => { if (!activePeeker) scheduleNext(); }, 10000);
+                schedulePeekerTimeout(() => { if (!activePeeker) scheduleNext(); }, 10000);
             }
         }, delay);
     }
 
     scheduleNext();
-})();
+}
